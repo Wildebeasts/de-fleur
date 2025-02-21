@@ -12,18 +12,27 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as TestimonialsImport } from './routes/testimonials'
+import { Route as SocialaccountImport } from './routes/social_account'
 import { Route as ShopDetailsImport } from './routes/shopDetails'
 import { Route as ShopImport } from './routes/shop'
+import { Route as ReviewImport } from './routes/review'
 import { Route as RegisterImport } from './routes/register'
 import { Route as QuizresultImport } from './routes/quiz_result'
 import { Route as QuizImport } from './routes/quiz'
+import { Route as OrdertrackImport } from './routes/order_track'
+import { Route as OrderinstructImport } from './routes/order_instruct'
+import { Route as OrderhistoryImport } from './routes/order_history'
 import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
 import { Route as GlossaryImport } from './routes/glossary'
+import { Route as FeedbackImport } from './routes/feedback'
+import { Route as FaqImport } from './routes/faq'
 import { Route as CollectionsImport } from './routes/collections'
+import { Route as CheckoutImport } from './routes/checkout'
 import { Route as CartImport } from './routes/cart'
 import { Route as BrandlistImport } from './routes/brand_list'
 import { Route as BlogImport } from './routes/blog'
+import { Route as AccountmanageImport } from './routes/account_manage'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
@@ -32,6 +41,12 @@ import { Route as IndexImport } from './routes/index'
 const TestimonialsRoute = TestimonialsImport.update({
   id: '/testimonials',
   path: '/testimonials',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SocialaccountRoute = SocialaccountImport.update({
+  id: '/social_account',
+  path: '/social_account',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -44,6 +59,12 @@ const ShopDetailsRoute = ShopDetailsImport.update({
 const ShopRoute = ShopImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ReviewRoute = ReviewImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -65,6 +86,24 @@ const QuizRoute = QuizImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const OrdertrackRoute = OrdertrackImport.update({
+  id: '/order_track',
+  path: '/order_track',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const OrderinstructRoute = OrderinstructImport.update({
+  id: '/order_instruct',
+  path: '/order_instruct',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const OrderhistoryRoute = OrderhistoryImport.update({
+  id: '/order_history',
+  path: '/order_history',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const LoginRoute = LoginImport.update({
   id: '/login',
   path: '/login',
@@ -83,9 +122,27 @@ const GlossaryRoute = GlossaryImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const FeedbackRoute = FeedbackImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const FaqRoute = FaqImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const CollectionsRoute = CollectionsImport.update({
   id: '/collections',
   path: '/collections',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const CheckoutRoute = CheckoutImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -104,6 +161,12 @@ const BrandlistRoute = BrandlistImport.update({
 const BlogRoute = BlogImport.update({
   id: '/blog',
   path: '/blog',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AccountmanageRoute = AccountmanageImport.update({
+  id: '/account_manage',
+  path: '/account_manage',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -137,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutImport
       parentRoute: typeof rootRoute
     }
+    '/account_manage': {
+      id: '/account_manage'
+      path: '/account_manage'
+      fullPath: '/account_manage'
+      preLoaderRoute: typeof AccountmanageImport
+      parentRoute: typeof rootRoute
+    }
     '/blog': {
       id: '/blog'
       path: '/blog'
@@ -158,11 +228,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CartImport
       parentRoute: typeof rootRoute
     }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutImport
+      parentRoute: typeof rootRoute
+    }
     '/collections': {
       id: '/collections'
       path: '/collections'
       fullPath: '/collections'
       preLoaderRoute: typeof CollectionsImport
+      parentRoute: typeof rootRoute
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqImport
+      parentRoute: typeof rootRoute
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackImport
       parentRoute: typeof rootRoute
     }
     '/glossary': {
@@ -186,6 +277,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
+    '/order_history': {
+      id: '/order_history'
+      path: '/order_history'
+      fullPath: '/order_history'
+      preLoaderRoute: typeof OrderhistoryImport
+      parentRoute: typeof rootRoute
+    }
+    '/order_instruct': {
+      id: '/order_instruct'
+      path: '/order_instruct'
+      fullPath: '/order_instruct'
+      preLoaderRoute: typeof OrderinstructImport
+      parentRoute: typeof rootRoute
+    }
+    '/order_track': {
+      id: '/order_track'
+      path: '/order_track'
+      fullPath: '/order_track'
+      preLoaderRoute: typeof OrdertrackImport
+      parentRoute: typeof rootRoute
+    }
     '/quiz': {
       id: '/quiz'
       path: '/quiz'
@@ -207,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterImport
       parentRoute: typeof rootRoute
     }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewImport
+      parentRoute: typeof rootRoute
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -219,6 +338,13 @@ declare module '@tanstack/react-router' {
       path: '/shopDetails'
       fullPath: '/shopDetails'
       preLoaderRoute: typeof ShopDetailsImport
+      parentRoute: typeof rootRoute
+    }
+    '/social_account': {
+      id: '/social_account'
+      path: '/social_account'
+      fullPath: '/social_account'
+      preLoaderRoute: typeof SocialaccountImport
       parentRoute: typeof rootRoute
     }
     '/testimonials': {
@@ -236,36 +362,54 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account_manage': typeof AccountmanageRoute
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
+  '/faq': typeof FaqRoute
+  '/feedback': typeof FeedbackRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
+  '/order_history': typeof OrderhistoryRoute
+  '/order_instruct': typeof OrderinstructRoute
+  '/order_track': typeof OrdertrackRoute
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/review': typeof ReviewRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
+  '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account_manage': typeof AccountmanageRoute
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
+  '/faq': typeof FaqRoute
+  '/feedback': typeof FeedbackRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
+  '/order_history': typeof OrderhistoryRoute
+  '/order_instruct': typeof OrderinstructRoute
+  '/order_track': typeof OrdertrackRoute
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/review': typeof ReviewRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
+  '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
 }
 
@@ -273,18 +417,27 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account_manage': typeof AccountmanageRoute
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/collections': typeof CollectionsRoute
+  '/faq': typeof FaqRoute
+  '/feedback': typeof FeedbackRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
+  '/order_history': typeof OrderhistoryRoute
+  '/order_instruct': typeof OrderinstructRoute
+  '/order_track': typeof OrdertrackRoute
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/review': typeof ReviewRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
+  '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
 }
 
@@ -293,52 +446,79 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/account_manage'
     | '/blog'
     | '/brand_list'
     | '/cart'
+    | '/checkout'
     | '/collections'
+    | '/faq'
+    | '/feedback'
     | '/glossary'
     | '/journal'
     | '/login'
+    | '/order_history'
+    | '/order_instruct'
+    | '/order_track'
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/review'
     | '/shop'
     | '/shopDetails'
+    | '/social_account'
     | '/testimonials'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/account_manage'
     | '/blog'
     | '/brand_list'
     | '/cart'
+    | '/checkout'
     | '/collections'
+    | '/faq'
+    | '/feedback'
     | '/glossary'
     | '/journal'
     | '/login'
+    | '/order_history'
+    | '/order_instruct'
+    | '/order_track'
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/review'
     | '/shop'
     | '/shopDetails'
+    | '/social_account'
     | '/testimonials'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/account_manage'
     | '/blog'
     | '/brand_list'
     | '/cart'
+    | '/checkout'
     | '/collections'
+    | '/faq'
+    | '/feedback'
     | '/glossary'
     | '/journal'
     | '/login'
+    | '/order_history'
+    | '/order_instruct'
+    | '/order_track'
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/review'
     | '/shop'
     | '/shopDetails'
+    | '/social_account'
     | '/testimonials'
   fileRoutesById: FileRoutesById
 }
@@ -346,36 +526,54 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AccountmanageRoute: typeof AccountmanageRoute
   BlogRoute: typeof BlogRoute
   BrandlistRoute: typeof BrandlistRoute
   CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
   CollectionsRoute: typeof CollectionsRoute
+  FaqRoute: typeof FaqRoute
+  FeedbackRoute: typeof FeedbackRoute
   GlossaryRoute: typeof GlossaryRoute
   JournalRoute: typeof JournalRoute
   LoginRoute: typeof LoginRoute
+  OrderhistoryRoute: typeof OrderhistoryRoute
+  OrderinstructRoute: typeof OrderinstructRoute
+  OrdertrackRoute: typeof OrdertrackRoute
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
+  ReviewRoute: typeof ReviewRoute
   ShopRoute: typeof ShopRoute
   ShopDetailsRoute: typeof ShopDetailsRoute
+  SocialaccountRoute: typeof SocialaccountRoute
   TestimonialsRoute: typeof TestimonialsRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AccountmanageRoute: AccountmanageRoute,
   BlogRoute: BlogRoute,
   BrandlistRoute: BrandlistRoute,
   CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
   CollectionsRoute: CollectionsRoute,
+  FaqRoute: FaqRoute,
+  FeedbackRoute: FeedbackRoute,
   GlossaryRoute: GlossaryRoute,
   JournalRoute: JournalRoute,
   LoginRoute: LoginRoute,
+  OrderhistoryRoute: OrderhistoryRoute,
+  OrderinstructRoute: OrderinstructRoute,
+  OrdertrackRoute: OrdertrackRoute,
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
+  ReviewRoute: ReviewRoute,
   ShopRoute: ShopRoute,
   ShopDetailsRoute: ShopDetailsRoute,
+  SocialaccountRoute: SocialaccountRoute,
   TestimonialsRoute: TestimonialsRoute,
 }
 
@@ -391,18 +589,27 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/about",
+        "/account_manage",
         "/blog",
         "/brand_list",
         "/cart",
+        "/checkout",
         "/collections",
+        "/faq",
+        "/feedback",
         "/glossary",
         "/journal",
         "/login",
+        "/order_history",
+        "/order_instruct",
+        "/order_track",
         "/quiz",
         "/quiz_result",
         "/register",
+        "/review",
         "/shop",
         "/shopDetails",
+        "/social_account",
         "/testimonials"
       ]
     },
@@ -411,6 +618,9 @@ export const routeTree = rootRoute
     },
     "/about": {
       "filePath": "about.tsx"
+    },
+    "/account_manage": {
+      "filePath": "account_manage.tsx"
     },
     "/blog": {
       "filePath": "blog.tsx"
@@ -421,8 +631,17 @@ export const routeTree = rootRoute
     "/cart": {
       "filePath": "cart.tsx"
     },
+    "/checkout": {
+      "filePath": "checkout.tsx"
+    },
     "/collections": {
       "filePath": "collections.tsx"
+    },
+    "/faq": {
+      "filePath": "faq.tsx"
+    },
+    "/feedback": {
+      "filePath": "feedback.tsx"
     },
     "/glossary": {
       "filePath": "glossary.tsx"
@@ -433,6 +652,15 @@ export const routeTree = rootRoute
     "/login": {
       "filePath": "login.tsx"
     },
+    "/order_history": {
+      "filePath": "order_history.tsx"
+    },
+    "/order_instruct": {
+      "filePath": "order_instruct.tsx"
+    },
+    "/order_track": {
+      "filePath": "order_track.tsx"
+    },
     "/quiz": {
       "filePath": "quiz.tsx"
     },
@@ -442,11 +670,17 @@ export const routeTree = rootRoute
     "/register": {
       "filePath": "register.tsx"
     },
+    "/review": {
+      "filePath": "review.tsx"
+    },
     "/shop": {
       "filePath": "shop.tsx"
     },
     "/shopDetails": {
       "filePath": "shopDetails.tsx"
+    },
+    "/social_account": {
+      "filePath": "social_account.tsx"
     },
     "/testimonials": {
       "filePath": "testimonials.tsx"
