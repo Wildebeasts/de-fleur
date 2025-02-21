@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as TestimonialsImport } from './routes/testimonials'
 import { Route as ShopDetailsImport } from './routes/shopDetails'
 import { Route as ShopImport } from './routes/shop'
+import { Route as SalesCustomerInsightsImport } from './routes/sales-customer-insights'
 import { Route as RegisterImport } from './routes/register'
 import { Route as QuizresultImport } from './routes/quiz_result'
 import { Route as QuizImport } from './routes/quiz'
@@ -44,6 +45,12 @@ const ShopDetailsRoute = ShopDetailsImport.update({
 const ShopRoute = ShopImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const SalesCustomerInsightsRoute = SalesCustomerInsightsImport.update({
+  id: '/sales-customer-insights',
+  path: '/sales-customer-insights',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -207,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterImport
       parentRoute: typeof rootRoute
     }
+    '/sales-customer-insights': {
+      id: '/sales-customer-insights'
+      path: '/sales-customer-insights'
+      fullPath: '/sales-customer-insights'
+      preLoaderRoute: typeof SalesCustomerInsightsImport
+      parentRoute: typeof rootRoute
+    }
     '/shop': {
       id: '/shop'
       path: '/shop'
@@ -246,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/testimonials': typeof TestimonialsRoute
@@ -264,6 +279,7 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/testimonials': typeof TestimonialsRoute
@@ -283,6 +299,7 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/testimonials': typeof TestimonialsRoute
@@ -303,6 +320,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/testimonials'
@@ -320,6 +338,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/testimonials'
@@ -337,6 +356,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/testimonials'
@@ -356,6 +376,7 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
+  SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
   ShopRoute: typeof ShopRoute
   ShopDetailsRoute: typeof ShopDetailsRoute
   TestimonialsRoute: typeof TestimonialsRoute
@@ -374,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
+  SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
   ShopRoute: ShopRoute,
   ShopDetailsRoute: ShopDetailsRoute,
   TestimonialsRoute: TestimonialsRoute,
@@ -401,6 +423,7 @@ export const routeTree = rootRoute
         "/quiz",
         "/quiz_result",
         "/register",
+        "/sales-customer-insights",
         "/shop",
         "/shopDetails",
         "/testimonials"
@@ -441,6 +464,9 @@ export const routeTree = rootRoute
     },
     "/register": {
       "filePath": "register.tsx"
+    },
+    "/sales-customer-insights": {
+      "filePath": "sales-customer-insights.tsx"
     },
     "/shop": {
       "filePath": "shop.tsx"
