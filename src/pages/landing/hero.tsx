@@ -18,20 +18,6 @@ const LeafDecoration = ({ className }: { className?: string }) => (
   </svg>
 )
 
-const WaveDecoration = () => (
-  <svg
-    className="absolute bottom-0 left-0 w-full text-orange-100"
-    viewBox="0 0 1440 120"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M0 0L48 8.875C96 17.75 192 35.5 288 44.375C384 53.25 480 53.25 576 44.375C672 35.5 768 17.75 864 17.75C960 17.75 1056 35.5 1152 44.375C1248 53.25 1344 53.25 1392 53.25H1440V120H1392C1344 120 1248 120 1152 120C1056 120 960 120 864 120C768 120 672 120 576 120C480 120 384 120 288 120C192 120 96 120 48 120H0V0Z"
-      fill="currentColor"
-    />
-  </svg>
-)
-
 export const NaturalBeautyHero: React.FC<NaturalBeautyHeroProps> = ({
   imageSrc = 'https://cdn.builder.io/api/v1/image/assets/TEMP/215c624340e556fbcd16e816db52aedece9a2752bea4f7c4b8cd0a53c4e2aa07'
 }) => {
@@ -69,7 +55,7 @@ export const NaturalBeautyHero: React.FC<NaturalBeautyHeroProps> = ({
               transition={{ duration: 0.8, ease: 'easeOut' }}
             >
               <article className="flex size-full flex-col items-start justify-center self-stretch pr-8 max-md:mt-10 max-md:max-w-full">
-                <h1 className="z-10 -mt-1 font-inter text-9xl leading-[8rem] text-[#3A4D39] max-md:max-w-full max-md:text-4xl max-md:leading-10">
+                <h1 className="z-0 -mt-1 font-inter text-9xl leading-[8rem] text-[#3A4D39] max-md:max-w-full max-md:text-4xl max-md:leading-10">
                   Natural Beauty, Elevated Care
                 </h1>
                 <p className="mt-14 text-3xl leading-8 text-[#3A4D39]/80 max-md:mt-10 max-md:max-w-full">
@@ -82,7 +68,7 @@ export const NaturalBeautyHero: React.FC<NaturalBeautyHeroProps> = ({
                   whileTap={{ scale: 0.98 }}
                 >
                   <button
-                    className="group relative overflow-hidden rounded-full bg-gradient-to-r from-[#739072] via-[#86A789] to-[#739072] px-12 py-4 text-lg font-medium tracking-wide text-white shadow-[0_2px_20px_rgba(115,144,114,0.25)] transition-all duration-300 hover:shadow-[0_2px_30px_rgba(115,144,114,0.35)] focus:outline-none focus:ring-2 focus:ring-[#739072]/50 focus:ring-offset-2 max-md:px-8 max-md:py-4"
+                    className="group relative z-0 overflow-hidden rounded-full bg-gradient-to-r from-[#739072] via-[#86A789] to-[#739072] px-12 py-4 text-lg font-medium tracking-wide text-white shadow-[0_2px_20px_rgba(115,144,114,0.25)] transition-all duration-300 hover:shadow-[0_2px_30px_rgba(115,144,114,0.35)] focus:outline-none focus:ring-2 focus:ring-[#739072]/50 focus:ring-offset-2 max-md:px-8 max-md:py-4"
                     aria-label="Shop Now"
                   >
                     <span className="relative z-10 flex items-center gap-2">
@@ -124,7 +110,6 @@ export const NaturalBeautyHero: React.FC<NaturalBeautyHeroProps> = ({
           </div>
         </div>
       </div>
-      <WaveDecoration />
     </section>
   )
 }

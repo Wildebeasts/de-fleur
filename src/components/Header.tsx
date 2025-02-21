@@ -13,8 +13,7 @@ const navigationItems: NavigationItem[] = [
   { label: 'Shop', href: '/shop' },
   { label: 'Blog', href: '/blog' },
   { label: 'Collections', href: '/collections' },
-  { label: 'About', href: '/about' },
-  { label: 'Journal', href: '/journal' }
+  { label: 'About', href: '/about' }
 ]
 
 const CartIcon = () => (
@@ -81,7 +80,7 @@ export default function Header() {
       role="navigation"
       aria-label="Main navigation"
     >
-      <div className="flex w-full flex-col max-md:max-w-full">
+      <div className="z-50 flex w-full flex-col max-md:max-w-full">
         <div className="flex w-full flex-wrap justify-between gap-5 max-md:max-w-full">
           <div className="flex flex-wrap gap-16 self-start pb-2 pt-0.5 leading-none text-[#3A4D39] max-md:max-w-full">
             <motion.div

@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as TestimonialsImport } from './routes/testimonials'
 import { Route as ShopDetailsImport } from './routes/shopDetails'
 import { Route as ShopImport } from './routes/shop'
 import { Route as RegisterImport } from './routes/register'
@@ -18,13 +19,21 @@ import { Route as QuizresultImport } from './routes/quiz_result'
 import { Route as QuizImport } from './routes/quiz'
 import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
+import { Route as GlossaryImport } from './routes/glossary'
 import { Route as CollectionsImport } from './routes/collections'
 import { Route as CartImport } from './routes/cart'
+import { Route as BrandlistImport } from './routes/brand_list'
 import { Route as BlogImport } from './routes/blog'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
+
+const TestimonialsRoute = TestimonialsImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const ShopDetailsRoute = ShopDetailsImport.update({
   id: '/shopDetails',
@@ -68,6 +77,12 @@ const JournalRoute = JournalImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const GlossaryRoute = GlossaryImport.update({
+  id: '/glossary',
+  path: '/glossary',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const CollectionsRoute = CollectionsImport.update({
   id: '/collections',
   path: '/collections',
@@ -77,6 +92,12 @@ const CollectionsRoute = CollectionsImport.update({
 const CartRoute = CartImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const BrandlistRoute = BrandlistImport.update({
+  id: '/brand_list',
+  path: '/brand_list',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -123,6 +144,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogImport
       parentRoute: typeof rootRoute
     }
+    '/brand_list': {
+      id: '/brand_list'
+      path: '/brand_list'
+      fullPath: '/brand_list'
+      preLoaderRoute: typeof BrandlistImport
+      parentRoute: typeof rootRoute
+    }
     '/cart': {
       id: '/cart'
       path: '/cart'
@@ -135,6 +163,13 @@ declare module '@tanstack/react-router' {
       path: '/collections'
       fullPath: '/collections'
       preLoaderRoute: typeof CollectionsImport
+      parentRoute: typeof rootRoute
+    }
+    '/glossary': {
+      id: '/glossary'
+      path: '/glossary'
+      fullPath: '/glossary'
+      preLoaderRoute: typeof GlossaryImport
       parentRoute: typeof rootRoute
     }
     '/journal': {
@@ -186,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopDetailsImport
       parentRoute: typeof rootRoute
     }
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -195,8 +237,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
   '/collections': typeof CollectionsRoute
+  '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
   '/quiz': typeof QuizRoute
@@ -204,14 +248,17 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
+  '/testimonials': typeof TestimonialsRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
   '/collections': typeof CollectionsRoute
+  '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
   '/quiz': typeof QuizRoute
@@ -219,6 +266,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
+  '/testimonials': typeof TestimonialsRoute
 }
 
 export interface FileRoutesById {
@@ -226,8 +274,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
+  '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
   '/collections': typeof CollectionsRoute
+  '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
   '/quiz': typeof QuizRoute
@@ -235,6 +285,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
+  '/testimonials': typeof TestimonialsRoute
 }
 
 export interface FileRouteTypes {
@@ -243,8 +294,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/blog'
+    | '/brand_list'
     | '/cart'
     | '/collections'
+    | '/glossary'
     | '/journal'
     | '/login'
     | '/quiz'
@@ -252,13 +305,16 @@ export interface FileRouteTypes {
     | '/register'
     | '/shop'
     | '/shopDetails'
+    | '/testimonials'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/blog'
+    | '/brand_list'
     | '/cart'
     | '/collections'
+    | '/glossary'
     | '/journal'
     | '/login'
     | '/quiz'
@@ -266,13 +322,16 @@ export interface FileRouteTypes {
     | '/register'
     | '/shop'
     | '/shopDetails'
+    | '/testimonials'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/blog'
+    | '/brand_list'
     | '/cart'
     | '/collections'
+    | '/glossary'
     | '/journal'
     | '/login'
     | '/quiz'
@@ -280,6 +339,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/shop'
     | '/shopDetails'
+    | '/testimonials'
   fileRoutesById: FileRoutesById
 }
 
@@ -287,8 +347,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRoute
+  BrandlistRoute: typeof BrandlistRoute
   CartRoute: typeof CartRoute
   CollectionsRoute: typeof CollectionsRoute
+  GlossaryRoute: typeof GlossaryRoute
   JournalRoute: typeof JournalRoute
   LoginRoute: typeof LoginRoute
   QuizRoute: typeof QuizRoute
@@ -296,14 +358,17 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ShopRoute: typeof ShopRoute
   ShopDetailsRoute: typeof ShopDetailsRoute
+  TestimonialsRoute: typeof TestimonialsRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BlogRoute: BlogRoute,
+  BrandlistRoute: BrandlistRoute,
   CartRoute: CartRoute,
   CollectionsRoute: CollectionsRoute,
+  GlossaryRoute: GlossaryRoute,
   JournalRoute: JournalRoute,
   LoginRoute: LoginRoute,
   QuizRoute: QuizRoute,
@@ -311,6 +376,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ShopRoute: ShopRoute,
   ShopDetailsRoute: ShopDetailsRoute,
+  TestimonialsRoute: TestimonialsRoute,
 }
 
 export const routeTree = rootRoute
@@ -326,15 +392,18 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/blog",
+        "/brand_list",
         "/cart",
         "/collections",
+        "/glossary",
         "/journal",
         "/login",
         "/quiz",
         "/quiz_result",
         "/register",
         "/shop",
-        "/shopDetails"
+        "/shopDetails",
+        "/testimonials"
       ]
     },
     "/": {
@@ -346,11 +415,17 @@ export const routeTree = rootRoute
     "/blog": {
       "filePath": "blog.tsx"
     },
+    "/brand_list": {
+      "filePath": "brand_list.tsx"
+    },
     "/cart": {
       "filePath": "cart.tsx"
     },
     "/collections": {
       "filePath": "collections.tsx"
+    },
+    "/glossary": {
+      "filePath": "glossary.tsx"
     },
     "/journal": {
       "filePath": "journal.tsx"
@@ -372,6 +447,9 @@ export const routeTree = rootRoute
     },
     "/shopDetails": {
       "filePath": "shopDetails.tsx"
+    },
+    "/testimonials": {
+      "filePath": "testimonials.tsx"
     }
   }
 }

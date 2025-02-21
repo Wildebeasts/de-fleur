@@ -68,7 +68,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </button>
       </div>
 
-      <div className="z-10 w-full">
+      <div className="z-0 w-full">
         <h3 className="mb-2 font-inter text-2xl font-medium text-[#3A4D39] transition-colors duration-300 hover:text-[#4A5D49]">
           {title}
         </h3>

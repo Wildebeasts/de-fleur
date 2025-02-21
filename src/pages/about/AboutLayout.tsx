@@ -1,6 +1,15 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from '@/components/ui/accordion'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
+// Animation variants remain the same
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -17,166 +26,285 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 }
 
+const shippingPolicies = {
+  domestic: [
+    {
+      title: 'Standard Shipping (3-5 business days)',
+      cost: 'Free on orders over $50, $5.99 for orders under $50',
+      details: 'Delivered through USPS or FedEx'
+    },
+    {
+      title: 'Express Shipping (2-3 business days)',
+      cost: '$12.99',
+      details: 'Delivered through FedEx or UPS'
+    },
+    {
+      title: 'Next Day Delivery',
+      cost: '$24.99',
+      details: 'Order by 2 PM EST for next-day delivery (excluding weekends)'
+    }
+  ],
+  international: [
+    {
+      title: 'Standard International (10-15 business days)',
+      cost: 'Starting at $19.99',
+      details: 'Available to select countries'
+    },
+    {
+      title: 'Express International (5-7 business days)',
+      cost: 'Starting at $39.99',
+      details: 'Available to select countries'
+    }
+  ],
+  restrictions: [
+    'Certain products cannot be shipped internationally',
+    'Additional customs fees may apply',
+    'Not available to all countries'
+  ]
+}
+
+const returnPolicy = {
+  timeframe: '30 days from delivery date',
+  conditions: [
+    'Items must be unused and in original packaging',
+    'Original receipt or gift receipt required',
+    'Free returns for orders over $50',
+    '$7.99 return shipping fee for orders under $50'
+  ],
+  exceptions: [
+    'Sale items are final sale',
+    'Gift cards are non-returnable',
+    'Opened skincare products cannot be returned for hygiene reasons'
+  ],
+  process: [
+    'Initiate return through your account dashboard',
+    'Print return label',
+    'Drop off at any authorized shipping location',
+    'Refund processed within 5-7 business days of receipt'
+  ]
+}
+
+const privacyPolicy = {
+  dataCollection: [
+    'Personal identification information',
+    'Shopping preferences and history',
+    'Device and browser information',
+    'Location data (with consent)'
+  ],
+  dataUsage: [
+    'Order processing and fulfillment',
+    'Personalized shopping experience',
+    'Marketing communications (with consent)',
+    'Website optimization and analytics'
+  ],
+  dataProtection: [
+    'SSL encryption for all transactions',
+    'Regular security audits',
+    'Limited employee access to personal data',
+    'Compliance with GDPR and CCPA'
+  ],
+  userRights: [
+    'Right to access personal data',
+    'Right to request data deletion',
+    'Right to opt-out of marketing',
+    'Right to data portability'
+  ]
+}
+
 const AboutLayout: React.FC = () => {
   return (
     <motion.div
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="min-h-screen w-full bg-orange-50/50"
+      className="min-h-screen bg-gradient-to-b from-orange-50/80 to-white px-4 py-16"
     >
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="flex flex-col space-y-16">
-          {/* Hero Section */}
-          <motion.section variants={itemVariants} className="text-center">
-            <h1 className="mb-4 text-4xl font-bold text-[#3A4D39]">
-              Welcome to De Fleur
-            </h1>
-            <p className="mx-auto max-w-3xl text-lg text-gray-600">
-              Bringing beauty and joy to your special moments through the art of
-              floral design.
-            </p>
-          </motion.section>
+      <div className="mx-auto max-w-7xl">
+        {/* Brief About Section */}
+        <motion.section variants={itemVariants} className="mb-16 text-center">
+          <span className="mb-4 inline-block rounded-full bg-rose-100 px-4 py-2 text-sm text-rose-500">
+            About De Fleur
+          </span>
+          <h1 className="mb-4 text-4xl font-semibold text-[#3A4D39]">
+            Natural Beauty, Thoughtfully Crafted
+          </h1>
+          <p className="mx-auto max-w-2xl text-lg text-[#3A4D39]/80">
+            Since 2020, De Fleur has been dedicated to bringing you premium
+            skincare products made with natural ingredients, combining
+            traditional wisdom with modern science.
+          </p>
+        </motion.section>
 
-          {/* Our Story Section */}
-          <motion.section
-            variants={itemVariants}
-            className="grid grid-cols-1 items-center gap-12 md:grid-cols-2"
-          >
-            <div className="space-y-6">
-              <h2 className="text-3xl font-semibold text-[#3A4D39]">
-                Our Story
-              </h2>
-              <p className="text-gray-600">
-                Founded with a passion for creating beautiful floral
-                arrangements, De Fleur has been serving our community since
-                2020. We believe in the power of flowers to transform spaces and
-                touch hearts.
-              </p>
-              <p className="text-gray-600">
-                Every arrangement we create is a unique piece of art, carefully
-                crafted to bring joy and beauty to your special moments.
-              </p>
-            </div>
-            <div className="overflow-hidden rounded-lg shadow-lg">
-              <img
-                src="https://images.unsplash.com/photo-1558350315-8aa00e8e4590?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-                alt="Florist working"
-                className="size-full object-cover"
-              />
-            </div>
-          </motion.section>
+        {/* Main Content */}
+        <motion.div variants={itemVariants}>
+          <Tabs defaultValue="shipping" className="w-full">
+            <TabsList className="mb-8 grid w-full grid-cols-3">
+              <TabsTrigger value="shipping">Shipping</TabsTrigger>
+              <TabsTrigger value="returns">Returns & Refunds</TabsTrigger>
+              <TabsTrigger value="privacy">Privacy & Data</TabsTrigger>
+            </TabsList>
 
-          {/* Values Section */}
-          <motion.section
-            variants={itemVariants}
-            className="rounded-2xl bg-white p-8 shadow-sm"
-          >
-            <h2 className="mb-8 text-center text-3xl font-semibold text-[#3A4D39]">
-              Our Values
-            </h2>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {[
-                {
-                  title: 'Quality',
-                  description:
-                    'We source only the finest flowers to ensure lasting beauty in every arrangement.'
-                },
-                {
-                  title: 'Creativity',
-                  description:
-                    'Each design is unique, reflecting our artistic vision and your personal style.'
-                },
-                {
-                  title: 'Sustainability',
-                  description:
-                    'We are committed to eco-friendly practices in our floral designs and packaging.'
-                }
-              ].map((value, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  className="rounded-lg bg-orange-50/50 p-6 text-center"
-                >
-                  <h3 className="mb-4 text-xl font-semibold text-[#3A4D39]">
-                    {value.title}
-                  </h3>
-                  <p className="text-gray-600">{value.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
+            <TabsContent value="shipping" className="space-y-8">
+              <div className="rounded-lg border border-[#D1E2C4] bg-white p-6">
+                <h2 className="mb-6 text-2xl font-semibold text-[#3A4D39]">
+                  Domestic Shipping
+                </h2>
+                <div className="space-y-4">
+                  {shippingPolicies.domestic.map((option, index) => (
+                    <div key={index} className="rounded-lg bg-orange-50/50 p-4">
+                      <h3 className="font-medium text-[#3A4D39]">
+                        {option.title}
+                      </h3>
+                      <p className="text-[#3A4D39]/80">{option.cost}</p>
+                      <p className="text-sm text-[#3A4D39]/60">
+                        {option.details}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-          {/* Team Section */}
-          <motion.section variants={itemVariants} className="space-y-8">
-            <h2 className="text-center text-3xl font-semibold text-[#3A4D39]">
-              Meet Our Team
-            </h2>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {[
-                {
-                  name: 'Emma Thompson',
-                  role: 'Lead Florist',
-                  image:
-                    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-                },
-                {
-                  name: 'Michael Chen',
-                  role: 'Creative Director',
-                  image:
-                    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-                },
-                {
-                  name: 'Sarah Williams',
-                  role: 'Event Specialist',
-                  image:
-                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80'
-                }
-              ].map((member, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  whileHover={{ y: -8 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                  className="overflow-hidden rounded-lg bg-white shadow-sm"
-                >
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="h-64 w-full object-cover"
-                  />
-                  <div className="p-6">
-                    <h3 className="text-xl font-semibold text-[#3A4D39]">
-                      {member.name}
-                    </h3>
-                    <p className="text-gray-600">{member.role}</p>
+              <div className="rounded-lg border border-[#D1E2C4] bg-white p-6">
+                <h2 className="mb-6 text-2xl font-semibold text-[#3A4D39]">
+                  International Shipping
+                </h2>
+                <div className="space-y-4">
+                  {shippingPolicies.international.map((option, index) => (
+                    <div key={index} className="rounded-lg bg-orange-50/50 p-4">
+                      <h3 className="font-medium text-[#3A4D39]">
+                        {option.title}
+                      </h3>
+                      <p className="text-[#3A4D39]/80">{option.cost}</p>
+                      <p className="text-sm text-[#3A4D39]/60">
+                        {option.details}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="returns" className="space-y-8">
+              <div className="rounded-lg border border-[#D1E2C4] bg-white p-6">
+                <h2 className="mb-6 text-2xl font-semibold text-[#3A4D39]">
+                  Return Policy
+                </h2>
+                <p className="mb-4 text-lg text-[#3A4D39]/80">
+                  Return window: {returnPolicy.timeframe}
+                </p>
+
+                <Accordion type="single" collapsible className="space-y-2">
+                  <AccordionItem value="conditions">
+                    <AccordionTrigger>Conditions</AccordionTrigger>
+                    <AccordionContent>
+                      <ul className="list-inside list-disc space-y-2 text-[#3A4D39]/80">
+                        {returnPolicy.conditions.map((condition, index) => (
+                          <li key={index}>{condition}</li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="exceptions">
+                    <AccordionTrigger>Exceptions</AccordionTrigger>
+                    <AccordionContent>
+                      <ul className="list-inside list-disc space-y-2 text-[#3A4D39]/80">
+                        {returnPolicy.exceptions.map((exception, index) => (
+                          <li key={index}>{exception}</li>
+                        ))}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="process">
+                    <AccordionTrigger>Return Process</AccordionTrigger>
+                    <AccordionContent>
+                      <ol className="list-inside list-decimal space-y-2 text-[#3A4D39]/80">
+                        {returnPolicy.process.map((step, index) => (
+                          <li key={index}>{step}</li>
+                        ))}
+                      </ol>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="privacy" className="space-y-8">
+              <div className="rounded-lg border border-[#D1E2C4] bg-white p-6">
+                <h2 className="mb-6 text-2xl font-semibold text-[#3A4D39]">
+                  Privacy Policy
+                </h2>
+                <ScrollArea className="h-[600px] rounded-md border border-[#D1E2C4] p-4">
+                  <div className="space-y-6">
+                    <section>
+                      <h3 className="mb-3 text-xl font-medium text-[#3A4D39]">
+                        Data Collection
+                      </h3>
+                      <ul className="list-inside list-disc space-y-2 text-[#3A4D39]/80">
+                        {privacyPolicy.dataCollection.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h3 className="mb-3 text-xl font-medium text-[#3A4D39]">
+                        How We Use Your Data
+                      </h3>
+                      <ul className="list-inside list-disc space-y-2 text-[#3A4D39]/80">
+                        {privacyPolicy.dataUsage.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h3 className="mb-3 text-xl font-medium text-[#3A4D39]">
+                        Data Protection
+                      </h3>
+                      <ul className="list-inside list-disc space-y-2 text-[#3A4D39]/80">
+                        {privacyPolicy.dataProtection.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </section>
+
+                    <section>
+                      <h3 className="mb-3 text-xl font-medium text-[#3A4D39]">
+                        Your Rights
+                      </h3>
+                      <ul className="list-inside list-disc space-y-2 text-[#3A4D39]/80">
+                        {privacyPolicy.userRights.map((item, index) => (
+                          <li key={index}>{item}</li>
+                        ))}
+                      </ul>
+                    </section>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.section>
+                </ScrollArea>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </motion.div>
 
-          {/* Contact CTA Section */}
-          <motion.section
-            variants={itemVariants}
-            className="rounded-2xl bg-[#3A4D39] p-12 text-center text-white"
+        {/* Contact Section */}
+        <motion.section
+          variants={itemVariants}
+          className="mt-16 rounded-2xl bg-[#3A4D39] p-8 text-center text-white"
+        >
+          <h2 className="mb-4 text-2xl font-semibold">Need Help?</h2>
+          <p className="mb-6">
+            Have questions about our policies or need assistance? Our support
+            team is available 24/7 to help.
+          </p>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="rounded-full bg-white px-8 py-3 font-medium text-[#3A4D39] hover:bg-orange-50"
           >
-            <h2 className="mb-4 text-3xl font-semibold">
-              Let&apos;s Create Something Beautiful Together
-            </h2>
-            <p className="mb-8 text-lg">
-              Whether it&apos;s a special event or everyday moments, we&apos;re
-              here to help you make it memorable.
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="rounded-full bg-white px-8 py-3 font-semibold text-[#3A4D39] hover:bg-orange-50"
-            >
-              Contact Us
-            </motion.button>
-          </motion.section>
-        </div>
+            Contact Support
+          </motion.button>
+        </motion.section>
       </div>
     </motion.div>
   )
