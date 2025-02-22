@@ -33,9 +33,11 @@ import { Route as CheckoutImport } from './routes/checkout'
 import { Route as CartImport } from './routes/cart'
 import { Route as BrandlistImport } from './routes/brand_list'
 import { Route as BlogImport } from './routes/blog'
+import { Route as AdminImport } from './routes/admin'
 import { Route as AccountmanageImport } from './routes/account_manage'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as AdminRoutesImport } from './routes/admin.routes'
 
 // Create/Update Routes
 
@@ -171,6 +173,12 @@ const BlogRoute = BlogImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AdminRoute = AdminImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() => import('./routes/admin.lazy').then((d) => d.Route))
+
 const AccountmanageRoute = AccountmanageImport.update({
   id: '/account_manage',
   path: '/account_manage',
@@ -187,6 +195,12 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AdminRoutesRoute = AdminRoutesImport.update({
+  id: '/routes',
+  path: '/routes',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -212,6 +226,13 @@ declare module '@tanstack/react-router' {
       path: '/account_manage'
       fullPath: '/account_manage'
       preLoaderRoute: typeof AccountmanageImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminImport
       parentRoute: typeof rootRoute
     }
     '/blog': {
@@ -326,18 +347,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterImport
       parentRoute: typeof rootRoute
     }
-    '/sales-customer-insights': {
-      id: '/sales-customer-insights'
-      path: '/sales-customer-insights'
-      fullPath: '/sales-customer-insights'
-      preLoaderRoute: typeof SalesCustomerInsightsImport
-      parentRoute: typeof rootRoute
-    },
     '/review': {
       id: '/review'
       path: '/review'
       fullPath: '/review'
       preLoaderRoute: typeof ReviewImport
+      parentRoute: typeof rootRoute
+    }
+    '/sales-customer-insights': {
+      id: '/sales-customer-insights'
+      path: '/sales-customer-insights'
+      fullPath: '/sales-customer-insights'
+      preLoaderRoute: typeof SalesCustomerInsightsImport
       parentRoute: typeof rootRoute
     }
     '/shop': {
@@ -368,15 +389,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestimonialsImport
       parentRoute: typeof rootRoute
     }
+    '/admin/routes': {
+      id: '/admin/routes'
+      path: '/routes'
+      fullPath: '/admin/routes'
+      preLoaderRoute: typeof AdminRoutesImport
+      parentRoute: typeof AdminImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface AdminRouteChildren {
+  AdminRoutesRoute: typeof AdminRoutesRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminRoutesRoute: AdminRoutesRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account_manage': typeof AccountmanageRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
@@ -393,18 +432,20 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
-  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/review': typeof ReviewRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
+  '/admin/routes': typeof AdminRoutesRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account_manage': typeof AccountmanageRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
@@ -421,12 +462,13 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
-  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/review': typeof ReviewRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
+  '/admin/routes': typeof AdminRoutesRoute
 }
 
 export interface FileRoutesById {
@@ -434,6 +476,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account_manage': typeof AccountmanageRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
@@ -450,12 +493,13 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
-  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/review': typeof ReviewRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
+  '/admin/routes': typeof AdminRoutesRoute
 }
 
 export interface FileRouteTypes {
@@ -464,6 +508,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account_manage'
+    | '/admin'
     | '/blog'
     | '/brand_list'
     | '/cart'
@@ -480,17 +525,19 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
-    | '/sales-customer-insights'
     | '/review'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/social_account'
     | '/testimonials'
+    | '/admin/routes'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/account_manage'
+    | '/admin'
     | '/blog'
     | '/brand_list'
     | '/cart'
@@ -507,17 +554,19 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
-    | '/sales-customer-insights'
     | '/review'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/social_account'
     | '/testimonials'
+    | '/admin/routes'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/account_manage'
+    | '/admin'
     | '/blog'
     | '/brand_list'
     | '/cart'
@@ -534,12 +583,13 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
-    | '/sales-customer-insights'
     | '/review'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/social_account'
     | '/testimonials'
+    | '/admin/routes'
   fileRoutesById: FileRoutesById
 }
 
@@ -547,6 +597,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountmanageRoute: typeof AccountmanageRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BlogRoute: typeof BlogRoute
   BrandlistRoute: typeof BrandlistRoute
   CartRoute: typeof CartRoute
@@ -563,8 +614,8 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
-  SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
   ReviewRoute: typeof ReviewRoute
+  SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
   ShopRoute: typeof ShopRoute
   ShopDetailsRoute: typeof ShopDetailsRoute
   SocialaccountRoute: typeof SocialaccountRoute
@@ -575,6 +626,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountmanageRoute: AccountmanageRoute,
+  AdminRoute: AdminRouteWithChildren,
   BlogRoute: BlogRoute,
   BrandlistRoute: BrandlistRoute,
   CartRoute: CartRoute,
@@ -591,8 +643,8 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
-  SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
   ReviewRoute: ReviewRoute,
+  SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
   ShopRoute: ShopRoute,
   ShopDetailsRoute: ShopDetailsRoute,
   SocialaccountRoute: SocialaccountRoute,
@@ -612,6 +664,7 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/account_manage",
+        "/admin",
         "/blog",
         "/brand_list",
         "/cart",
@@ -628,8 +681,8 @@ export const routeTree = rootRoute
         "/quiz",
         "/quiz_result",
         "/register",
-        "/sales-customer-insights",
         "/review",
+        "/sales-customer-insights",
         "/shop",
         "/shopDetails",
         "/social_account",
@@ -644,6 +697,12 @@ export const routeTree = rootRoute
     },
     "/account_manage": {
       "filePath": "account_manage.tsx"
+    },
+    "/admin": {
+      "filePath": "admin.tsx",
+      "children": [
+        "/admin/routes"
+      ]
     },
     "/blog": {
       "filePath": "blog.tsx"
@@ -693,11 +752,11 @@ export const routeTree = rootRoute
     "/register": {
       "filePath": "register.tsx"
     },
-    "/sales-customer-insights": {
-      "filePath": "sales-customer-insights.tsx"
-    },
     "/review": {
       "filePath": "review.tsx"
+    },
+    "/sales-customer-insights": {
+      "filePath": "sales-customer-insights.tsx"
     },
     "/shop": {
       "filePath": "shop.tsx"
@@ -710,6 +769,10 @@ export const routeTree = rootRoute
     },
     "/testimonials": {
       "filePath": "testimonials.tsx"
+    },
+    "/admin/routes": {
+      "filePath": "admin.routes.tsx",
+      "parent": "/admin"
     }
   }
 }
