@@ -66,6 +66,9 @@ const ShopRoute = ShopImport.update({
 const SalesCustomerInsightsRoute = SalesCustomerInsightsImport.update({
   id: '/sales-customer-insights',
   path: '/sales-customer-insights',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const ReviewRoute = ReviewImport.update({
   id: '/review',
   path: '/review',
@@ -328,6 +331,8 @@ declare module '@tanstack/react-router' {
       path: '/sales-customer-insights'
       fullPath: '/sales-customer-insights'
       preLoaderRoute: typeof SalesCustomerInsightsImport
+      parentRoute: typeof rootRoute
+    },
     '/review': {
       id: '/review'
       path: '/review'
@@ -690,6 +695,7 @@ export const routeTree = rootRoute
     },
     "/sales-customer-insights": {
       "filePath": "sales-customer-insights.tsx"
+    },
     "/review": {
       "filePath": "review.tsx"
     },
