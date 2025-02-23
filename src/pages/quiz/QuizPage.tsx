@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Stepper, { Step } from '@/components/Stepper'
 import { motion } from 'framer-motion'
 import {
@@ -6,18 +6,76 @@ import {
   quizCompletionStates
 } from '@/components/ui/multi-step-loader'
 import { useNavigate } from '@tanstack/react-router'
+import quizApi from '@/services/quizApi'
+import { QuizResponse } from '@/types/Quiz'
+import { QuestionResponse } from '@/types/Question'
+import { useQuizResult } from '@/context/QuizResultContext'
 
 const QuizPage: React.FC = () => {
   const navigate = useNavigate()
+  const [quiz, setQuiz] = useState<QuizResponse | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedAnswers, setSelectedAnswers] = useState<{
+    [key: string]: string[]
+  }>({})
+
+  const { setQuizResults } = useQuizResult()
+
+  useEffect(() => {
+    quizApi
+      .getQuiz()
+      .then((response) => {
+        if (response.data.isSuccess) {
+          console.log(response.data)
+          setQuiz(response.data.data!)
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching quiz:', err)
+      })
+  }, [])
 
   const handleQuizComplete = () => {
     setIsLoading(true)
-    // After 8 seconds (4 states × 2 seconds each), redirect to results
-    setTimeout(() => {
-      navigate({ to: '/quiz_result' })
-    }, 8000)
+
+    // Convert selectedAnswers state to QuizSubmitRequest format
+    const formattedAnswers = Object.entries(selectedAnswers).map(
+      ([questionId, selectedOptionIds]) => ({
+        questionId, // Convert question ID string to Guid (backend handles it)
+        selectedOptionIds
+      })
+    )
+
+    const quizSubmitRequest = { answers: formattedAnswers }
+
+    // Create a promise for the quiz submission
+    const submitQuizPromise = quizApi
+      .submitQuiz(String(quiz?.id), quizSubmitRequest)
+      .then((response) => {
+        if (response.data.isSuccess) {
+          console.log(response.data)
+          setQuizResults(response.data.data!)
+        }
+      })
+      .catch((err) => {
+        console.error('Error submitting quiz:', err)
+      })
+
+    // Create a promise for the animation delay (8 seconds)
+    const animationDelayPromise = new Promise((resolve) =>
+      setTimeout(resolve, 8000)
+    )
+
+    // Wait for both the API and animation before navigating
+    Promise.all([submitQuizPromise, animationDelayPromise]).then(() => {
+      setIsLoading(false)
+      navigate({
+        to: '/quiz_result'
+      })
+    })
   }
+
+  if (!quiz) return <p>Loading...</p>
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F9F5F0] to-[#D1E2C4]/20">
@@ -29,10 +87,10 @@ const QuizPage: React.FC = () => {
             className="mb-8 text-center"
           >
             <h1 className="text-4xl font-semibold text-[#3A4D39]">
-              Find Your Perfect Skincare Routine
+              {quiz?.title}
             </h1>
             <p className="mt-4 text-lg text-[#3A4D39]/80">
-              Answer a few questions to get personalized product recommendations
+              {quiz?.description}
             </p>
           </motion.div>
 
@@ -40,57 +98,17 @@ const QuizPage: React.FC = () => {
             onFinalStepCompleted={handleQuizComplete}
             stepCircleContainerClassName="bg-white"
             contentClassName="bg-white"
+            className="w-full"
           >
-            <Step>
-              <QuizStep
-                title="Skin Type"
-                question="What's your skin type?"
-                options={['Normal', 'Dry', 'Oily', 'Combination', 'Sensitive']}
-              />
-            </Step>
-
-            <Step>
-              <QuizStep
-                title="Skin Concerns"
-                question="What are your main skin concerns?"
-                options={[
-                  'Acne',
-                  'Aging',
-                  'Dark spots',
-                  'Dullness',
-                  'Uneven texture'
-                ]}
-                multiple
-              />
-            </Step>
-
-            <Step>
-              <QuizStep
-                title="Current Routine"
-                question="How would you describe your current skincare routine?"
-                options={[
-                  'Minimal (1-2 products)',
-                  'Basic (3-4 products)',
-                  'Moderate (5-7 products)',
-                  'Extensive (8+ products)'
-                ]}
-              />
-            </Step>
-
-            <Step>
-              <QuizStep
-                title="Product Preferences"
-                question="What's important to you in skincare products?"
-                options={[
-                  'Natural ingredients',
-                  'Fragrance-free',
-                  'Cruelty-free',
-                  'Sustainable packaging',
-                  'Clinical results'
-                ]}
-                multiple
-              />
-            </Step>
+            {quiz!.questions?.map((question) => (
+              <Step key={question.id}>
+                <QuizStep
+                  question={question}
+                  selectedAnswers={selectedAnswers}
+                  setSelectedAnswers={setSelectedAnswers}
+                />
+              </Step>
+            ))}
           </Stepper>
         </div>
       ) : (
@@ -106,50 +124,52 @@ const QuizPage: React.FC = () => {
 }
 
 interface QuizStepProps {
-  title: string
-  question: string
-  options: string[]
-  multiple?: boolean
+  question: QuestionResponse
+  selectedAnswers: { [key: string]: string[] }
+  setSelectedAnswers: React.Dispatch<
+    React.SetStateAction<{ [key: string]: string[] }>
+  >
 }
 
 const QuizStep: React.FC<QuizStepProps> = ({
-  title,
   question,
-  options,
-  multiple = false
+  selectedAnswers,
+  setSelectedAnswers
 }) => {
-  const [selected, setSelected] = React.useState<string[]>([])
+  const selected = selectedAnswers[question.id] || [] // Get stored answers
+  const isMultipleChoice = question.questionType === 'MultipleChoice'
 
   const handleOptionClick = (option: string) => {
-    if (multiple) {
-      setSelected((prev) =>
-        prev.includes(option)
-          ? prev.filter((item) => item !== option)
-          : [...prev, option]
-      )
-    } else {
-      setSelected([option])
-    }
+    setSelectedAnswers((prev) => ({
+      ...prev,
+      [question.id]: isMultipleChoice
+        ? prev[question.id]?.includes(option)
+          ? prev[question.id].filter((item) => item !== option) // Remove if already selected
+          : [...(prev[question.id] || []), option] // Add new selection
+        : [option] // Single choice
+    }))
   }
 
   return (
     <div className="py-6">
-      <h2 className="mb-2 text-2xl font-semibold text-[#3A4D39]">{title}</h2>
-      <p className="mb-6 text-lg text-[#3A4D39]/80">{question}</p>
+      <h2 className="mb-2 text-2xl font-semibold text-[#3A4D39]">
+        {question.title}
+      </h2>
+      <p className="mb-6 text-lg text-[#3A4D39]/80">{question.description}</p>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {options.map((option) => (
+        {question.questionOptions?.map((option) => (
           <motion.button
-            key={option}
-            onClick={() => handleOptionClick(option)}
+            key={option.id}
+            onClick={() => handleOptionClick(option.id)}
             className={`rounded-lg border-2 p-4 text-left transition-all duration-300 ${
-              selected.includes(option)
+              selected.includes(option.id)
                 ? 'border-[#3A4D39] bg-[#D1E2C4]/20'
                 : 'border-gray-200 hover:border-[#3A4D39]/50'
             }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <span className="text-[#3A4D39]">{option}</span>
+            <span className="text-[#3A4D39]">{option.content}</span>
           </motion.button>
         ))}
       </div>

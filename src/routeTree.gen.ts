@@ -326,18 +326,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterImport
       parentRoute: typeof rootRoute
     }
-    '/sales-customer-insights': {
-      id: '/sales-customer-insights'
-      path: '/sales-customer-insights'
-      fullPath: '/sales-customer-insights'
-      preLoaderRoute: typeof SalesCustomerInsightsImport
-      parentRoute: typeof rootRoute
-    },
     '/review': {
       id: '/review'
       path: '/review'
       fullPath: '/review'
       preLoaderRoute: typeof ReviewImport
+      parentRoute: typeof rootRoute
+    }
+    '/sales-customer-insights': {
+      id: '/sales-customer-insights'
+      path: '/sales-customer-insights'
+      fullPath: '/sales-customer-insights'
+      preLoaderRoute: typeof SalesCustomerInsightsImport
       parentRoute: typeof rootRoute
     }
     '/shop': {
@@ -393,8 +393,8 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
-  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/review': typeof ReviewRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
@@ -421,8 +421,8 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
-  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/review': typeof ReviewRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
@@ -450,8 +450,8 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
-  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/review': typeof ReviewRoute
+  '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
@@ -480,8 +480,8 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
-    | '/sales-customer-insights'
     | '/review'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/social_account'
@@ -507,8 +507,8 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
-    | '/sales-customer-insights'
     | '/review'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/social_account'
@@ -534,8 +534,8 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
-    | '/sales-customer-insights'
     | '/review'
+    | '/sales-customer-insights'
     | '/shop'
     | '/shopDetails'
     | '/social_account'
@@ -563,8 +563,8 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
-  SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
   ReviewRoute: typeof ReviewRoute
+  SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
   ShopRoute: typeof ShopRoute
   ShopDetailsRoute: typeof ShopDetailsRoute
   SocialaccountRoute: typeof SocialaccountRoute
@@ -591,8 +591,8 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
-  SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
   ReviewRoute: ReviewRoute,
+  SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
   ShopRoute: ShopRoute,
   ShopDetailsRoute: ShopDetailsRoute,
   SocialaccountRoute: SocialaccountRoute,
@@ -628,8 +628,8 @@ export const routeTree = rootRoute
         "/quiz",
         "/quiz_result",
         "/register",
-        "/sales-customer-insights",
         "/review",
+        "/sales-customer-insights",
         "/shop",
         "/shopDetails",
         "/social_account",
@@ -693,11 +693,11 @@ export const routeTree = rootRoute
     "/register": {
       "filePath": "register.tsx"
     },
-    "/sales-customer-insights": {
-      "filePath": "sales-customer-insights.tsx"
-    },
     "/review": {
       "filePath": "review.tsx"
+    },
+    "/sales-customer-insights": {
+      "filePath": "sales-customer-insights.tsx"
     },
     "/shop": {
       "filePath": "shop.tsx"
