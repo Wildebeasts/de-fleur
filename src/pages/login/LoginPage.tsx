@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +13,9 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { FaGoogle, FaApple } from 'react-icons/fa'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useAuth } from '@/lib/context/AuthContext'
+import { toast } from 'sonner'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,6 +33,32 @@ const itemVariants = {
 }
 
 export const LoginPage: React.FC = () => {
+  const { login, isLoading, error } = useAuth()
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    userName: '',
+    password: ''
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await login(formData)
+      toast.success('Login successful!')
+      navigate({ to: '/' })
+    } catch (err) {
+      toast.error(error?.message || 'Login failed. Please try again.')
+    }
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -54,75 +82,90 @@ export const LoginPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <motion.div variants={itemVariants} className="flex gap-4">
-              <Button
-                variant="outline"
-                className="flex-1 border-rose-200 hover:bg-rose-50"
-              >
-                <FaGoogle className="mr-2" />
-                Google
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 border-rose-200 hover:bg-rose-50"
-              >
-                <FaApple className="mr-2" />
-                Apple
-              </Button>
-            </motion.div>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-6">
+              <motion.div variants={itemVariants} className="flex gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-rose-200 hover:bg-rose-50"
+                >
+                  <FaGoogle className="mr-2" />
+                  Google
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 border-rose-200 hover:bg-rose-50"
+                >
+                  <FaApple className="mr-2" />
+                  Apple
+                </Button>
+              </motion.div>
 
-            <div className="relative">
-              <Separator />
-              <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
-                or continue with
-              </span>
-            </div>
-
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="hello@example.com"
-                  className="border-rose-200 focus-visible:ring-rose-300"
-                />
+              <div className="relative">
+                <Separator />
+                <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
+                  or continue with
+                </span>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Button
-                    variant="link"
-                    className="h-auto p-0 text-rose-500 hover:text-rose-600"
-                  >
-                    Forgot password?
-                  </Button>
+              <motion.div variants={itemVariants} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="userName">Username</Label>
+                  <Input
+                    id="userName"
+                    type="text"
+                    value={formData.userName}
+                    onChange={handleInputChange}
+                    placeholder="johndoe"
+                    className="border-rose-200 focus-visible:ring-rose-300"
+                    required
+                  />
                 </div>
-                <Input
-                  id="password"
-                  type="password"
-                  className="border-rose-200 focus-visible:ring-rose-300"
-                />
-              </div>
-            </motion.div>
-          </CardContent>
 
-          <CardFooter className="flex-col space-y-4">
-            <Button className="w-full bg-rose-300 text-black hover:bg-rose-400">
-              Sign In
-            </Button>
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link
-                to="/register"
-                className="text-rose-500 hover:text-rose-600"
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-rose-500 hover:text-rose-600"
+                    >
+                      Forgot password?
+                    </Button>
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    className="border-rose-200 focus-visible:ring-rose-300"
+                    required
+                  />
+                </div>
+              </motion.div>
+            </CardContent>
+
+            <CardFooter className="flex-col space-y-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-rose-300 text-black hover:bg-rose-400"
               >
-                Create one
-              </Link>
-            </p>
-          </CardFooter>
+                {isLoading ? 'Signing In...' : 'Sign In'}
+              </Button>
+              <p className="text-sm text-gray-600">
+                Don&apos;t have an account?{' '}
+                <Link
+                  to="/register"
+                  className="text-rose-500 hover:text-rose-600"
+                >
+                  Create one
+                </Link>
+              </p>
+            </CardFooter>
+          </form>
         </Card>
 
         <motion.div
@@ -131,6 +174,7 @@ export const LoginPage: React.FC = () => {
         >
           By signing in, you agree to our{' '}
           <Button
+            type="button"
             variant="link"
             className="h-auto p-0 text-[#3A4D39] hover:text-[#4A5D49]"
           >
@@ -138,6 +182,7 @@ export const LoginPage: React.FC = () => {
           </Button>{' '}
           and{' '}
           <Button
+            type="button"
             variant="link"
             className="h-auto p-0 text-[#3A4D39] hover:text-[#4A5D49]"
           >
