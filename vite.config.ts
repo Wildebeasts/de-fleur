@@ -17,6 +17,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  server: {
+    host: true, // Allows external access (e.g., from other devices or domains)
+    allowedHosts: ['web.pak160404.click'], // Allow this host
+  },
   test: {
     globals: true,
     environment: 'happy-dom',
