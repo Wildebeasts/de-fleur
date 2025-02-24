@@ -5,6 +5,10 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import OrderSummary from '@/components/Cart/OrderSummary'
 import SecurityInfo from '@/components/Cart/SecurityInfo'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+import vnpayLogo from '@/assets/vnpay.jpg'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -22,7 +26,55 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 }
 
+// Add payment method types
+interface PaymentMethod {
+  id: string
+  name: string
+  icon: string
+  description: string
+}
+
+const paymentMethods: PaymentMethod[] = [
+  {
+    id: 'card',
+    name: 'Credit/Debit Card',
+    icon: '/assets/logos/credit-card.svg',
+    description: 'Pay securely with your card'
+  },
+  {
+    id: 'vnpay',
+    name: 'VNPay',
+    icon: vnpayLogo,
+    description: 'Fast and secure payment with VNPay'
+  },
+  {
+    id: 'braintree',
+    name: 'Braintree',
+    icon: '/assets/logos/braintree-logo.svg',
+    description: 'Powered by PayPal'
+  }
+]
+
 const CheckoutPage: React.FC = () => {
+  const [selectedPayment, setSelectedPayment] = React.useState('card')
+
+  const handlePayment = async () => {
+    try {
+      // Implement your payment logic here based on selectedPayment
+      // This is just a mock success
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      toast.success('Payment successful! Your order is being processed.', {
+        duration: 5000
+      })
+      // Redirect to success page or order confirmation
+    } catch (error) {
+      toast.error('Payment failed. Please try again.', {
+        duration: 5000
+      })
+    }
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -74,27 +126,73 @@ const CheckoutPage: React.FC = () => {
               <Card className="mt-6 border-rose-200/50 shadow-lg">
                 <CardHeader>
                   <CardTitle className="text-[#3A4D39]">
-                    Payment Details
+                    Payment Method
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Card Number</label>
-                    <Input
-                      className="border-rose-200"
-                      placeholder="**** **** **** ****"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Expiry Date</label>
-                      <Input className="border-rose-200" placeholder="MM/YY" />
+                <CardContent>
+                  <RadioGroup
+                    value={selectedPayment}
+                    onValueChange={setSelectedPayment}
+                    className="space-y-4"
+                  >
+                    {paymentMethods.map((method) => (
+                      <div
+                        key={method.id}
+                        className="flex items-center space-x-4 rounded-lg border border-rose-200/50 p-4 hover:bg-rose-50/50"
+                      >
+                        <RadioGroupItem value={method.id} id={method.id} />
+                        <Label
+                          htmlFor={method.id}
+                          className="flex flex-1 items-center space-x-3"
+                        >
+                          <img
+                            src={method.icon}
+                            alt={method.name}
+                            className="size-8 object-contain"
+                          />
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">{method.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {method.description}
+                            </p>
+                          </div>
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+
+                  {/* Conditional render based on selected payment method */}
+                  {selectedPayment === 'card' && (
+                    <div className="mt-6 space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          Card Number
+                        </label>
+                        <Input
+                          className="border-rose-200"
+                          placeholder="**** **** **** ****"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Expiry Date
+                          </label>
+                          <Input
+                            className="border-rose-200"
+                            placeholder="MM/YY"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">CVV</label>
+                          <Input
+                            className="border-rose-200"
+                            placeholder="***"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">CVV</label>
-                      <Input className="border-rose-200" placeholder="***" />
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -106,7 +204,10 @@ const CheckoutPage: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 className="mt-6"
               >
-                <Button className="w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]">
+                <Button
+                  className="w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
+                  onClick={handlePayment}
+                >
                   Complete Order
                 </Button>
               </motion.div>
