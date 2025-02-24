@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { useQuizResult } from '@/context/QuizResultContext'
+import { useQuizResult } from '@/lib/context/QuizResultContext'
 
 // interface SkinProfileInfoItem {
 //   icon: string

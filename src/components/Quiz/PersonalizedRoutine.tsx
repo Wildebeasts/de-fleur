@@ -1,4 +1,4 @@
-import { useQuizResult } from '@/context/QuizResultContext'
+import { useQuizResult } from '@/lib/context/QuizResultContext'
 import React from 'react'
 
 // interface RoutineStep {

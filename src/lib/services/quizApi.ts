@@ -1,7 +1,7 @@
-import axiosClient from '@/apis/axiosClient'
+import axiosClient from '@/lib/context/axiosClient'
 import { ApiResponse } from '@/types/base/Api'
-import { QuizResponse } from '@/types/Quiz'
-import { RoutineResponse } from '@/types/Routine'
+import { QuizResponse } from '@/lib/types/Quiz'
+import { RoutineResponse } from '@/lib/types/Routine'
 
 const quizApi = {
   getQuiz: () => axiosClient.get<ApiResponse<QuizResponse>>('/quiz'),

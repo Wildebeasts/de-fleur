@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Printer, Mail } from 'lucide-react'
-import { useQuizResult } from '@/context/QuizResultContext'
+import { useQuizResult } from '@/lib/context/QuizResultContext'
 
 // interface Product {
 //   image: string

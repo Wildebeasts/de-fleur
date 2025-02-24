@@ -1,4 +1,4 @@
-import { RoutineResponse } from '@/types/Routine'
+import { RoutineResponse } from '@/lib/types/Routine'
 import { createContext, useContext, useState } from 'react'
 
 interface QuizResultContextType {
