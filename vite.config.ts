@@ -19,7 +19,7 @@ export default defineConfig({
   },
   server: {
     host: true, // Allows external access (e.g., from other devices or domains)
-    allowedHosts: ['web.pak160404.click'], // Allow this host
+    allowedHosts: ['web.pak160404.click'] // Allow this host
   },
   test: {
     globals: true,
