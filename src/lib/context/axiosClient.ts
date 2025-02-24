@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const axiosClient = axios.create({
-  baseURL: 'https://localhost:5051/api', // Change to your backend URL
+  baseURL: 'https://api.pak160404.click/api', // Change to your backend URL
   headers: {
     'Content-Type': 'application/json'
   }

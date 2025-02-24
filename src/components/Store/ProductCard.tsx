@@ -2,26 +2,13 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import { CosmeticResponse } from '@/lib/types/Cosmetic'
 
-interface ProductCardProps {
-  imageSrc: string
-  title: string
-  description: string
-  price: string
-  isNew?: boolean
-  rating?: number
-  reviewCount?: number
+interface CosmeticCardProps {
+  cosmetic: CosmeticResponse
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({
-  imageSrc,
-  title,
-  description,
-  price,
-  isNew,
-  rating = 4.5,
-  reviewCount = 124
-}) => {
+export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const [isHovered, setIsHovered] = useState(false)
 
   return (
@@ -34,7 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="relative mb-6 w-full overflow-hidden rounded-xl bg-[#F9F5F0]">
-        {isNew && (
+        {/* {isNew && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -42,7 +29,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           >
             New
           </motion.div>
-        )}
+        )} */}
         <div className="absolute inset-0 bg-gradient-to-br from-[#F9F5F0]/50 to-transparent" />
         <motion.div
           className="relative aspect-square"
@@ -51,8 +38,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         >
           <img
             loading="lazy"
-            src={imageSrc}
-            alt={title}
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e"
+            alt="alt"
             className="size-full object-cover"
           />
           {isHovered && (
@@ -101,7 +88,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
       <div className="z-10 w-full">
         <motion.div className="mb-2 flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
+          {/* {[...Array(5)].map((_, i) => (
             <motion.span
               key={i}
               initial={{ opacity: 0 }}
@@ -111,24 +98,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               ★
             </motion.span>
           ))}
-          <span className="ml-2 text-sm text-gray-500">({reviewCount})</span>
+          <span className="ml-2 text-sm text-gray-500">({reviewCount})</span> */}
         </motion.div>
 
         <h3 className="mb-2 font-inter text-2xl font-medium text-[#3A4D39] transition-colors duration-300 hover:text-[#4A5D49]">
-          {title}
+          {cosmetic.name}
         </h3>
         <p className="mb-4 font-inter text-base leading-relaxed text-[#3A4D39]/70">
-          {description}
+          {cosmetic.notice}
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            {price}
+            {cosmetic.price}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49]"
-            aria-label={`Add ${title} to cart`}
+            aria-label={`Add ${cosmetic.name} to cart`}
           >
             Add to Cart
           </motion.button>
