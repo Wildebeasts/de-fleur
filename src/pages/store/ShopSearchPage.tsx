@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import Breadcrumb from '../../components/Store/Breadcrumb'
 import Sidebar from '../../components/Store/Sidebar'
 import ProductGrid from '../../components/Store/ProductGrid'
-import Pagination from '../../components/Store/Pagination'
+// import Pagination from '../../components/Store/Pagination'
 import { CosmeticProvider } from '@/lib/context/CosmeticContext'
 
 const ShopSearchPage: React.FC = () => {
@@ -46,7 +46,6 @@ const ShopSearchPage: React.FC = () => {
             <motion.main variants={itemVariants} className="flex-1">
               <div className="mx-auto flex w-full flex-col max-md:mt-8 max-md:max-w-full">
                 <ProductGrid />
-                <Pagination />
               </div>
             </motion.main>
           </div>
