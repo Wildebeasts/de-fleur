@@ -46,6 +46,14 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     let filtered = cosmetics
 
+    if (selectedCategories.length > 0) {
+      filtered = filtered.filter((cosmetic) =>
+        cosmetic.cosmeticSubcategories.some((sub) =>
+          selectedCategories.includes(sub.id)
+        )
+      )
+    }
+
     if (selectedBrands.length > 0) {
       filtered = filtered.filter((cosmetic) =>
         selectedBrands.includes(cosmetic.brandId)

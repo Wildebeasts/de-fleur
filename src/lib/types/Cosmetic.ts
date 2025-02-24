@@ -1,4 +1,5 @@
 import { SkinTypeResponse } from './SkinType'
+import { SubCategoryResponse } from './SubCategory'
 
 export interface CosmeticResponse {
   id: string
@@ -22,7 +23,7 @@ export interface CosmeticResponse {
   texture: string
   origin: string
   instructions: string
-  cosmeticSubcategories: string[]
+  cosmeticSubcategories: SubCategoryResponse[]
   cosmeticImages: string[]
   feedbacks: string[]
 }

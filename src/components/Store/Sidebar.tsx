@@ -11,6 +11,12 @@ import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
 import { useCosmetic } from '@/lib/context/CosmeticContext'
 import { SubCategoryResponse } from '@/lib/types/SubCategory'
 import subCategoryApi from '@/lib/services/subCategoryApi'
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent
+} from '@radix-ui/react-accordion'
 
 const Sidebar: React.FC = () => {
   // const categories = ['Cleansers', 'Toners', 'Serums']
@@ -111,7 +117,7 @@ const Sidebar: React.FC = () => {
               whileHover={{ x: 5 }}
               className="flex items-center space-x-2"
             >
-              <Checkbox
+              {/* <Checkbox
                 id={`category-${category.name.toLowerCase()}`}
                 checked={selectedCategories.includes(category.id)}
                 onCheckedChange={() =>
@@ -127,7 +133,50 @@ const Sidebar: React.FC = () => {
                 className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {category.name}
-              </label>
+              </label> */}
+              <Accordion
+                key={category.id}
+                type="single"
+                collapsible
+                className="w-full"
+              >
+                <AccordionItem value={category.id}>
+                  <AccordionTrigger>{category.name}</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 pl-4">
+                      {subCategories
+                        .filter((sub) => sub.categoryId === category.id)
+                        .map((subCategory) => (
+                          <motion.div
+                            key={subCategory.id}
+                            whileHover={{ x: 5 }}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`subcategory-${subCategory.name.toLowerCase()}`}
+                              checked={selectedCategories.includes(
+                                subCategory.id
+                              )}
+                              onCheckedChange={() =>
+                                handleSelectionChange(
+                                  selectedCategories,
+                                  setSelectedCategories,
+                                  subCategory.id
+                                )
+                              }
+                            />
+                            <label
+                              htmlFor={`subcategory-${subCategory.name.toLowerCase()}`}
+                              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {subCategory.name}
+                            </label>
+                          </motion.div>
+                        ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
             </motion.div>
           ))}
         </div>
