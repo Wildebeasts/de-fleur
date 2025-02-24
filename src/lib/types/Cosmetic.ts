@@ -1,3 +1,5 @@
+import { SkinTypeResponse } from './SkinType'
+
 export interface CosmeticResponse {
   id: string
   createAt: string
@@ -8,7 +10,7 @@ export interface CosmeticResponse {
   brandId: string
   brand: string | null
   skinTypeId: string
-  skinType: string | null
+  skinType: SkinTypeResponse
   cosmeticTypeId: string
   cosmeticType: string | null
   name: string

@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import ProductCard from './ProductCard'
-import { CosmeticResponse } from '@/lib/types/Cosmetic'
-import cosmeticApi from '@/lib/services/cosmeticApi'
+import { useCosmetic } from '@/lib/context/CosmeticContext'
 
 // interface Product {
 //   id: string
@@ -32,26 +31,7 @@ const ProductGrid: React.FC = () => {
   //   // Add more products...
   // ]
 
-  const [cosmetics, setCosmetics] = useState<CosmeticResponse[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-
-  useEffect(() => {
-    cosmeticApi
-      .getCosmetics()
-      .then((response) => {
-        if (response.data.isSuccess) {
-          console.log(response.data)
-          setCosmetics(response.data.data!)
-          setLoading(false)
-        }
-      })
-      .catch((err) => {
-        console.error('Error fetching quiz:', err)
-        setLoading(true)
-      })
-  }, [])
-
-  if (loading) return <p>Loading...</p>
+  const { filteredCosmetics } = useCosmetic()
 
   return (
     <motion.div
@@ -59,7 +39,7 @@ const ProductGrid: React.FC = () => {
       animate={{ opacity: 1 }}
       className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
     >
-      {cosmetics.map((cosmetic, index) => (
+      {filteredCosmetics!.map((cosmetic, index) => (
         <motion.div
           key={cosmetic.id}
           initial={{ opacity: 0, y: 20 }}
