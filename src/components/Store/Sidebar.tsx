@@ -9,6 +9,8 @@ import categoryApi from '@/lib/services/categoryApi'
 import brandApi from '@/lib/services/brandApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
 import { useCosmetic } from '@/lib/context/CosmeticContext'
+import { SubCategoryResponse } from '@/lib/types/SubCategory'
+import subCategoryApi from '@/lib/services/subCategoryApi'
 
 const Sidebar: React.FC = () => {
   // const categories = ['Cleansers', 'Toners', 'Serums']
@@ -40,9 +42,9 @@ const Sidebar: React.FC = () => {
   }
 
   const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const [subCategories, setSubCategories] = useState<SubCategoryResponse[]>([])
   const [brands, setBrands] = useState<BrandResponse[]>([])
   const [cosmeticTypes, setCosmeticTypes] = useState<CosmeticTypeResponse[]>([])
-  // const [priceRange, setPriceRange] = useState([0])
 
   useEffect(() => {
     categoryApi.getCategories().then((response) => {
@@ -60,6 +62,12 @@ const Sidebar: React.FC = () => {
     cosmeticTypeApi.getCosmeticTypes().then((response) => {
       if (response.data.isSuccess) {
         setCosmeticTypes(response.data.data!)
+      }
+    })
+
+    subCategoryApi.getSubCategories().then((response) => {
+      if (response.data.isSuccess) {
+        setSubCategories(response.data.data!)
       }
     })
   }, [])
