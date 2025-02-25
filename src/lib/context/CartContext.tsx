@@ -56,20 +56,20 @@ interface DecodedToken {
 const CartContext = createContext<CartContextType>({
   cartItems: [],
   cartId: null,
-  addToCart: async () => {},
-  removeFromCart: async () => {},
-  updateQuantity: async () => {},
-  clearCart: () => {},
+  addToCart: async () => { },
+  removeFromCart: async () => { },
+  updateQuantity: async () => { },
+  clearCart: () => { },
   getCartTotal: () => 0,
   getSubtotal: () => 0,
   getItemCount: () => 0,
-  applyCoupon: () => {},
-  removeCoupon: () => {},
+  applyCoupon: () => { },
+  removeCoupon: () => { },
   coupon: null,
   shippingAddress: '',
   billingAddress: '',
-  setShippingAddress: () => {},
-  setBillingAddress: () => {},
+  setShippingAddress: () => { },
+  setBillingAddress: () => { },
   createOrderRequest: () => ({})
 })
 
@@ -109,10 +109,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   // Load cart from localStorage or server when component mounts
   useEffect(() => {
     const loadCart = async () => {
-      if (isAuthenticated && userId) {
+      if (isAuthenticated && accessToken) {
         try {
-          // Get cart by user ID
-          const response = await cartApi.getCartByUserId(userId)
+          // Get cart for the current user
+          const response = await cartApi.getCurrentUserCart()
           const userCart = response.data.data
 
           if (userCart) {
@@ -132,8 +132,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
             setCartItems(items)
           } else {
-            // Handle case where user doesn't have a cart yet
-            // Your backend should create a cart when user registers
+            // If no cart exists yet, it will be created by the backend
             console.log('No cart found for user')
           }
         } catch (error) {
@@ -154,7 +153,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     loadCart()
-  }, [isAuthenticated, userId])
+  }, [isAuthenticated, accessToken])
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {

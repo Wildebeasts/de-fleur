@@ -15,8 +15,8 @@ const cartApi = {
       `/api/cart/view-cart?id=${cartId}`
     ),
 
-  getCartByUserId: (userId: string) =>
-    axiosClient.get<ApiResponse<CartResponse>>(`/api/cart/user/${userId}`),
+  getCurrentUserCart: () =>
+    axiosClient.get<ApiResponse<CartResponse>>('/api/cart/user-cart'),
 
   addToCart: (request: AddProductRequest) =>
     axiosClient.put<ApiResponse<CartResponse[]>>(
