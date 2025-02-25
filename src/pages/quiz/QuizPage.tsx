@@ -6,10 +6,10 @@ import {
   quizCompletionStates
 } from '@/components/ui/multi-step-loader'
 import { useNavigate } from '@tanstack/react-router'
-import quizApi from '@/services/quizApi'
-import { QuizResponse } from '@/types/Quiz'
-import { QuestionResponse } from '@/types/Question'
-import { useQuizResult } from '@/context/QuizResultContext'
+import quizApi from '@/lib/services/quizApi'
+import { QuizResponse } from '@/lib/types/Quiz'
+import { QuestionResponse } from '@/lib/types/Question'
+import { useQuizResult } from '@/lib/context/QuizResultContext'
 
 const QuizPage: React.FC = () => {
   const navigate = useNavigate()
