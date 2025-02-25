@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { useNavigate } from '@tanstack/react-router'
+import { useCart } from '@/lib/context/CartContext'
+import { toast } from 'sonner'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
@@ -20,6 +22,27 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         productId: cosmetic.id
       }
     })
+  }
+  const { addToCart } = useCart()
+
+  const handleAddToCart = () => {
+    // Create a cart item from the cosmetic product
+    const cartItem = {
+      id: cosmetic.id,
+      name: cosmetic.name,
+      price: cosmetic.price,
+      quantity: 1,
+      imageUrl: cosmetic.cosmeticImages?.[0] || '',
+      ingredients: cosmetic.ingredients,
+      cosmeticType: cosmetic.cosmeticType as string,
+      brand: cosmetic.brand as string
+    }
+
+    // Add the item to the cart
+    addToCart(cartItem)
+
+    // Show success message
+    toast.success(`${cosmetic.name} added to cart!`)
   }
 
   return (
@@ -131,6 +154,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
             whileTap={{ scale: 0.95 }}
             className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49]"
             aria-label={`Add ${cosmetic.name} to cart`}
+            onClick={handleAddToCart}
           >
             Add to Cart
           </motion.button>
