@@ -87,7 +87,8 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`rounded-4xl mx-auto w-full max-w-md shadow-xl ${stepCircleContainerClassName}`}
+        // eslint-disable-next-line tailwindcss/no-custom-classname
+        className={`rounded-4xl mx-auto w-full max-w-3xl shadow-xl ${stepCircleContainerClassName}`}
         style={{ border: '1px solid #222' }}
       >
         <div
@@ -145,6 +146,7 @@ export default function Stepper({
               {currentStep !== 1 && (
                 <button
                   onClick={handleBack}
+                  // eslint-disable-next-line tailwindcss/no-custom-classname
                   className={`duration-350 rounded px-2 py-1 transition ${
                     currentStep === 1
                       ? 'pointer-events-none text-neutral-400 opacity-50'
@@ -157,6 +159,7 @@ export default function Stepper({
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
+                // eslint-disable-next-line tailwindcss/no-custom-classname
                 className="duration-350 flex items-center justify-center rounded-full bg-green-500 px-3.5 py-1.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700"
                 {...nextButtonProps}
               >

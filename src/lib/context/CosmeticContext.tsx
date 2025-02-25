@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
-import cosmeticApi from '@/lib/services/cosmeticApi'
+import { useCosmetics } from '@/lib/hooks/useCosmetics'
 
 interface CosmeticContextType {
   filteredCosmetics: CosmeticResponse[] | null
+  isLoading: boolean
+  error: Error | null
   selectedCategories: string[]
-  setSelectedCategories: (cateogories: string[]) => void
+  setSelectedCategories: (categories: string[]) => void
   selectedBrands: string[]
   setSelectedBrands: (brands: string[]) => void
   selectedCosmeticTypes: string[]
@@ -21,7 +23,7 @@ const CosmeticContext = createContext<CosmeticContextType | null>(null)
 export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   children
 }) => {
-  const [cosmetics, setCosmetics] = useState<CosmeticResponse[]>([])
+  const { data: cosmetics = [], isLoading, error } = useCosmetics()
   const [filteredCosmetics, setFilteredCosmetics] = useState<
     CosmeticResponse[]
   >([])
@@ -35,13 +37,10 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   const [priceRange, setPriceRange] = useState([0, 200])
 
   useEffect(() => {
-    cosmeticApi.getCosmetics().then((response) => {
-      if (response.data.isSuccess) {
-        setCosmetics(response.data.data!)
-        setFilteredCosmetics(response.data.data!)
-      }
-    })
-  }, [])
+    if (cosmetics.length > 0) {
+      setFilteredCosmetics(cosmetics)
+    }
+  }, [cosmetics])
 
   useEffect(() => {
     let filtered = cosmetics
@@ -97,6 +96,8 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     <CosmeticContext.Provider
       value={{
         filteredCosmetics,
+        isLoading,
+        error,
         selectedCategories,
         setSelectedCategories,
         selectedBrands,

@@ -1,9 +1,19 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Star, Users, Clock } from 'lucide-react'
+import { Star, Users, Clock, Eye, ShoppingCart } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import cosmeticApi from '@/lib/services/cosmeticApi'
+import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
+import { Loader2 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import QuickViewModal from './QuickViewModal'
+import { Card, CardContent } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface Collection {
+  id: string
   title: string
   description: string
   image: string
@@ -12,6 +22,7 @@ interface Collection {
   reviewCount: number
   featured: boolean
   bestSellers: {
+    id: string
     name: string
     image: string
     price: string
@@ -19,114 +30,6 @@ interface Collection {
   tags: string[]
   launchDate: string
 }
-
-const collections: Collection[] = [
-  {
-    title: 'Brightening Collection',
-    description:
-      'Illuminate your skin with our vitamin C enriched products. Perfect for dull, uneven skin tone and hyperpigmentation.',
-    image:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
-    productCount: 4,
-    rating: 4.8,
-    reviewCount: 256,
-    featured: true,
-    bestSellers: [
-      {
-        name: 'Vitamin C Serum',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
-        price: '$75.00'
-      },
-      {
-        name: 'Brightening Moisturizer',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/502832db11429b604680472638a3f8621487ea96a153661274824baa1ee0acf5',
-        price: '$65.00'
-      }
-    ],
-    tags: ['Vitamin C', 'Niacinamide', 'Alpha Arbutin'],
-    launchDate: 'New Collection'
-  },
-  {
-    title: 'Hydration Essentials',
-    description: 'Deep moisturizing products for all skin types',
-    image:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
-    productCount: 3,
-    rating: 4.7,
-    reviewCount: 189,
-    featured: false,
-    bestSellers: [
-      {
-        name: 'Hydrating Serum',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
-        price: '$68.00'
-      },
-      {
-        name: 'Moisture Cream',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/502832db11429b604680472638a3f8621487ea96a153661274824baa1ee0acf5',
-        price: '$72.00'
-      }
-    ],
-    tags: ['Hyaluronic Acid', 'Ceramides', 'Peptides'],
-    launchDate: ''
-  },
-  {
-    title: 'Anti-Aging Solutions',
-    description: 'Target fine lines and wrinkles with proven ingredients',
-    image:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/502832db11429b604680472638a3f8621487ea96a153661274824baa1ee0acf5',
-    productCount: 5,
-    rating: 4.6,
-    reviewCount: 167,
-    featured: false,
-    bestSellers: [
-      {
-        name: 'Retinol Serum',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/502832db11429b604680472638a3f8621487ea96a153661274824baa1ee0acf5',
-        price: '$82.00'
-      },
-      {
-        name: 'Night Cream',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
-        price: '$78.00'
-      }
-    ],
-    tags: ['Retinol', 'Peptides', 'Collagen'],
-    launchDate: ''
-  },
-  {
-    title: 'Sensitive Skin Care',
-    description: 'Gentle formulations for sensitive and reactive skin',
-    image:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/d3749484c9f854c8c506194af4551de113a3c9b1770f391bf91f5e0feaf6d14d',
-    productCount: 3,
-    rating: 4.5,
-    reviewCount: 142,
-    featured: false,
-    bestSellers: [
-      {
-        name: 'Gentle Cleanser',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/d3749484c9f854c8c506194af4551de113a3c9b1770f391bf91f5e0feaf6d14d',
-        price: '$45.00'
-      },
-      {
-        name: 'Calming Serum',
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
-        price: '$65.00'
-      }
-    ],
-    tags: ['Fragrance-Free', 'Hypoallergenic', 'Soothing'],
-    launchDate: ''
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -144,6 +47,184 @@ const itemVariants = {
 }
 
 const CollectionsLayout: React.FC = () => {
+  const navigate = useNavigate()
+  const [collections, setCollections] = useState<Collection[]>([])
+  const [quickViewProductId, setQuickViewProductId] = useState<string | null>(
+    null
+  )
+  const [cosmeticsByType, setCosmeticsByType] = useState<
+    Record<string, typeof cosmetics>
+  >({})
+
+  // Fetch all cosmetics
+  const { data: cosmetics, isLoading: isLoadingCosmetics } = useQuery({
+    queryKey: ['allCosmetics'],
+    queryFn: async () => {
+      const response = await cosmeticApi.getCosmetics()
+      if (response.data.isSuccess) {
+        return response.data.data
+      }
+      throw new Error('Failed to fetch cosmetics')
+    }
+  })
+
+  // Fetch all cosmetic types
+  const { data: cosmeticTypes, isLoading: isLoadingTypes } = useQuery({
+    queryKey: ['cosmeticTypes'],
+    queryFn: async () => {
+      const response = await cosmeticTypeApi.getCosmeticTypes()
+      if (response.data.isSuccess) {
+        return response.data.data
+      }
+      throw new Error('Failed to fetch cosmetic types')
+    }
+  })
+
+  // Process cosmetics into collections when data is available
+  useEffect(() => {
+    if (cosmetics && cosmeticTypes) {
+      const processedCollections: Collection[] = []
+
+      // Group cosmetics by cosmetic type
+      const cosmeticsByTypeObj = cosmetics.reduce(
+        (acc, cosmetic) => {
+          if (!acc[cosmetic.cosmeticTypeId]) {
+            acc[cosmetic.cosmeticTypeId] = []
+          }
+          acc[cosmetic.cosmeticTypeId].push(cosmetic)
+          return acc
+        },
+        {} as Record<string, typeof cosmetics>
+      )
+
+      // Save to state so it's available in render
+      setCosmeticsByType(cosmeticsByTypeObj)
+
+      // Create collections from the grouped cosmetics
+      Object.entries(cosmeticsByTypeObj).forEach(
+        ([typeId, typeCosmetics], index) => {
+          // Find the cosmetic type name
+          const cosmeticType = cosmeticTypes.find((type) => type.id === typeId)
+          if (!cosmeticType || typeCosmetics.length === 0) return
+
+          // Calculate average rating
+          const ratings = typeCosmetics
+            .flatMap((c) =>
+              c.feedbacks
+                ? c.feedbacks.map((f) => {
+                    // Ensure f is an object with a rating property
+                    if (f && typeof f === 'object' && 'rating' in f) {
+                      return (f as { rating: number }).rating
+                    }
+                    return 0
+                  })
+                : []
+            )
+            .filter((r) => r > 0)
+
+          const avgRating =
+            ratings.length > 0
+              ? ratings.reduce((sum, rating) => sum + rating, 0) /
+                ratings.length
+              : 4.5 // Default rating if none available
+
+          // Get total review count
+          const reviewCount = ratings.length
+
+          // Get bestsellers (top 2 by price)
+          const sortedByPrice = [...typeCosmetics].sort(
+            (a, b) => b.price - a.price
+          )
+          const bestSellers = sortedByPrice.slice(0, 2).map((c) => ({
+            id: c.id,
+            name: c.name || 'Unnamed Product',
+            price: `$${c.price.toFixed(2)}`,
+            image: getImageUrl(c.cosmeticImages?.[0])
+          }))
+
+          // Extract tags from ingredients (first 3 words)
+          const allIngredients = typeCosmetics
+            .map((c) => c.ingredients)
+            .filter(Boolean)
+            .join(', ')
+            .split(',')
+            .map((i) => i.trim())
+            .filter((i) => i.length > 3)
+
+          const tags = [...new Set(allIngredients)].slice(0, 3).filter(Boolean)
+
+          // Create the collection
+          processedCollections.push({
+            id: typeId,
+            title: cosmeticType.name || `Collection ${index + 1}`,
+            description:
+              cosmeticType.description ||
+              typeCosmetics[0]?.mainUsage ||
+              'A curated collection of premium skincare products',
+            image: getImageUrl(typeCosmetics[0]?.cosmeticImages?.[0]),
+            productCount: typeCosmetics.length,
+            rating: parseFloat(avgRating.toFixed(1)),
+            reviewCount,
+            featured: index === 0, // Make the first collection featured
+            bestSellers,
+            tags: tags.length > 0 ? tags : ['Premium', 'Skincare', 'Natural'],
+            launchDate: index === 0 ? 'New Collection' : ''
+          })
+        }
+      )
+
+      setCollections(processedCollections)
+    }
+  }, [cosmetics, cosmeticTypes])
+  // Helper function to get image URL from cosmetic image
+  const getImageUrl = (
+    image: { imageUrl?: string } | string | null | undefined
+  ): string => {
+    if (!image)
+      return 'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430'
+
+    if (typeof image === 'object' && image !== null) {
+      return (
+        image.imageUrl ||
+        'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430'
+      )
+    }
+
+    if (typeof image === 'string') {
+      return image
+    }
+
+    return 'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430'
+  }
+
+  const handleViewCollection = (typeId: string) => {
+    navigate({
+      to: '/shop',
+      search: {
+        cosmeticTypeId: typeId
+      }
+    })
+  }
+
+  const handleQuickView = (productId: string) => {
+    setQuickViewProductId(productId)
+  }
+
+  const closeQuickView = () => {
+    setQuickViewProductId(null)
+  }
+
+  if (isLoadingCosmetics || isLoadingTypes) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-[#3A4D39]" />
+        <span className="ml-2 text-lg text-[#3A4D39]">
+          Loading collections...
+        </span>
+      </div>
+    )
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -167,11 +248,10 @@ const CollectionsLayout: React.FC = () => {
             concerns
           </p>
         </div>
-
         <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
-          {collections.map((collection, index) => (
+          {collections.map((collection) => (
             <motion.div
-              key={index}
+              key={collection.id}
               variants={itemVariants}
               whileHover={{ y: -8 }}
               transition={{ type: 'spring', stiffness: 300 }}
@@ -199,9 +279,9 @@ const CollectionsLayout: React.FC = () => {
                   <h2 className="text-2xl font-semibold text-[#3A4D39]">
                     {collection.title}
                   </h2>
-                  <span className="rounded-full bg-[#D1E2C4] px-3 py-1 text-sm text-[#3A4D39]">
+                  <Badge className="bg-[#D1E2C4] text-[#3A4D39] hover:bg-[#D1E2C4]/80">
                     {collection.productCount} Products
-                  </span>
+                  </Badge>
                 </div>
 
                 <div className="mt-4 flex items-center gap-4">
@@ -242,37 +322,82 @@ const CollectionsLayout: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="mt-6 space-y-4">
-                  <h3 className="text-sm font-medium text-gray-600">
-                    Bestsellers in this collection:
-                  </h3>
-                  <div className="flex gap-4">
-                    {collection.bestSellers.map((product, idx) => (
-                      <div key={idx} className="w-24">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="aspect-square rounded-lg object-cover"
-                        />
-                        <p className="mt-2 text-xs text-gray-600">
-                          {product.name}
-                        </p>
-                        <p className="text-xs font-medium text-[#3A4D39]">
-                          {product.price}
-                        </p>
+                <div className="mt-8">
+                  <Tabs defaultValue="bestsellers" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="bestsellers">Bestsellers</TabsTrigger>
+                      <TabsTrigger value="all">All Products</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="bestsellers">
+                      <div className="flex gap-4">
+                        {collection.bestSellers.map((product, idx) => (
+                          <div
+                            key={idx}
+                            className="w-24 cursor-pointer"
+                            onClick={() => handleQuickView(product.id)}
+                          >
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="aspect-square rounded-lg object-cover"
+                            />
+                            <p className="mt-2 text-xs text-gray-600">
+                              {product.name}
+                            </p>
+                            <p className="text-xs font-medium text-[#3A4D39]">
+                              {product.price}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </TabsContent>
+                    <TabsContent value="all">
+                      <div className="grid max-h-60 grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
+                        {cosmeticsByType[collection.id]?.map((product, idx) => (
+                          <Card
+                            key={idx}
+                            className="cursor-pointer overflow-hidden border-none shadow-sm hover:shadow-md"
+                            onClick={() => handleQuickView(product.id)}
+                          >
+                            <div className="aspect-square overflow-hidden">
+                              <img
+                                src={getImageUrl(product.cosmeticImages?.[0])}
+                                alt={product.name || 'Product'}
+                                className="size-full object-cover transition-transform duration-300 hover:scale-105"
+                              />
+                            </div>
+                            <CardContent className="p-3">
+                              <p className="truncate text-xs font-medium text-[#3A4D39]">
+                                {product.name || 'Unnamed Product'}
+                              </p>
+                              <p className="text-xs font-semibold text-[#3A4D39]">
+                                ${product.price.toFixed(2)}
+                              </p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </div>
 
                 <div className="mt-8 flex items-center gap-4">
-                  <Button className="flex-1 bg-rose-300 text-black hover:bg-rose-400">
+                  <Button
+                    className="flex-1 bg-rose-300 text-black hover:bg-rose-400"
+                    onClick={() => handleViewCollection(collection.id)}
+                  >
+                    <ShoppingCart className="mr-2 size-4" />
                     View Collection
                   </Button>
                   <Button
                     variant="outline"
                     className="border-rose-200 hover:bg-rose-50"
+                    onClick={() =>
+                      collection.bestSellers[0] &&
+                      handleQuickView(collection.bestSellers[0].id)
+                    }
                   >
+                    <Eye className="mr-2 size-4" />
                     Quick View
                   </Button>
                 </div>
@@ -281,6 +406,11 @@ const CollectionsLayout: React.FC = () => {
           ))}
         </div>
       </motion.div>
+      <QuickViewModal
+        productId={quickViewProductId}
+        isOpen={!!quickViewProductId}
+        onClose={closeQuickView}
+      />
     </motion.div>
   )
 }

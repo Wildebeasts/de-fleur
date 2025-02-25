@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import ProductCard from './ProductCard'
 import { useCosmetic } from '@/lib/context/CosmeticContext'
 import Pagination from './Pagination'
+import { Loader2 } from 'lucide-react'
 
 // interface Product {
 //   id: string
@@ -34,18 +35,49 @@ const ProductGrid: React.FC = () => {
   //   // Add more products...
   // ]
 
-  const { filteredCosmetics } = useCosmetic()
+  const { filteredCosmetics, isLoading, error } = useCosmetic()
 
   const [currentPage, setCurrentPage] = useState(1)
 
   // Calculate total pages
-  const totalPages = Math.ceil(filteredCosmetics!.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(
+    (filteredCosmetics?.length || 0) / ITEMS_PER_PAGE
+  )
 
   // Get current page cosmetics
-  const paginatedCosmetics = filteredCosmetics!.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
+  const paginatedCosmetics =
+    filteredCosmetics?.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    ) || []
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-[#3A4D39]" />
+        <span className="ml-2 text-lg text-[#3A4D39]">Loading products...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-64 w-full flex-col items-center justify-center text-red-500">
+        <p className="text-lg font-medium">Error loading products</p>
+        <p className="text-sm">{error.message}</p>
+      </div>
+    )
+  }
+
+  if (paginatedCosmetics.length === 0) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center">
+        <p className="text-lg text-[#3A4D39]">
+          No products found matching your filters.
+        </p>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -54,7 +86,7 @@ const ProductGrid: React.FC = () => {
         animate={{ opacity: 1 }}
         className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
-        {paginatedCosmetics!.map((cosmetic, index) => (
+        {paginatedCosmetics.map((cosmetic, index) => (
           <motion.div
             key={cosmetic.id}
             initial={{ opacity: 0, y: 20 }}

@@ -72,8 +72,8 @@ export const PersonalizedRoutine: React.FC = () => {
                       key={stepIndex}
                       className="mt-4 flex flex-wrap gap-3 rounded-lg border border-solid py-3.5 pl-3.5 pr-20 max-md:pr-5"
                     >
-                      <div className="my-auto size-8 whitespace-nowrap rounded-full bg-orange-50 px-3.5 pb-3.5 pt-1.5 text-base">
-                        {step.stepNumber}
+                      <div className="my-auto flex size-8 items-center justify-center whitespace-nowrap rounded-full bg-orange-50 text-base">
+                        {stepIndex + 1}
                       </div>
                       <div className="flex flex-col pb-2 pt-0.5 leading-none">
                         <div className="text-base font-medium">
