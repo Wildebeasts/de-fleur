@@ -1,11 +1,89 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Slider } from '@/components/ui/slider'
+import { CosmeticTypeResponse } from '@/lib/types/CosmeticType'
+import { BrandResponse } from '@/lib/types/Brand'
+import { CategoryResponse } from '@/lib/types/Category'
+import categoryApi from '@/lib/services/categoryApi'
+import brandApi from '@/lib/services/brandApi'
+import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
+import { useCosmetic } from '@/lib/context/CosmeticContext'
+import { SubCategoryResponse } from '@/lib/types/SubCategory'
+import subCategoryApi from '@/lib/services/subCategoryApi'
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent
+} from '@radix-ui/react-accordion'
 
 const Sidebar: React.FC = () => {
-  const categories = ['Cleansers', 'Toners', 'Serums']
-  const skinConcerns = ['Acne', 'Aging', 'Hyperpigmentation']
+  // const categories = ['Cleansers', 'Toners', 'Serums']
+  // const skinConcerns = ['Acne', 'Aging', 'Hyperpigmentation']
+
+  const {
+    selectedCategories,
+    setSelectedCategories,
+    selectedBrands,
+    setSelectedBrands,
+    selectedCosmeticTypes,
+    setSelectedCosmeticTypes,
+    selectedConcerns,
+    setSelectedConcerns,
+    priceRange,
+    setPriceRange
+  } = useCosmetic()
+
+  const handleSelectionChange = (
+    selectedList: string[],
+    setSelectedList: (list: string[]) => void,
+    value: string
+  ) => {
+    setSelectedList(
+      selectedList.includes(value)
+        ? selectedList.filter((item) => item !== value)
+        : [...selectedList, value]
+    )
+  }
+
+  const [categories, setCategories] = useState<CategoryResponse[]>([])
+  const [subCategories, setSubCategories] = useState<SubCategoryResponse[]>([])
+  const [brands, setBrands] = useState<BrandResponse[]>([])
+  const [cosmeticTypes, setCosmeticTypes] = useState<CosmeticTypeResponse[]>([])
+
+  useEffect(() => {
+    categoryApi.getCategories().then((response) => {
+      if (response.data.isSuccess) {
+        setCategories(response.data.data!)
+      }
+    })
+
+    brandApi.getBrands().then((response) => {
+      if (response.data.isSuccess) {
+        setBrands(response.data.data!)
+      }
+    })
+
+    cosmeticTypeApi.getCosmeticTypes().then((response) => {
+      if (response.data.isSuccess) {
+        setCosmeticTypes(response.data.data!)
+      }
+    })
+
+    subCategoryApi.getSubCategories().then((response) => {
+      if (response.data.isSuccess) {
+        setSubCategories(response.data.data!)
+      }
+    })
+  }, [])
+
+  const skinAttributes = [
+    { key: 'isDry', label: 'Dry' },
+    { key: 'isSensitive', label: 'Sensitive' },
+    { key: 'isUneven', label: 'Pigmented' },
+    { key: 'isWrinkle', label: 'Wrinkle-Prone' }
+  ]
 
   const containerVariants = {
     hidden: { opacity: 0, x: -20 },
@@ -23,8 +101,6 @@ const Sidebar: React.FC = () => {
     visible: { opacity: 1, x: 0 }
   }
 
-  const [priceRange, setPriceRange] = React.useState([0])
-
   return (
     <motion.aside
       initial="hidden"
@@ -37,16 +113,133 @@ const Sidebar: React.FC = () => {
         <div className="space-y-4">
           {categories.map((category) => (
             <motion.div
-              key={category}
+              key={category.id}
               whileHover={{ x: 5 }}
               className="flex items-center space-x-2"
             >
-              <Checkbox id={`category-${category.toLowerCase()}`} />
+              {/* <Checkbox
+                id={`category-${category.name.toLowerCase()}`}
+                checked={selectedCategories.includes(category.id)}
+                onCheckedChange={() =>
+                  handleSelectionChange(
+                    selectedCategories,
+                    setSelectedCategories,
+                    category.id
+                  )
+                }
+              />
               <label
-                htmlFor={`category-${category.toLowerCase()}`}
+                htmlFor={`category-${category.name.toLowerCase()}`}
                 className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {category}
+                {category.name}
+              </label> */}
+              <Accordion
+                key={category.id}
+                type="single"
+                collapsible
+                className="w-full"
+              >
+                <AccordionItem value={category.id}>
+                  <AccordionTrigger>{category.name}</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 pl-4">
+                      {subCategories
+                        .filter((sub) => sub.categoryId === category.id)
+                        .map((subCategory) => (
+                          <motion.div
+                            key={subCategory.id}
+                            whileHover={{ x: 5 }}
+                            className="flex items-center space-x-2"
+                          >
+                            <Checkbox
+                              id={`subcategory-${subCategory.name.toLowerCase()}`}
+                              checked={selectedCategories.includes(
+                                subCategory.id
+                              )}
+                              onCheckedChange={() =>
+                                handleSelectionChange(
+                                  selectedCategories,
+                                  setSelectedCategories,
+                                  subCategory.id
+                                )
+                              }
+                            />
+                            <label
+                              htmlFor={`subcategory-${subCategory.name.toLowerCase()}`}
+                              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                              {subCategory.name}
+                            </label>
+                          </motion.div>
+                        ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section variants={itemVariants} className="mb-8">
+        <h2 className="mb-4 text-base font-medium text-gray-900">Brands</h2>
+        <div className="space-y-4">
+          {brands.map((brand) => (
+            <motion.div
+              key={brand.id}
+              whileHover={{ x: 5 }}
+              className="flex items-center space-x-2"
+            >
+              <Checkbox
+                id={`brand-${brand.name.toLowerCase()}`}
+                checked={selectedBrands.includes(brand.id)}
+                onCheckedChange={() =>
+                  handleSelectionChange(
+                    selectedBrands,
+                    setSelectedBrands,
+                    brand.id
+                  )
+                }
+              />
+              <label
+                htmlFor={`brand-${brand.name.toLowerCase()}`}
+                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {brand.name}
+              </label>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section variants={itemVariants} className="mb-8">
+        <h2 className="mb-4 text-base font-medium text-gray-900">
+          Product Types
+        </h2>
+        <div className="space-y-4">
+          {cosmeticTypes.map((cosmeticType) => (
+            <motion.div
+              key={cosmeticType.id}
+              whileHover={{ x: 5 }}
+              className="flex items-center space-x-2"
+            >
+              <Checkbox
+                id={`cosmeticType-${cosmeticType.name.toLowerCase()}`}
+                checked={selectedCosmeticTypes.includes(cosmeticType.id)}
+                onCheckedChange={() =>
+                  handleSelectionChange(
+                    selectedCosmeticTypes,
+                    setSelectedCosmeticTypes,
+                    cosmeticType.id
+                  )
+                }
+              />
+              <label
+                htmlFor={`cosmeticType-${cosmeticType.name.toLowerCase()}`}
+                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {cosmeticType.name}
               </label>
             </motion.div>
           ))}
@@ -58,18 +251,28 @@ const Sidebar: React.FC = () => {
           Skin Concerns
         </h2>
         <div className="space-y-4">
-          {skinConcerns.map((concern) => (
+          {skinAttributes.map((skinType) => (
             <motion.div
-              key={concern}
+              key={skinType.key}
               whileHover={{ x: 5 }}
               className="flex items-center space-x-2"
             >
-              <Checkbox id={`concern-${concern.toLowerCase()}`} />
+              <Checkbox
+                id={`skinType-${skinType.label.toLowerCase()}`}
+                checked={selectedConcerns.includes(skinType.label)}
+                onCheckedChange={() =>
+                  handleSelectionChange(
+                    selectedConcerns,
+                    setSelectedConcerns,
+                    skinType.label
+                  )
+                }
+              />
               <label
-                htmlFor={`concern-${concern.toLowerCase()}`}
+                htmlFor={`skinType-${skinType.label.toLowerCase()}`}
                 className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                {concern}
+                {skinType.label}
               </label>
             </motion.div>
           ))}
