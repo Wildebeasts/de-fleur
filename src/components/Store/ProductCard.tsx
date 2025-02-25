@@ -3,6 +3,8 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
+import { useCart } from '@/lib/context/CartContext'
+import { toast } from 'sonner'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
@@ -10,6 +12,27 @@ interface CosmeticCardProps {
 
 export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const { addToCart } = useCart()
+
+  const handleAddToCart = () => {
+    // Create a cart item from the cosmetic product
+    const cartItem = {
+      id: cosmetic.id,
+      name: cosmetic.name,
+      price: cosmetic.price,
+      quantity: 1,
+      imageUrl: cosmetic.cosmeticImages?.[0] || '',
+      ingredients: cosmetic.ingredients,
+      cosmeticType: cosmetic.cosmeticType as string,
+      brand: cosmetic.brand as string
+    }
+
+    // Add the item to the cart
+    addToCart(cartItem)
+
+    // Show success message
+    toast.success(`${cosmetic.name} added to cart!`)
+  }
 
   return (
     <motion.article
@@ -38,8 +61,11 @@ export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         >
           <img
             loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e"
-            alt="alt"
+            src={
+              cosmetic.cosmeticImages[0] ||
+              'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc'
+            }
+            alt={cosmetic.name}
             className="size-full object-cover"
           />
           {isHovered && (
@@ -116,6 +142,7 @@ export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
             whileTap={{ scale: 0.95 }}
             className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49]"
             aria-label={`Add ${cosmetic.name} to cart`}
+            onClick={handleAddToCart}
           >
             Add to Cart
           </motion.button>

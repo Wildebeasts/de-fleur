@@ -1,4 +1,5 @@
-import React from 'react'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,6 +10,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import vnpayLogo from '@/assets/vnpay.jpg'
+import paymentApi from '@/lib/services/paymentApi'
+import { useCart } from '@/lib/context/CartContext' // Assuming you have a cart context
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -56,22 +59,80 @@ const paymentMethods: PaymentMethod[] = [
 ]
 
 const CheckoutPage: React.FC = () => {
-  const [selectedPayment, setSelectedPayment] = React.useState('card')
+  const [selectedPayment, setSelectedPayment] = useState('card')
+  const [isLoading, setIsLoading] = useState(false)
+  const [exchangeRate, setExchangeRate] = useState(23500) // Default fallback rate (1 USD ≈ 23,500 VND)
+  const { cartItems, getCartTotal } = useCart()
+  const cartTotal = getCartTotal() // USD total
+
+  // Fetch exchange rate on component mount
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        // Using ExchangeRate-API - replace with your preferred API
+        const response = await fetch('https://open.er-api.com/v6/latest/USD')
+        const data = await response.json()
+        if (data.rates && data.rates.VND) {
+          setExchangeRate(data.rates.VND)
+        }
+      } catch (error) {
+        console.error('Failed to fetch exchange rate:', error)
+        // Keep the fallback rate
+      }
+    }
+
+    fetchExchangeRate()
+  }, [])
+
+  const createOrder = async () => {
+    // This would typically call your API to create an order
+    // For now, we'll just mock a GUID string as the order ID
+    // In production, replace this with your actual order creation API call
+
+    // Mock GUID for testing only
+    return '12345678-1234-1234-1234-123456789012'
+  }
 
   const handlePayment = async () => {
     try {
-      // Implement your payment logic here based on selectedPayment
-      // This is just a mock success
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      setIsLoading(true)
 
-      toast.success('Payment successful! Your order is being processed.', {
-        duration: 5000
-      })
-      // Redirect to success page or order confirmation
+      // Create an order and get the order ID
+      const orderId = await createOrder()
+
+      if (selectedPayment === 'vnpay') {
+        // Convert USD to VND for VNPay
+        const amountInVND = Math.round(cartTotal * exchangeRate)
+
+        // Create VNPay payment
+        const paymentData = {
+          orderId,
+          paymentMethod: 'VNPay',
+          amount: amountInVND // Now in VND
+        }
+
+        const response = await paymentApi.createPayment(paymentData)
+
+        if (response.data.isSuccess && response.data.data) {
+          // Redirect to the VNPay payment URL
+          window.location.href = response.data.data
+        } else {
+          toast.error('Failed to create payment link')
+        }
+      } else if (selectedPayment === 'card') {
+        // Handle credit card payment in USD
+        toast.success('Processing credit card payment...')
+        // Implement card payment logic
+      } else if (selectedPayment === 'braintree') {
+        // Handle Braintree payment in USD
+        toast.success('Processing Braintree payment...')
+        // Implement Braintree payment logic
+      }
     } catch (error) {
-      toast.error('Payment failed. Please try again.', {
-        duration: 5000
-      })
+      console.error('Payment error:', error)
+      toast.error('Payment processing failed. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -207,8 +268,9 @@ const CheckoutPage: React.FC = () => {
                 <Button
                   className="w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
                   onClick={handlePayment}
+                  disabled={isLoading}
                 >
-                  Complete Order
+                  {isLoading ? 'Processing...' : 'Complete Order'}
                 </Button>
               </motion.div>
             </motion.div>

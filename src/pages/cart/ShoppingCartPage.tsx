@@ -5,34 +5,10 @@ import CartItem from '@/components/Cart/CartItem'
 import NeedHelp from '@/components/Cart/NeedHelp'
 import SecurityInfo from '@/components/Cart/SecurityInfo'
 import { Button } from '@/components/ui/button'
+import { useCart } from '@/lib/context/CartContext'
+import { Link } from '@tanstack/react-router'
 
-interface CartItemType {
-  id: number
-  name: string
-  size: string
-  price: number
-  image: string
-}
-
-const cartItems: CartItemType[] = [
-  {
-    id: 1,
-    name: 'Radiance Renewal Cream',
-    size: '50ml',
-    price: 89.0,
-    image:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/893419c0d5ae6cb0908fc86961c37741c424a4988c9df31e21119059c8b1d81f'
-  },
-  {
-    id: 2,
-    name: 'Vitamin C Serum',
-    size: '30ml',
-    price: 65.0,
-    image:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/9a0effea80b9fc981396f4e8cc2deb2ebafa6e18b2d53c1f98842c3172b40c66'
-  }
-]
-
+// Define animation variants
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -50,6 +26,8 @@ const itemVariants = {
 }
 
 const ShoppingCartPage: React.FC = () => {
+  const { cartItems, getItemCount } = useCart()
+
   return (
     <motion.div
       initial="hidden"
@@ -74,11 +52,13 @@ const ShoppingCartPage: React.FC = () => {
                       variants={itemVariants}
                       className="text-2xl font-semibold leading-none text-black"
                     >
-                      Shopping Cart (3)
+                      Shopping Cart ({getItemCount()})
                     </motion.h1>
-                    <Button variant="ghost" className="hover:bg-[#D1E2C4]/20">
-                      Continue Shopping
-                    </Button>
+                    <Link to="/collections">
+                      <Button variant="ghost" className="hover:bg-[#D1E2C4]/20">
+                        Continue Shopping
+                      </Button>
+                    </Link>
                   </div>
 
                   <motion.div
@@ -104,17 +84,23 @@ const ShoppingCartPage: React.FC = () => {
                     variants={itemVariants}
                     className="mt-6 flex w-full flex-col gap-4"
                   >
-                    {cartItems.map((item, index) => (
-                      <motion.div
-                        key={item.id}
-                        variants={itemVariants}
-                        initial="hidden"
-                        animate="visible"
-                        transition={{ delay: index * 0.1 }}
-                      >
-                        <CartItem item={item} />
-                      </motion.div>
-                    ))}
+                    {cartItems.length > 0 ? (
+                      cartItems.map((item, index) => (
+                        <motion.div
+                          key={item.id}
+                          variants={itemVariants}
+                          initial="hidden"
+                          animate="visible"
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <CartItem item={item} />
+                        </motion.div>
+                      ))
+                    ) : (
+                      <div className="py-8 text-center text-gray-500">
+                        Your cart is empty
+                      </div>
+                    )}
                   </motion.div>
                 </div>
               </div>
