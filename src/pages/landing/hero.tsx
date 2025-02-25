@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from '@tanstack/react-router'
 
 interface NaturalBeautyHeroProps {
   imageSrc?: string
@@ -21,6 +22,12 @@ const LeafDecoration = ({ className }: { className?: string }) => (
 export const NaturalBeautyHero: React.FC<NaturalBeautyHeroProps> = ({
   imageSrc = 'https://cdn.builder.io/api/v1/image/assets/TEMP/215c624340e556fbcd16e816db52aedece9a2752bea4f7c4b8cd0a53c4e2aa07'
 }) => {
+  const navigate = useNavigate()
+
+  const handleShopNow = () => {
+    navigate({ to: '/shop' })
+  }
+
   return (
     <section
       className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-orange-100/50 px-36 max-md:px-5"
@@ -70,6 +77,7 @@ export const NaturalBeautyHero: React.FC<NaturalBeautyHeroProps> = ({
                   <button
                     className="group relative z-0 overflow-hidden rounded-full bg-gradient-to-r from-[#739072] via-[#86A789] to-[#739072] px-12 py-4 text-lg font-medium tracking-wide text-white shadow-[0_2px_20px_rgba(115,144,114,0.25)] transition-all duration-300 hover:shadow-[0_2px_30px_rgba(115,144,114,0.35)] focus:outline-none focus:ring-2 focus:ring-[#739072]/50 focus:ring-offset-2 max-md:px-8 max-md:py-4"
                     aria-label="Shop Now"
+                    onClick={handleShopNow}
                   >
                     <span className="relative z-10 flex items-center gap-2">
                       Shop Now

@@ -8,15 +8,25 @@ interface ProductCardProps {
   title: string
   description: string
   price: string
+  id?: string
+  onQuickView?: () => void
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({
   imageSrc,
   title,
   description,
-  price
+  price,
+  onQuickView
 }) => {
   const [isHovered, setIsHovered] = useState(false)
+
+  const handleQuickViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering parent click
+    if (onQuickView) {
+      onQuickView()
+    }
+  }
 
   return (
     <motion.article
@@ -39,11 +49,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className="size-full object-cover"
           />
           {isHovered && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              <button className="rounded-full bg-white px-6 py-2 text-sm font-medium text-[#3A4D39] shadow-lg transition-all duration-300 hover:scale-105 hover:bg-[#3A4D39] hover:text-white">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 flex items-center justify-center bg-black/5"
+            >
+              <button
+                className="rounded-full bg-white px-6 py-2 text-sm font-medium text-[#3A4D39] shadow-lg transition-all duration-300 hover:scale-105 hover:bg-[#3A4D39] hover:text-white"
+                onClick={handleQuickViewClick}
+              >
                 Quick View
               </button>
-            </div>
+            </motion.div>
           )}
         </motion.div>
       </div>
