@@ -3,13 +3,24 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
+import { useNavigate } from '@tanstack/react-router'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
 }
 
-export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
+const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const navigate = useNavigate()
+
+  const handleQuickView = () => {
+    navigate({
+      to: '/shopDetails',
+      search: {
+        productId: cosmetic.id
+      }
+    })
+  }
 
   return (
     <motion.article
@@ -38,8 +49,11 @@ export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         >
           <img
             loading="lazy"
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e"
-            alt="alt"
+            src={
+              cosmetic.cosmeticImages?.[0] ||
+              'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e'
+            }
+            alt={cosmetic.name}
             className="size-full object-cover"
           />
           {isHovered && (
@@ -52,6 +66,7 @@ export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="rounded-full bg-white px-6 py-2 text-sm font-medium text-[#3A4D39] shadow-lg transition-all duration-300 hover:bg-[#3A4D39] hover:text-white"
+                onClick={handleQuickView}
               >
                 Quick View
               </motion.button>
@@ -109,7 +124,7 @@ export const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            {cosmetic.price}
+            ${cosmetic.price}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}

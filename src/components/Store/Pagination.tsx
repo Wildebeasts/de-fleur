@@ -16,6 +16,8 @@ const Pagination: React.FC<PaginationProps> = ({
   const changePage = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage)
+      // Scroll to top when changing pages
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -32,7 +34,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={currentPage === 1}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="rounded-full p-2 text-gray-500 transition-colors hover:text-gray-700"
+        className="rounded-full p-2 text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
         aria-label="Previous page"
       >
         ←
@@ -74,7 +76,7 @@ const Pagination: React.FC<PaginationProps> = ({
         disabled={currentPage === totalPages}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className="rounded-full p-2 text-gray-500 transition-colors hover:text-gray-700"
+        className="rounded-full p-2 text-gray-500 transition-colors hover:text-gray-700 disabled:opacity-50"
         aria-label="Next page"
       >
         →

@@ -19,6 +19,18 @@ interface ProductDetailsProps {
     image: string
     name: string
     price: string
+    id?: string
+  }>
+  productImage?: string
+  cosmeticImages?: Array<{ id: string; imageUrl: string }>
+  ingredients?: string
+  instructions?: string
+  feedbacks?: Array<{
+    id: string
+    customerId: string
+    customerName: string | null
+    content: string | null
+    rating: number
   }>
 }
 
@@ -28,7 +40,12 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   reviewCount,
   description,
   features,
-  relatedProducts
+  relatedProducts,
+  productImage,
+  cosmeticImages,
+  ingredients,
+  instructions,
+  feedbacks
 }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -59,7 +76,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
             <div className="flex w-full max-w-screen-xl flex-col self-center px-4 pb-8 max-md:max-w-full">
               <motion.div variants={itemVariants} className="max-md:max-w-full">
                 <div className="flex gap-5 max-md:flex-col">
-                  <ProductImage />
+                  <ProductImage
+                    imageUrl={productImage}
+                    cosmeticImages={cosmeticImages}
+                  />
                   <ProductInfo
                     productName={productName}
                     price={price}
@@ -71,6 +91,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <ProductDescription
                   description={description}
                   features={features}
+                  ingredients={ingredients}
+                  instructions={instructions}
+                  feedbacks={feedbacks}
                 />
               </motion.div>
               <motion.div variants={itemVariants}>
