@@ -6,6 +6,7 @@ import ProductDescription from '../../components/Store/ProductDescription'
 import RelatedProducts from '../../components/Store/RelatedProducts'
 
 interface ProductDetailsProps {
+  productId: string
   productName: string
   price: string
   reviewCount: number
@@ -35,6 +36,7 @@ interface ProductDetailsProps {
 }
 
 const ProductDetails: React.FC<ProductDetailsProps> = ({
+  productId,
   productName,
   price,
   reviewCount,
@@ -81,6 +83,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                     cosmeticImages={cosmeticImages}
                   />
                   <ProductInfo
+                    productId={productId}
                     productName={productName}
                     price={price}
                     reviewCount={reviewCount}

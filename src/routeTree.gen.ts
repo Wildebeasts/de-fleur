@@ -17,6 +17,7 @@ import { Route as ShopDetailsImport } from './routes/shopDetails'
 import { Route as ShopImport } from './routes/shop'
 import { Route as SalesCustomerInsightsImport } from './routes/sales-customer-insights'
 import { Route as ReviewImport } from './routes/review'
+import { Route as ReturnImport } from './routes/return'
 import { Route as RegisterImport } from './routes/register'
 import { Route as QuizresultImport } from './routes/quiz_result'
 import { Route as QuizImport } from './routes/quiz'
@@ -72,6 +73,12 @@ const SalesCustomerInsightsRoute = SalesCustomerInsightsImport.update({
 const ReviewRoute = ReviewImport.update({
   id: '/review',
   path: '/review',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ReturnRoute = ReturnImport.update({
+  id: '/return',
+  path: '/return',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -326,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterImport
       parentRoute: typeof rootRoute
     }
+    '/return': {
+      id: '/return'
+      path: '/return'
+      fullPath: '/return'
+      preLoaderRoute: typeof ReturnImport
+      parentRoute: typeof rootRoute
+    }
     '/review': {
       id: '/review'
       path: '/review'
@@ -393,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
@@ -421,6 +436,7 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
@@ -450,6 +466,7 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
   '/shop': typeof ShopRoute
@@ -480,6 +497,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/return'
     | '/review'
     | '/sales-customer-insights'
     | '/shop'
@@ -507,6 +525,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/return'
     | '/review'
     | '/sales-customer-insights'
     | '/shop'
@@ -534,6 +553,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/return'
     | '/review'
     | '/sales-customer-insights'
     | '/shop'
@@ -563,6 +583,7 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
+  ReturnRoute: typeof ReturnRoute
   ReviewRoute: typeof ReviewRoute
   SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
   ShopRoute: typeof ShopRoute
@@ -591,6 +612,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
+  ReturnRoute: ReturnRoute,
   ReviewRoute: ReviewRoute,
   SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
   ShopRoute: ShopRoute,
@@ -628,6 +650,7 @@ export const routeTree = rootRoute
         "/quiz",
         "/quiz_result",
         "/register",
+        "/return",
         "/review",
         "/sales-customer-insights",
         "/shop",
@@ -692,6 +715,9 @@ export const routeTree = rootRoute
     },
     "/register": {
       "filePath": "register.tsx"
+    },
+    "/return": {
+      "filePath": "return.tsx"
     },
     "/review": {
       "filePath": "review.tsx"

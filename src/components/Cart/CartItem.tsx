@@ -1,6 +1,7 @@
 import React from 'react'
 import { QuantityInput } from '@/components/ui/quantity-input'
 import { useCart } from '@/lib/context/CartContext'
+import { toast } from 'sonner'
 
 interface CartItemProps {
   item: {
@@ -11,15 +12,65 @@ interface CartItemProps {
     cosmeticImages?: string[]
     ingredients?: string
     cosmeticType?: string
-    brand?: string
+    brand?:
+      | {
+          id: string
+          name: string
+          description?: string
+          websiteUrl?: string
+          logoUrl?: string
+        }
+      | string
   }
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const { updateQuantity, removeFromCart } = useCart()
 
-  const handleQuantityChange = (newQuantity: number) => {
-    updateQuantity(item.id, newQuantity)
+  // Validate item data
+  if (!item?.id || typeof item.price !== 'number' || !item.name) {
+    console.error('Invalid cart item data:', item)
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+        <p>There was an error loading this item.</p>
+      </div>
+    )
+  }
+
+  const handleQuantityChange = async (newQuantity: number) => {
+    try {
+      // Validate quantity
+      if (newQuantity < 0) {
+        toast.error('Quantity cannot be negative')
+        return
+      }
+      if (newQuantity > 99) {
+        toast.error('Maximum quantity is 99')
+        return
+      }
+
+      await updateQuantity(item.id, newQuantity)
+      toast.success('Quantity updated successfully')
+    } catch (error) {
+      console.error('Error updating quantity:', error)
+      toast.error('Failed to update quantity')
+    }
+  }
+
+  const handleRemove = async () => {
+    try {
+      await removeFromCart(item.id)
+      toast.success('Item removed from cart')
+    } catch (error) {
+      console.error('Error removing item:', error)
+      toast.error('Failed to remove item')
+    }
+  }
+
+  const getBrandName = (brand: CartItemProps['item']['brand']) => {
+    if (!brand) return ''
+    if (typeof brand === 'string') return brand
+    return brand.name || ''
   }
 
   return (
@@ -27,11 +78,16 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
       <img
         loading="lazy"
         src={
-          item.cosmeticImages?.[0] ||
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc'
+          Array.isArray(item.cosmeticImages) && item.cosmeticImages.length > 0
+            ? item.cosmeticImages[0]
+            : 'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc'
         }
         alt={item.name}
         className="aspect-square w-24 shrink-0 self-start object-contain"
+        onError={(e) => {
+          e.currentTarget.src =
+            'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc'
+        }}
       />
       <div className="flex w-fit shrink-0 grow basis-0 flex-col py-px max-md:max-w-full">
         <div className="flex flex-wrap justify-between gap-5 leading-none max-md:max-w-full">
@@ -42,7 +98,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             </div>
             {item.brand && (
               <div className="mt-1 self-start text-xs text-gray-600">
-                Brand: {item.brand}
+                Brand: {getBrandName(item.brand)}
               </div>
             )}
           </div>
@@ -56,12 +112,20 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             onValueChange={handleQuantityChange}
             className="w-32"
             aria-label="Product quantity"
+            min={1}
+            max={99}
           />
           <div className="my-auto flex gap-4 text-center text-sm text-black">
-            <button className="px-px pb-2 pt-px">Save for Later</button>
             <button
-              onClick={() => removeFromCart(item.id)}
-              className="flex items-center"
+              className="px-px pb-2 pt-px hover:text-gray-600"
+              onClick={() => toast.info('Save for Later feature coming soon')}
+            >
+              Save for Later
+            </button>
+            <button
+              onClick={handleRemove}
+              className="flex items-center hover:opacity-75"
+              aria-label="Remove item from cart"
             >
               <img
                 loading="lazy"

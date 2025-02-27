@@ -62,6 +62,7 @@ const CheckoutPage: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState('card')
   const [isLoading, setIsLoading] = useState(false)
   const [exchangeRate, setExchangeRate] = useState(23500) // Default fallback rate (1 USD ≈ 23,500 VND)
+  const [amountInVND, setAmountInVND] = useState<number>(0)
   const { cartItems, getCartTotal } = useCart()
   const cartTotal = getCartTotal() // USD total
 
@@ -84,13 +85,33 @@ const CheckoutPage: React.FC = () => {
     fetchExchangeRate()
   }, [])
 
+  // Update VND amount whenever exchange rate or cart total changes
+  useEffect(() => {
+    const vndAmount = Math.round(cartTotal * exchangeRate)
+    setAmountInVND(vndAmount)
+  }, [cartTotal, exchangeRate])
+
+  // Format currency based on payment method
+  const formatAmount = (amount: number, currency: 'USD' | 'VND') => {
+    if (currency === 'VND') {
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(amount)
+    }
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
+
   const createOrder = async () => {
     // This would typically call your API to create an order
     // For now, we'll just mock a GUID string as the order ID
     // In production, replace this with your actual order creation API call
 
     // Mock GUID for testing only
-    return '12345678-1234-1234-1234-123456789012'
+    return '20556cf0-0556-4cb3-ad6f-90acbf6fc947'
   }
 
   const handlePayment = async () => {
@@ -101,32 +122,46 @@ const CheckoutPage: React.FC = () => {
       const orderId = await createOrder()
 
       if (selectedPayment === 'vnpay') {
-        // Convert USD to VND for VNPay
-        const amountInVND = Math.round(cartTotal * exchangeRate)
+        // Ensure we have a valid VND amount
+        if (amountInVND <= 0) {
+          throw new Error('Invalid VND amount')
+        }
 
-        // Create VNPay payment
+        // Create VNPay payment with VND amount
         const paymentData = {
           orderId,
           paymentMethod: 'VNPay',
-          amount: amountInVND // Now in VND
+          amount: amountInVND,
+          currency: 'VND'
         }
 
         const response = await paymentApi.createPayment(paymentData)
 
         if (response.data.isSuccess && response.data.data) {
-          // Redirect to the VNPay payment URL
           window.location.href = response.data.data
         } else {
           toast.error('Failed to create payment link')
         }
       } else if (selectedPayment === 'card') {
         // Handle credit card payment in USD
-        toast.success('Processing credit card payment...')
+        const paymentData = {
+          orderId,
+          paymentMethod: 'Card',
+          amount: cartTotal,
+          currency: 'USD'
+        }
         // Implement card payment logic
+        toast.success('Processing credit card payment...')
       } else if (selectedPayment === 'braintree') {
         // Handle Braintree payment in USD
-        toast.success('Processing Braintree payment...')
+        const paymentData = {
+          orderId,
+          paymentMethod: 'Braintree',
+          amount: cartTotal,
+          currency: 'USD'
+        }
         // Implement Braintree payment logic
+        toast.success('Processing Braintree payment...')
       }
     } catch (error) {
       console.error('Payment error:', error)
@@ -260,6 +295,20 @@ const CheckoutPage: React.FC = () => {
 
             <motion.div variants={itemVariants} className="w-1/3 max-md:w-full">
               <OrderSummary />
+              {selectedPayment === 'vnpay' && (
+                <div className="mt-4 rounded-lg border border-rose-200/50 bg-white p-4 shadow-sm">
+                  <h3 className="text-sm font-medium text-gray-700">
+                    VNPay Payment Amount
+                  </h3>
+                  <p className="mt-1 text-lg font-semibold text-[#3A4D39]">
+                    {formatAmount(amountInVND, 'VND')}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Exchange rate: 1 USD ={' '}
+                    {new Intl.NumberFormat('vi-VN').format(exchangeRate)} VND
+                  </p>
+                </div>
+              )}
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -270,7 +319,12 @@ const CheckoutPage: React.FC = () => {
                   onClick={handlePayment}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Processing...' : 'Complete Order'}
+                  {isLoading
+                    ? 'Processing...'
+                    : `Pay ${selectedPayment === 'vnpay'
+                      ? formatAmount(amountInVND, 'VND')
+                      : formatAmount(cartTotal, 'USD')
+                    }`}
                 </Button>
               </motion.div>
             </motion.div>
