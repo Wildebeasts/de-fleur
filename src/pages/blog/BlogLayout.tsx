@@ -5,43 +5,44 @@ import TopicTags from '@/components/Blog/TopicTags'
 import ArticleCard from '@/components/Blog/ArticleCard'
 import NewsletterSignup from '@/components/Blog/NewsletterSignup'
 import ExpertContributors from '@/components/Blog/ContributorCard'
+import { useBlogContext } from '@/lib/context/BlogContext'
 
-const articles = [
-  {
-    imageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
-    category: 'Ingredient Guide',
-    title: 'Understanding Hyaluronic Acid: Your Hydration Hero',
-    description:
-      'Discover the benefits of this powerful moisturizing molecule.',
-    author: 'Dr. Sarah Chen',
-    readTime: '5 min read',
-    authorImageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
-  },
-  {
-    imageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
-    category: 'Routine Building',
-    title: 'Layer Like a Pro: Building Your Perfect Routine',
-    description: 'Learn the correct order to apply your skincare products.',
-    author: 'Maria Garcia',
-    readTime: '7 min read',
-    authorImageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
-  },
-  {
-    imageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
-    category: 'Success Stories',
-    title: "From Acne to Clarity: Sarah's Journey",
-    description: 'A real transformation story with expert insights.',
-    author: 'Emma Wilson',
-    readTime: '10 min read',
-    authorImageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
-  }
-]
+// const articles = [
+//   {
+//     imageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
+//     category: 'Ingredient Guide',
+//     title: 'Understanding Hyaluronic Acid: Your Hydration Hero',
+//     description:
+//       'Discover the benefits of this powerful moisturizing molecule.',
+//     author: 'Dr. Sarah Chen',
+//     readTime: '5 min read',
+//     authorImageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
+//   },
+//   {
+//     imageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
+//     category: 'Routine Building',
+//     title: 'Layer Like a Pro: Building Your Perfect Routine',
+//     description: 'Learn the correct order to apply your skincare products.',
+//     author: 'Maria Garcia',
+//     readTime: '7 min read',
+//     authorImageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
+//   },
+//   {
+//     imageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
+//     category: 'Success Stories',
+//     title: "From Acne to Clarity: Sarah's Journey",
+//     description: 'A real transformation story with expert insights.',
+//     author: 'Emma Wilson',
+//     readTime: '10 min read',
+//     authorImageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
+//   }
+// ]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -60,6 +61,8 @@ const itemVariants = {
 }
 
 const BlogLayout: React.FC = () => {
+  const { filteredBlogs, page, setPage, totalPages } = useBlogContext()
+
   return (
     <motion.div
       initial="hidden"
@@ -91,18 +94,49 @@ const BlogLayout: React.FC = () => {
                 View All
               </motion.a>
             </div>
+
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {articles.map((article, index) => (
+              {filteredBlogs.map((article) => (
                 <motion.div
-                  key={index}
+                  key={article.id}
                   variants={itemVariants}
                   whileHover={{ y: -8 }}
                   transition={{ type: 'spring', stiffness: 300 }}
                 >
-                  <ArticleCard {...article} />
+                  <ArticleCard blog={article} />
                 </motion.div>
               ))}
             </div>
+
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center space-x-4">
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className={`rounded-full px-4 py-2 text-white transition ${
+                    page === 1
+                      ? 'cursor-not-allowed bg-gray-300'
+                      : 'bg-[#3A4D39] hover:bg-[#2C3B2B]'
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="text-lg font-semibold text-[#3A4D39]">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  className={`rounded-full px-4 py-2 text-white transition ${
+                    page === totalPages
+                      ? 'cursor-not-allowed bg-gray-300'
+                      : 'bg-[#3A4D39] hover:bg-[#2C3B2B]'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </motion.section>
 
           <motion.div
