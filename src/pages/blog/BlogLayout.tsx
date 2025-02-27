@@ -1,47 +1,51 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import FeaturedArticle from '@/components/Blog/FeaturedArticle'
 import TopicTags from '@/components/Blog/TopicTags'
 import ArticleCard from '@/components/Blog/ArticleCard'
 import NewsletterSignup from '@/components/Blog/NewsletterSignup'
 import ExpertContributors from '@/components/Blog/ContributorCard'
+import { BlogResponse } from '@/lib/types/Blog'
+import blogApi from '@/lib/services/blogApi'
 
-const articles = [
-  {
-    imageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
-    category: 'Ingredient Guide',
-    title: 'Understanding Hyaluronic Acid: Your Hydration Hero',
-    description:
-      'Discover the benefits of this powerful moisturizing molecule.',
-    author: 'Dr. Sarah Chen',
-    readTime: '5 min read',
-    authorImageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
-  },
-  {
-    imageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
-    category: 'Routine Building',
-    title: 'Layer Like a Pro: Building Your Perfect Routine',
-    description: 'Learn the correct order to apply your skincare products.',
-    author: 'Maria Garcia',
-    readTime: '7 min read',
-    authorImageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
-  },
-  {
-    imageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
-    category: 'Success Stories',
-    title: "From Acne to Clarity: Sarah's Journey",
-    description: 'A real transformation story with expert insights.',
-    author: 'Emma Wilson',
-    readTime: '10 min read',
-    authorImageSrc:
-      'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
-  }
-]
+// const articles = [
+//   {
+//     imageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
+//     category: 'Ingredient Guide',
+//     title: 'Understanding Hyaluronic Acid: Your Hydration Hero',
+//     description:
+//       'Discover the benefits of this powerful moisturizing molecule.',
+//     author: 'Dr. Sarah Chen',
+//     readTime: '5 min read',
+//     authorImageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
+//   },
+//   {
+//     imageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
+//     category: 'Routine Building',
+//     title: 'Layer Like a Pro: Building Your Perfect Routine',
+//     description: 'Learn the correct order to apply your skincare products.',
+//     author: 'Maria Garcia',
+//     readTime: '7 min read',
+//     authorImageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
+//   },
+//   {
+//     imageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/3c72cf33389dcb1ddd7f480f0af30484b0f4f60f188c60066db61ff9f2066340',
+//     category: 'Success Stories',
+//     title: "From Acne to Clarity: Sarah's Journey",
+//     description: 'A real transformation story with expert insights.',
+//     author: 'Emma Wilson',
+//     readTime: '10 min read',
+//     authorImageSrc:
+//       'https://cdn.builder.io/api/v1/image/assets/TEMP/fc21a12e6f3a092c5368cbb8c5348c331cf29889fb8cdda0d1c7087a72c2d142'
+//   }
+// ]
+
+const PAGE_SIZE = 3
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -60,6 +64,27 @@ const itemVariants = {
 }
 
 const BlogLayout: React.FC = () => {
+  const [articles, setArticles] = useState<BlogResponse[]>([]) // ✅ Store blogs
+  const [loading, setLoading] = useState(true) // ✅ Loading state
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await blogApi.getBlogs(PAGE_SIZE) // Make sure this returns an array
+        console.log(response.data)
+        if (response.data.isSuccess) {
+          setArticles(response.data.data!.items)
+        }
+      } catch (err) {
+        console.error('Failed to fetch blogs:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBlogs()
+  }, [])
+
   return (
     <motion.div
       initial="hidden"
@@ -91,18 +116,25 @@ const BlogLayout: React.FC = () => {
                 View All
               </motion.a>
             </div>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {articles.map((article, index) => (
-                <motion.div
-                  key={index}
-                  variants={itemVariants}
-                  whileHover={{ y: -8 }}
-                  transition={{ type: 'spring', stiffness: 300 }}
-                >
-                  <ArticleCard {...article} />
-                </motion.div>
-              ))}
-            </div>
+
+            {/* ✅ Loading State */}
+            {loading && <p className="text-center">Loading articles...</p>}
+
+            {/* ✅ Render Articles */}
+            {!loading && (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {articles.map((article) => (
+                  <motion.div
+                    key={article.id}
+                    variants={itemVariants}
+                    whileHover={{ y: -8 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
+                  >
+                    <ArticleCard blog={article} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </motion.section>
 
           <motion.div
