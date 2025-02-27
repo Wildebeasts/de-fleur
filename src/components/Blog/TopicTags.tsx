@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useBlogContext } from '@/lib/context/BlogContext'
 
 const topics = [
   { id: 1, name: 'All Topics', isActive: true },
@@ -11,6 +12,13 @@ const topics = [
 ]
 
 const TopicTags: React.FC = () => {
+  const { topicFilter, setTopicFilter, setPage } = useBlogContext()
+
+  const handleTagClick = (topic: string) => {
+    setTopicFilter(topic === 'All Topics' ? null : topic) // Reset filter when selecting "All Topics"
+    setPage(1) // Reset pagination when changing topics
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -27,8 +35,10 @@ const TopicTags: React.FC = () => {
             transition={{ delay: index * 0.1 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
+            onClick={() => handleTagClick(topic.name)}
             className={`rounded-full px-6 py-2.5 text-sm font-medium transition-all duration-300 ${
-              topic.isActive
+              topicFilter === topic.name ||
+              (topic.name === 'All Topics' && !topicFilter)
                 ? 'bg-[#3A4D39] text-white shadow-md'
                 : 'bg-white text-[#3A4D39] hover:bg-[#D1E2C4] hover:shadow-md'
             }`}

@@ -1,12 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import FeaturedArticle from '@/components/Blog/FeaturedArticle'
 import TopicTags from '@/components/Blog/TopicTags'
 import ArticleCard from '@/components/Blog/ArticleCard'
 import NewsletterSignup from '@/components/Blog/NewsletterSignup'
 import ExpertContributors from '@/components/Blog/ContributorCard'
-import { BlogResponse } from '@/lib/types/Blog'
-import blogApi from '@/lib/services/blogApi'
+import { useBlogContext } from '@/lib/context/BlogContext'
 
 // const articles = [
 //   {
@@ -45,8 +44,6 @@ import blogApi from '@/lib/services/blogApi'
 //   }
 // ]
 
-const PAGE_SIZE = 3
-
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -64,26 +61,7 @@ const itemVariants = {
 }
 
 const BlogLayout: React.FC = () => {
-  const [articles, setArticles] = useState<BlogResponse[]>([]) // ✅ Store blogs
-  const [loading, setLoading] = useState(true) // ✅ Loading state
-
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      try {
-        const response = await blogApi.getBlogs(PAGE_SIZE) // Make sure this returns an array
-        console.log(response.data)
-        if (response.data.isSuccess) {
-          setArticles(response.data.data!.items)
-        }
-      } catch (err) {
-        console.error('Failed to fetch blogs:', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchBlogs()
-  }, [])
+  const { filteredBlogs, page, setPage, totalPages } = useBlogContext()
 
   return (
     <motion.div
@@ -117,22 +95,46 @@ const BlogLayout: React.FC = () => {
               </motion.a>
             </div>
 
-            {/* ✅ Loading State */}
-            {loading && <p className="text-center">Loading articles...</p>}
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {filteredBlogs.map((article) => (
+                <motion.div
+                  key={article.id}
+                  variants={itemVariants}
+                  whileHover={{ y: -8 }}
+                  transition={{ type: 'spring', stiffness: 300 }}
+                >
+                  <ArticleCard blog={article} />
+                </motion.div>
+              ))}
+            </div>
 
-            {/* ✅ Render Articles */}
-            {!loading && (
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {articles.map((article) => (
-                  <motion.div
-                    key={article.id}
-                    variants={itemVariants}
-                    whileHover={{ y: -8 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                  >
-                    <ArticleCard blog={article} />
-                  </motion.div>
-                ))}
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center space-x-4">
+                <button
+                  onClick={() => setPage(page - 1)}
+                  disabled={page === 1}
+                  className={`rounded-full px-4 py-2 text-white transition ${
+                    page === 1
+                      ? 'cursor-not-allowed bg-gray-300'
+                      : 'bg-[#3A4D39] hover:bg-[#2C3B2B]'
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="text-lg font-semibold text-[#3A4D39]">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(page + 1)}
+                  disabled={page === totalPages}
+                  className={`rounded-full px-4 py-2 text-white transition ${
+                    page === totalPages
+                      ? 'cursor-not-allowed bg-gray-300'
+                      : 'bg-[#3A4D39] hover:bg-[#2C3B2B]'
+                  }`}
+                >
+                  Next
+                </button>
               </div>
             )}
           </motion.section>
