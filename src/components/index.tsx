@@ -3,7 +3,7 @@ import Footer from './Footer'
 
 const FooterWrapper: React.FC = () => {
   const footerData = {
-    companyName: 'LUXE',
+    companyName: 'De Fleur',
     description: 'Premium natural skincare for your daily routine.',
     socialIcons: [
       'https://cdn.builder.io/api/v1/image/assets/TEMP/ae0fb0304d3f43d49e674ab5ccd18f24acedacc41e4110120ae5943cc91d0b98?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e',
