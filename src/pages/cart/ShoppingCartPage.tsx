@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import OrderSummary from '@/components/Cart/OrderSummary'
 import CartItem from '@/components/Cart/CartItem'
@@ -7,6 +7,8 @@ import SecurityInfo from '@/components/Cart/SecurityInfo'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/lib/context/CartContext'
 import { Link } from '@tanstack/react-router'
+import cartApi from '@/lib/services/cartApi'
+import { useAuth } from '@/lib/context/AuthContext'
 
 // Define animation variants
 const containerVariants = {
@@ -27,6 +29,23 @@ const itemVariants = {
 
 const ShoppingCartPage: React.FC = () => {
   const { cartItems, getItemCount } = useCart()
+  const { isAuthenticated } = useAuth()
+
+  useEffect(() => {
+    const fetchUserCart = async () => {
+      if (isAuthenticated) {
+        try {
+          const response = await cartApi.getCurrentUserCart()
+          // The cart data will be automatically handled by CartContext
+          console.log('Cart fetched successfully:', response.data)
+        } catch (error) {
+          console.error('Error fetching cart:', error)
+        }
+      }
+    }
+
+    fetchUserCart()
+  }, [isAuthenticated])
 
   return (
     <motion.div
