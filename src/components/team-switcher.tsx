@@ -12,7 +12,7 @@ export function TeamSwitcher() {
         />
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-semibold">Cursus</span>
+        <span className="text-sm font-semibold">De Fleur</span>
         <span className="text-xs text-muted-foreground">Enterprise</span>
       </div>
     </div>
