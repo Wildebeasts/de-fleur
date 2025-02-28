@@ -48,7 +48,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
 
         {/* Fullscreen button */}
         <button
-          aria-label="Toggle fullscreen view"
           className="absolute right-4 top-4 rounded-full bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-[#3A4D39] hover:text-white"
           onClick={toggleFullscreen}
         >
@@ -107,7 +106,6 @@ const ProductImage: React.FC<ProductImageProps> = ({
               className="max-h-[90vh] max-w-[90vw] object-contain"
             />
             <button
-              aria-label="Toggle fullscreen view"
               className="absolute right-4 top-4 rounded-full bg-white/80 p-2 shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-red-500 hover:text-white"
               onClick={toggleFullscreen}
             >

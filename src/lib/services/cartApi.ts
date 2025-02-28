@@ -1,4 +1,4 @@
-import axiosClient from '../api/axiosClient'
+import axiosClient from '../context/axiosClient'
 import { ApiResponse } from '../types/base/Api'
 import {
   CartResponse,
@@ -8,7 +8,7 @@ import {
 
 const cartApi = {
   getAllCarts: () =>
-    axiosClient.get<ApiResponse<CartResponse[]>>('/cart/carts'),
+    axiosClient.get<ApiResponse<CartResponse[]>>('/api/cart/carts'),
 
   viewCart: (cartId: string) =>
     axiosClient.get<ApiResponse<CartResponse>>(
@@ -16,7 +16,7 @@ const cartApi = {
     ),
 
   getCurrentUserCart: () =>
-    axiosClient.get<ApiResponse<CartResponse>>('/cart/user-cart'),
+    axiosClient.get<ApiResponse<CartResponse>>('/api/cart/user-cart'),
 
   addToCart: (request: AddProductRequest) =>
     axiosClient.put<ApiResponse<CartResponse[]>>(
@@ -26,7 +26,7 @@ const cartApi = {
 
   removeFromCart: (request: RemoveProductRequest) =>
     axiosClient.put<ApiResponse<CartResponse[]>>(
-      '/cart/delete-product',
+      '/api/cart/delete-product',
       request
     )
 }

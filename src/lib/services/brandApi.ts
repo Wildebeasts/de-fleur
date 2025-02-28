@@ -1,4 +1,4 @@
-import axiosClient from '../api/axiosClient'
+import axiosClient from '../context/axiosClient'
 import { ApiResponse } from '../types/base/Api'
 import { BrandResponse } from '../types/Brand'
 

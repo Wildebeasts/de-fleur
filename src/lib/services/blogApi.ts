@@ -1,6 +1,6 @@
-import axiosClient from '../context/axiosClient'
-import { ApiResponse } from '../types/base/Api'
-import { BlogData } from '../types/Blog'
+import axiosClient from '@/lib/api/axiosClient'
+import { ApiResponse } from '@/lib/types/base/Api'
+import { BlogData } from '@/lib/types/Blog'
 
 const blogApi = {
   getBlogs: () => axiosClient.get<ApiResponse<BlogData>>(`/blogs`)

@@ -34,9 +34,11 @@ import { Route as CheckoutImport } from './routes/checkout'
 import { Route as CartImport } from './routes/cart'
 import { Route as BrandlistImport } from './routes/brand_list'
 import { Route as BlogImport } from './routes/blog'
+import { Route as AdminImport } from './routes/admin'
 import { Route as AccountmanageImport } from './routes/account_manage'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as AdminIndexImport } from './routes/admin/index'
 
 // Create/Update Routes
 
@@ -178,6 +180,12 @@ const BlogRoute = BlogImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AdminRoute = AdminImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const AccountmanageRoute = AccountmanageImport.update({
   id: '/account_manage',
   path: '/account_manage',
@@ -194,6 +202,12 @@ const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRoute,
+} as any)
+
+const AdminIndexRoute = AdminIndexImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -219,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/account_manage'
       fullPath: '/account_manage'
       preLoaderRoute: typeof AccountmanageImport
+      parentRoute: typeof rootRoute
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminImport
       parentRoute: typeof rootRoute
     }
     '/blog': {
@@ -382,15 +403,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TestimonialsImport
       parentRoute: typeof rootRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexImport
+      parentRoute: typeof AdminImport
+    }
   }
 }
 
 // Create and export the route tree
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account_manage': typeof AccountmanageRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
@@ -414,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
+  '/admin/': typeof AdminIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -443,6 +483,7 @@ export interface FileRoutesByTo {
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
+  '/admin': typeof AdminIndexRoute
 }
 
 export interface FileRoutesById {
@@ -450,6 +491,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/account_manage': typeof AccountmanageRoute
+  '/admin': typeof AdminRouteWithChildren
   '/blog': typeof BlogRoute
   '/brand_list': typeof BrandlistRoute
   '/cart': typeof CartRoute
@@ -473,6 +515,7 @@ export interface FileRoutesById {
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
+  '/admin/': typeof AdminIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -481,6 +524,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/account_manage'
+    | '/admin'
     | '/blog'
     | '/brand_list'
     | '/cart'
@@ -504,6 +548,7 @@ export interface FileRouteTypes {
     | '/shopDetails'
     | '/social_account'
     | '/testimonials'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -532,11 +577,13 @@ export interface FileRouteTypes {
     | '/shopDetails'
     | '/social_account'
     | '/testimonials'
+    | '/admin'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/account_manage'
+    | '/admin'
     | '/blog'
     | '/brand_list'
     | '/cart'
@@ -560,6 +607,7 @@ export interface FileRouteTypes {
     | '/shopDetails'
     | '/social_account'
     | '/testimonials'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 
@@ -567,6 +615,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AccountmanageRoute: typeof AccountmanageRoute
+  AdminRoute: typeof AdminRouteWithChildren
   BlogRoute: typeof BlogRoute
   BrandlistRoute: typeof BrandlistRoute
   CartRoute: typeof CartRoute
@@ -596,6 +645,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AccountmanageRoute: AccountmanageRoute,
+  AdminRoute: AdminRouteWithChildren,
   BlogRoute: BlogRoute,
   BrandlistRoute: BrandlistRoute,
   CartRoute: CartRoute,
@@ -634,6 +684,7 @@ export const routeTree = rootRoute
         "/",
         "/about",
         "/account_manage",
+        "/admin",
         "/blog",
         "/brand_list",
         "/cart",
@@ -667,6 +718,12 @@ export const routeTree = rootRoute
     },
     "/account_manage": {
       "filePath": "account_manage.tsx"
+    },
+    "/admin": {
+      "filePath": "admin.tsx",
+      "children": [
+        "/admin/"
+      ]
     },
     "/blog": {
       "filePath": "blog.tsx"
@@ -736,6 +793,10 @@ export const routeTree = rootRoute
     },
     "/testimonials": {
       "filePath": "testimonials.tsx"
+    },
+    "/admin/": {
+      "filePath": "admin/index.tsx",
+      "parent": "/admin"
     }
   }
 }
