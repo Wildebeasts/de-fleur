@@ -93,47 +93,47 @@ function RouteComponent() {
     price: `$${item.price}`,
     image:
       typeof item.cosmeticImages?.[0] === 'object' &&
-        item.cosmeticImages?.[0] !== null
+      item.cosmeticImages?.[0] !== null
         ? (item.cosmeticImages[0] as { imageUrl?: string }).imageUrl
         : typeof item.cosmeticImages?.[0] === 'string'
           ? item.cosmeticImages[0]
           : 'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430'
   })) || [
-      // Fallback static products if no related products are found
-      {
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
-        name: 'Related Product 1',
-        price: '$65.00',
-        id: '123e4567-e89b-12d3-a456-426614174001'
-      },
-      {
-        image:
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
-        name: 'Related Product 2',
-        price: '$75.00',
-        id: '123e4567-e89b-12d3-a456-426614174002'
-      }
-    ]
+    // Fallback static products if no related products are found
+    {
+      image:
+        'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
+      name: 'Related Product 1',
+      price: '$65.00',
+      id: '123e4567-e89b-12d3-a456-426614174001'
+    },
+    {
+      image:
+        'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
+      name: 'Related Product 2',
+      price: '$75.00',
+      id: '123e4567-e89b-12d3-a456-426614174002'
+    }
+  ]
 
   // Fix the cosmeticImages type issue
   const processedCosmeticImages = Array.isArray(product.cosmeticImages)
     ? product.cosmeticImages.map((img) => {
-      if (typeof img === 'object' && img !== null) {
+        if (typeof img === 'object' && img !== null) {
+          return {
+            id: (img as { id?: string }).id || String(Math.random()),
+            imageUrl:
+              (img as { imageUrl?: string }).imageUrl ||
+              'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
+          }
+        }
         return {
-          id: (img as { id?: string }).id || String(Math.random()),
+          id: String(Math.random()),
           imageUrl:
-            (img as { imageUrl?: string }).imageUrl ||
+            String(img) ||
             'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
         }
-      }
-      return {
-        id: String(Math.random()),
-        imageUrl:
-          String(img) ||
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
-      }
-    })
+      })
     : []
 
   return (
@@ -158,10 +158,15 @@ function RouteComponent() {
             description: 'No harmful chemicals'
           }
         ]}
-        relatedProducts={mappedRelatedProducts}
+        relatedProducts={mappedRelatedProducts.map((product) => ({
+          ...product,
+          image:
+            product.image ||
+            'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
+        }))}
         productImage={
           typeof product.cosmeticImages?.[0] === 'object' &&
-            product.cosmeticImages[0] !== null
+          product.cosmeticImages[0] !== null
             ? (product.cosmeticImages[0] as { imageUrl: string }).imageUrl
             : typeof product.cosmeticImages?.[0] === 'string'
               ? product.cosmeticImages[0]
@@ -171,17 +176,17 @@ function RouteComponent() {
         feedbacks={
           product.feedbacks
             ? product.feedbacks.map((feedback) => {
-              if (typeof feedback === 'string') {
-                return {
-                  id: String(Math.random()),
-                  customerId: '',
-                  customerName: null,
-                  content: feedback,
-                  rating: 0
+                if (typeof feedback === 'string') {
+                  return {
+                    id: String(Math.random()),
+                    customerId: '',
+                    customerName: null,
+                    content: feedback,
+                    rating: 0
+                  }
                 }
-              }
-              return feedback
-            })
+                return feedback
+              })
             : []
         }
       />

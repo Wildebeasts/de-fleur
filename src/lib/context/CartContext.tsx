@@ -2,10 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from '@/lib/context/AuthContext'
 import cartApi from '@/lib/services/cartApi'
-import {
-  CartItem as BackendCartItem,
-  AddProductRequest
-} from '@/lib/types/Cart'
+import { AddProductRequest } from '@/lib/types/Cart'
 import { jwtDecode } from 'jwt-decode'
 
 // Frontend cart item structure
@@ -76,7 +73,8 @@ const CartContext = createContext<CartContextType>({
 // Hook to use the cart context
 export const useCart = () => useContext(CartContext)
 
-// Cart provider component
+const CART_STORAGE_KEY = 'guest-cart'
+
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children
 }) => {
@@ -106,19 +104,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [isAuthenticated, accessToken])
 
-  // Load cart from localStorage or server when component mounts
+  // Load cart when component mounts or auth state changes
   useEffect(() => {
     const loadCart = async () => {
       if (isAuthenticated && accessToken) {
         try {
-          // Get cart for the current user
+          // Get cart for authenticated user from server
           const response = await cartApi.getCurrentUserCart()
           const userCart = response.data.data
 
           if (userCart) {
             setCartId(userCart.id)
-
-            // Transform backend cart items to frontend format
             const items: CartItem[] = userCart.items.map((item) => ({
               id: item.cosmeticId,
               name: item.cosmetic?.name || 'Unknown Product',
@@ -129,104 +125,100 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
               cosmeticType: item.cosmetic?.cosmeticType,
               brand: item.cosmetic?.brand
             }))
-
             setCartItems(items)
-          } else {
-            // If no cart exists yet, it will be created by the backend
-            console.log('No cart found for user')
+
+            // Clear guest cart after successful login and cart fetch
+            localStorage.removeItem(CART_STORAGE_KEY)
           }
         } catch (error) {
           console.error('Failed to load cart from server:', error)
-          // Fall back to localStorage
-          const storedCart = localStorage.getItem('cart')
-          if (storedCart) {
-            setCartItems(JSON.parse(storedCart))
-          }
+          loadGuestCart() // Fallback to guest cart if server fails
         }
       } else {
-        // For non-authenticated users, use localStorage
-        const storedCart = localStorage.getItem('cart')
-        if (storedCart) {
-          setCartItems(JSON.parse(storedCart))
-        }
+        // Load guest cart for non-authenticated users
+        loadGuestCart()
       }
     }
 
     loadCart()
   }, [isAuthenticated, accessToken])
 
-  // Save cart to localStorage whenever it changes
+  // Save guest cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems))
-  }, [cartItems])
+    if (!isAuthenticated) {
+      //console.log('Saving guest cart:', cartItems) // Debug log
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems))
+
+      // Verify storage
+      //const stored = localStorage.getItem(CART_STORAGE_KEY)
+      //console.log('Verified stored cart:', stored) // Debug log
+    }
+  }, [cartItems, isAuthenticated])
+
+  // Helper function to load guest cart from localStorage
+  const loadGuestCart = () => {
+    const storedCart = localStorage.getItem(CART_STORAGE_KEY)
+    //console.log('Loading guest cart:', storedCart) // Debug log
+    if (storedCart) {
+      try {
+        const parsedCart = JSON.parse(storedCart)
+        setCartItems(parsedCart)
+      } catch (error) {
+        console.error('Failed to parse guest cart:', error)
+        setCartItems([])
+      }
+    }
+  }
 
   // Add item to cart
   const addToCart = async (item: CartItem) => {
+    //console.log('Adding item to cart:', item) // Debug log
     if (isAuthenticated && userId && cartId) {
       try {
-        // Add to server-side cart
         const request: AddProductRequest = {
           cartId: cartId,
           cosmeticId: item.id,
           quantity: item.quantity
         }
-
-        await cartApi.addToCart(request)
-
-        // Update local state after server update succeeds
-        setCartItems((prevItems) => {
-          const existingItemIndex = prevItems.findIndex(
-            (cartItem) => cartItem.id === item.id
-          )
-
-          if (existingItemIndex >= 0) {
-            const updatedItems = [...prevItems]
-            updatedItems[existingItemIndex].quantity += item.quantity
-            return updatedItems
-          } else {
-            return [...prevItems, item]
-          }
-        })
+        await cartApi.addToCart(cartId, request)
       } catch (error) {
         console.error('Failed to add item to cart on server:', error)
+        return
       }
-    } else {
-      // For non-authenticated users, just update localStorage
-      setCartItems((prevItems) => {
-        const existingItemIndex = prevItems.findIndex(
-          (cartItem) => cartItem.id === item.id
-        )
-
-        if (existingItemIndex >= 0) {
-          const updatedItems = [...prevItems]
-          updatedItems[existingItemIndex].quantity += item.quantity
-          return updatedItems
-        } else {
-          return [...prevItems, item]
-        }
-      })
     }
+
+    // Update local state for both authenticated and guest users
+    setCartItems((prevItems) => {
+      const existingItemIndex = prevItems.findIndex(
+        (cartItem) => cartItem.id === item.id
+      )
+
+      let newItems
+      if (existingItemIndex >= 0) {
+        newItems = [...prevItems]
+        newItems[existingItemIndex].quantity += item.quantity
+      } else {
+        newItems = [...prevItems, item]
+      }
+
+      //console.log('Updated cart items:', newItems) // Debug log
+      return newItems
+    })
   }
 
   // Remove item from cart
   const removeFromCart = async (id: string) => {
     if (isAuthenticated && userId && cartId) {
       try {
-        // Remove from server-side cart
-        await cartApi.removeFromCart({
-          cartId: cartId,
-          cosmeticId: id
-        })
-
-        // Update local state after server update succeeds
-        setCartItems((prevItems) => prevItems.filter((item) => item.id !== id))
+        await cartApi.removeFromCart(cartId, id)
       } catch (error) {
         console.error('Failed to remove item from cart on server:', error)
+        return
       }
-    } else {
-      // For non-authenticated users, just update localStorage
-      setCartItems((prevItems) => prevItems.filter((item) => item.id !== id))
     }
+
+    // Update local state for both authenticated and guest users
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id))
   }
 
   // Update item quantity
@@ -238,37 +230,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
     if (isAuthenticated && userId && cartId) {
       try {
-        // First remove the item
-        await cartApi.removeFromCart({
-          cartId: cartId,
-          cosmeticId: id
-        })
-
-        // Then add it back with the new quantity
+        await cartApi.removeFromCart(cartId, id)
         const item = cartItems.find((item) => item.id === id)
         if (item) {
-          await cartApi.addToCart({
+          await cartApi.addToCart(cartId, {
             cartId: cartId,
             cosmeticId: id,
             quantity: quantity
           })
         }
-
-        // Update local state
-        setCartItems((prevItems) =>
-          prevItems.map((item) =>
-            item.id === id ? { ...item, quantity } : item
-          )
-        )
       } catch (error) {
         console.error('Failed to update item quantity on server:', error)
+        return
       }
-    } else {
-      // For non-authenticated users, just update localStorage
-      setCartItems((prevItems) =>
-        prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
-      )
     }
+
+    // Update local state for both authenticated and guest users
+    setCartItems((prevItems) =>
+      prevItems.map((item) => (item.id === id ? { ...item, quantity } : item))
+    )
   }
 
   // Clear cart

@@ -1,4 +1,4 @@
-import axiosClient from '@/lib/context/axiosClient'
+import axiosClient from '../api/axiosClient'
 import { ApiResponse } from '@/lib/types/base/Api'
 import { QuizResponse } from '@/lib/types/Quiz'
 import { RoutineResponse } from '@/lib/types/Routine'

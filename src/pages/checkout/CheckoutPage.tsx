@@ -321,10 +321,11 @@ const CheckoutPage: React.FC = () => {
                 >
                   {isLoading
                     ? 'Processing...'
-                    : `Pay ${selectedPayment === 'vnpay'
-                      ? formatAmount(amountInVND, 'VND')
-                      : formatAmount(cartTotal, 'USD')
-                    }`}
+                    : `Pay ${
+                        selectedPayment === 'vnpay'
+                          ? formatAmount(amountInVND, 'VND')
+                          : formatAmount(cartTotal, 'USD')
+                      }`}
                 </Button>
               </motion.div>
             </motion.div>
