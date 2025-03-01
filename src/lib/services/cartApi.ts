@@ -11,6 +11,9 @@ const cartApi = {
   getCurrentUserCart: () =>
     axiosClient.get<ApiResponse<CartResponse>>('/api/cart/me'),
   addToCart: (cartId: string, request: AddProductRequest) =>
+    axiosClient.put<ApiResponse<CartResponse[]>>(
+      `/api/cart/${cartId}/items`,
+      request
     ),
 
   removeFromCart: (cartId: string, cosmeticId: string) =>
