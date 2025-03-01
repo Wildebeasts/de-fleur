@@ -43,33 +43,34 @@ const userApi = {
 
   getUsers: async (page: number, pageSize: number) => {
     try {
-      const response = await axiosClient.get(`/user?page=${page}&pageSize=${pageSize}`);
-      
+      const response = await axiosClient.get(
+        `/user?page=${page}&pageSize=${pageSize}`
+      )
+
       // Log the full response to debug
-      console.log('Get users API response:', response.data);
-      
+      console.log('Get users API response:', response.data)
+
       // Handle the case where response.data is directly an array
       if (Array.isArray(response.data)) {
         return {
           isSuccess: true,
           data: response.data,
-          message: "Successfully retrieved users",
+          message: 'Successfully retrieved users',
           errors: []
-        };
+        }
       }
-      
+
       // Handle the case with isSuccess property
       if (response.data && response.data.isSuccess === true) {
-        return response.data;
+        return response.data
       }
-      
+
       throw new Error(
-        (response.data && response.data.message) || 
-        'Failed to fetch users'
-      );
+        (response.data && response.data.message) || 'Failed to fetch users'
+      )
     } catch (error) {
-      console.error('Error in getUsers:', error);
-      throw error;
+      console.error('Error in getUsers:', error)
+      throw error
     }
   },
 
