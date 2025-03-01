@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/select'
 
 interface ProductInfoProps {
+  productId: string
   productName: string
   price: string
   reviewCount: number

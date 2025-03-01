@@ -6,7 +6,6 @@ import ArticleCard from '@/components/Blog/ArticleCard'
 import NewsletterSignup from '@/components/Blog/NewsletterSignup'
 import ExpertContributors from '@/components/Blog/ContributorCard'
 import { useBlogContext } from '@/lib/context/BlogContext'
-
 // const articles = [
 //   {
 //     imageSrc:
