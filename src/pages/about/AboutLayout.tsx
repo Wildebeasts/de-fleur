@@ -29,32 +29,32 @@ const itemVariants = {
 const shippingPolicies = {
   domestic: [
     {
-      title: 'Standard Shipping (3-5 business days)',
-      cost: 'Free on orders over $50, $5.99 for orders under $50',
-      details: 'Delivered through USPS or FedEx'
+      title: 'Intra-Province Shipping (1-2 business days)',
+      cost: '0.75$ for inner city areas, 1.2$ for suburbs areas',
+      details: 'Delivered through GiaoHangNhanh service'
     },
     {
-      title: 'Express Shipping (2-3 business days)',
-      cost: '$12.99',
-      details: 'Delivered through FedEx or UPS'
+      title: 'Intra-Regional Shipping (2-3 business days)',
+      cost: '1.2$ for inner city areas, 1.3$ for suburbs areas',
+      details: 'Delivered through GiaoHangNhanh service'
     },
     {
-      title: 'Next Day Delivery',
-      cost: '$24.99',
-      details: 'Order by 2 PM EST for next-day delivery (excluding weekends)'
+      title: 'Inter-Regional Delivery (3-5 business days)',
+      cost: '1.2$ for inner city areas, 1.3$ for suburbs areas',
+      details: 'Delivered through GiaoHangNhanh service'
     }
   ],
   international: [
-    {
-      title: 'Standard International (10-15 business days)',
-      cost: 'Starting at $19.99',
-      details: 'Available to select countries'
-    },
-    {
-      title: 'Express International (5-7 business days)',
-      cost: 'Starting at $39.99',
-      details: 'Available to select countries'
-    }
+    // {
+    //   title: 'Standard International (10-15 business days)',
+    //   cost: 'Starting at $19.99',
+    //   details: 'Available to select countries'
+    // },
+    // {
+    //   title: 'Express International (5-7 business days)',
+    //   cost: 'Starting at $39.99',
+    //   details: 'Available to select countries'
+    // }
   ],
   restrictions: [
     'Certain products cannot be shipped internationally',
@@ -64,12 +64,10 @@ const shippingPolicies = {
 }
 
 const returnPolicy = {
-  timeframe: '30 days from delivery date',
+  timeframe: '3-5 days for Inter-Providence areas, 3-10 days for others',
   conditions: [
     'Items must be unused and in original packaging',
-    'Original receipt or gift receipt required',
-    'Free returns for orders over $50',
-    '$7.99 return shipping fee for orders under $50'
+    'Original receipt or gift receipt required'
   ],
   exceptions: [
     'Sale items are final sale',
@@ -78,9 +76,8 @@ const returnPolicy = {
   ],
   process: [
     'Initiate return through your account dashboard',
-    'Print return label',
-    'Drop off at any authorized shipping location',
-    'Refund processed within 5-7 business days of receipt'
+    'Drop off at any GiaoHangNhanh services or the delivery will pick the package at your house',
+    'Refund processed within 3-5 business days of receipt'
   ]
 }
 
@@ -169,7 +166,8 @@ const AboutLayout: React.FC = () => {
                   International Shipping
                 </h2>
                 <div className="space-y-4">
-                  {shippingPolicies.international.map((option, index) => (
+                  <h4>Not Yet Supported</h4>
+                  {/* {shippingPolicies.international.map((option, index) => (
                     <div key={index} className="rounded-lg bg-orange-50/50 p-4">
                       <h3 className="font-medium text-[#3A4D39]">
                         {option.title}
@@ -179,7 +177,7 @@ const AboutLayout: React.FC = () => {
                         {option.details}
                       </p>
                     </div>
-                  ))}
+                  ))} */}
                 </div>
               </div>
             </TabsContent>

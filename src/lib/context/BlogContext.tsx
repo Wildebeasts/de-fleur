@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { BlogResponse } from '../types/Blog'
-import blogApi from '../services/blogApi'
+import blogApi from '@/lib/services/blogApi'
 
 interface BlogContextType {
   blogs: BlogResponse[]

@@ -1,4 +1,4 @@
-import axiosClient from '../api/axiosClient'
+import axiosClient from '../context/axiosClient'
 import { ApiResponse } from '../types/base/Api'
 import { CartResponse, AddProductRequest } from '@/lib/types/Cart'
 
@@ -10,11 +10,7 @@ const cartApi = {
 
   getCurrentUserCart: () =>
     axiosClient.get<ApiResponse<CartResponse>>('/api/cart/me'),
-
   addToCart: (cartId: string, request: AddProductRequest) =>
-    axiosClient.put<ApiResponse<CartResponse[]>>(
-      `/api/cart/${cartId}/items`,
-      request
     ),
 
   removeFromCart: (cartId: string, cosmeticId: string) =>

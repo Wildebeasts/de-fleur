@@ -1,6 +1,6 @@
 import { ApiResponse } from '@/lib/types/base/Api'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
-import axiosClient from '../api/axiosClient'
+import axiosClient from '../context/axiosClient'
 
 const cosmeticApi = {
   getCosmetics: () =>

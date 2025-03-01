@@ -1,4 +1,4 @@
-import axiosClient from '../api/axiosClient'
+import axiosClient from '../context/axiosClient'
 import { CategoryResponse } from '@/lib/types/Category'
 import { ApiResponse } from '../types/base/Api'
 

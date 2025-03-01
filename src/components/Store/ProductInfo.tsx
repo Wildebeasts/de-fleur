@@ -9,25 +9,19 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { useCart } from '@/lib/context/CartContext'
-import { toast } from 'sonner'
 
 interface ProductInfoProps {
-  productId: string
   productName: string
   price: string
   reviewCount: number
 }
 
 const ProductInfo: React.FC<ProductInfoProps> = ({
-  productId,
   productName,
   price,
   reviewCount
 }) => {
   const [quantity, setQuantity] = React.useState(1)
-  const [size, setSize] = React.useState('30ml')
-  const { addToCart } = useCart()
 
   const decrementQuantity = () => {
     setQuantity((prev) => Math.max(1, prev - 1))
@@ -35,22 +29,6 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
 
   const incrementQuantity = () => {
     setQuantity((prev) => prev + 1)
-  }
-
-  const handleAddToCart = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      await addToCart({
-        id: productId,
-        name: productName,
-        price: parseFloat(price.replace(/[^0-9.-]+/g, '')),
-        quantity: quantity
-      })
-      toast.success('Product added to cart')
-    } catch (error) {
-      console.error('Failed to add to cart:', error)
-      toast.error('Failed to add product to cart')
-    }
   }
 
   return (
@@ -72,17 +50,14 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
           <div className="mt-4 self-start text-2xl font-semibold leading-none text-black">
             {price}
           </div>
-          <form
-            onSubmit={handleAddToCart}
-            className="mt-8 flex w-full flex-col whitespace-nowrap text-black max-md:max-w-full"
-          >
+          <form className="mt-8 flex w-full flex-col whitespace-nowrap text-black max-md:max-w-full">
             <label
               htmlFor="size"
               className="pb-2 pt-px text-sm font-medium max-md:max-w-full max-md:pr-5"
             >
               Size
             </label>
-            <Select value={size} onValueChange={setSize}>
+            <Select defaultValue="30ml">
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Select size" />
               </SelectTrigger>
