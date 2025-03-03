@@ -95,6 +95,13 @@ const userApi = {
     if (!response.data.isSuccess || !response.data.data) {
       throw new Error(response.data.message || 'Failed to update avatar')
     }
+  },
+
+  updateUser: async (userData: Partial<UserDto>): Promise<void> => {
+    const response = await axiosClient.put<ApiResponse<void>>('/user', userData)
+    if (!response.data.isSuccess) {
+      throw new Error(response.data.message || 'Failed to update user')
+    }
   }
 }
 
