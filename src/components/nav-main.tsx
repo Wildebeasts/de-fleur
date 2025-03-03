@@ -17,6 +17,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem
 } from '@/components/ui/sidebar'
+import { memo } from 'react'
 
 interface NavItem {
   title: string
@@ -34,7 +35,7 @@ interface NavMainProps {
   items: NavItem[]
 }
 
-export function NavMain({ items }: NavMainProps) {
+export const NavMain = memo(function NavMain({ items }: NavMainProps) {
   const navigate = useNavigate()
 
   const handleTabClick = (path: string): void => {
@@ -105,4 +106,4 @@ export function NavMain({ items }: NavMainProps) {
       </SidebarMenu>
     </SidebarGroup>
   )
-}
+})
