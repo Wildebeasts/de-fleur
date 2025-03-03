@@ -1,8 +1,8 @@
-import { useBreadcrumb } from "@/contexts/BreadcrumbContext";
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useBreadcrumb } from '@/lib/context/BreadcrumbContext'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import {
   Table,
-  // @ts-expect-error - expected
   ConfigProvider,
   Dropdown,
   Button,
@@ -10,88 +10,137 @@ import {
   message,
   Tooltip,
   Badge,
-  // @ts-expect-error - expected
   Rate,
-  Tag,
-} from "antd";
-// @ts-expect-error - expected
+  Card
+} from 'antd'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ColumnType } from "antd/es/table";
-import "antd/dist/reset.css";
+import type { ColumnType } from 'antd/es/table'
+import 'antd/dist/reset.css'
 import {
   SearchOutlined,
   DeleteOutlined,
   EditOutlined,
   EllipsisOutlined,
   PlusOutlined,
-  CloseOutlined,
-} from "@ant-design/icons";
-import { Input, Checkbox } from "antd";
-import courseApi from "@/utils/services/CoursesService";
-import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
-import { useLoading } from "@/contexts/LoadingContext";
-import stepApi from "@/utils/services/StepService";
-import React from "react";
-import { BreadcrumbUpdater } from "@/components/BreadcrumbUpdater";
-import { ImageOff } from "lucide-react";
+  CloseOutlined
+} from '@ant-design/icons'
+import { Input, Checkbox } from 'antd'
+import { useNavigate } from '@tanstack/react-router'
+import React from 'react'
+import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
+import { ImageOff } from 'lucide-react'
+import cosmeticApi from '@/lib/services/cosmeticApi'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
+import { CheckboxChangeEvent } from 'antd/es/checkbox'
+import brandApi from '@/lib/services/brandApi'
+import skinTypeApi from '@/lib/services/skinTypeApi'
+import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
 
-interface CourseDto {
-  courseId: string;
-  courseName: string;
-  summary: string;
-  attendance: number;
-  price: number;
-  status: "DRAFT" | "PENDING" | "APPROVED" | "REJECTED";
-  totalDuration: number;
-  createdDate: string;
-  lastUpdate: string;
-  categories: string[];
-  thumbnailUrl: string;
+interface CosmeticDto {
+  id: string
+  createAt: string | null
+  createdBy: string | null
+  lastModified: string | null
+  lastModifiedBy: string | null
+  isActive: boolean
+  brandId: string
+  brand: BrandDto | null
+  skinTypeId: string
+  skinType: SkinTypeDto
+  cosmeticTypeId: string
+  cosmeticType: CosmeticTypeDto | null
+  name: string | null
+  price: number
+  gender: boolean
+  notice: string | null
+  ingredients: string | null
+  mainUsage: string | null
+  texture: string | null
+  origin: string | null
+  instructions: string | null
+  cosmeticSubcategories: SubCategoryDto[]
+  cosmeticImages: CosmeticImageDto[]
+  feedbacks: FeedbackDto[]
+  quantity: number
+  rating: number | null
+  volumeUnit: string | null
 }
 
-interface SectionDto {
-  sectionId: string;
-  courseId: string;
-  sectionName: string;
-  sectionNumber: number;
-  summary: string;
-  content: string;
-  deadline: string;
-  createdDate: string;
-  updatedDate: string;
-  isDeleted: boolean;
-  steps?: StepDto[];
+interface BrandDto {
+  id: string
+  name: string | null
+  description: string | null
+  websiteUrl: string | null
+  logoUrl: string | undefined
 }
 
-interface StepDto {
-  stepId: string;
-  sectionId: string;
-  stepNumber: number;
-  stepName: string;
-  summary: string;
-  videoUrl: string;
-  deadline: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stepResources: any[]; // You can define a specific type for resources if needed
+interface SkinTypeDto {
+  id: string
+  name: string | null
+  description: string | null
+  isDry: boolean
+  isSensitive: boolean
+  isUneven: boolean
+  isWrinkle: boolean
 }
 
-interface DataType extends CourseDto {
-  key: React.Key;
-  sections?: SectionDto[];
+interface CosmeticTypeDto {
+  id: string
+  name: string | null
+  description: string | null
+}
+
+interface SubCategoryDto {
+  cosmeticId: string
+  subCategoryId: string
+  subCategory: {
+    id: string
+    name: string | null
+    description: string | null
+    categoryId: string
+  }
+}
+
+interface CosmeticImageDto {
+  id: string
+  cosmetic: {
+    id: string
+    name: string | null
+    price: number
+  }
+  imageUrl: string | null
+}
+
+interface FeedbackDto {
+  id: string
+  customer: {
+    id: string | null
+    userName: string | null
+    email: string | null
+  }
+  content: string | null
+  rating: number
+}
+
+interface DataType extends CosmeticDto {
+  key: string
+  batches?: Array<{
+    expirationDate: string
+  }>
 }
 
 // Define HighlightText as a regular component first
 const HighlightText = ({
   text,
-  searchText,
+  searchText
 }: {
-  text: string;
-  searchText: string;
+  text: string
+  searchText: string
 }) => {
-  if (!searchText || !text) return <span>{text}</span>;
+  if (!searchText || !text) return <span>{text}</span>
 
-  const parts = text.split(new RegExp(`(${searchText})`, "gi"));
+  const parts = text.split(new RegExp(`(${searchText})`, 'gi'))
   return (
     <span>
       {parts.map((part, i) =>
@@ -104,868 +153,858 @@ const HighlightText = ({
         )
       )}
     </span>
-  );
-};
+  )
+}
 
 // Then memoize it
-const MemoizedHighlightText = React.memo(HighlightText);
+const MemoizedHighlightText = React.memo(HighlightText)
 
-// @ts-expect-error - expected
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const parseCustomDate = (dateStr: string) => {
-  const [datePart, timePart] = dateStr.split(" ");
-  const [day, month, year] = datePart.split("/");
-  const [time] = timePart.split(" "); // Ignore the 'SA' part
-  const [hours, minutes, seconds] = time.split(":");
 
-  return new Date(
-    parseInt(year),
-    parseInt(month) - 1, // months are 0-based in JavaScript
-    parseInt(day),
-    parseInt(hours),
-    parseInt(minutes),
-    parseInt(seconds)
-  );
-};
-
-const formatPriceWithSuffix = (price: number) => {
-  if (price >= 1000000) {
-    return {
-      value: (price / 1000000).toFixed(0).padStart(3, ' '),
-      suffix: 'm'
-    };
-  } else if (price >= 1000) {
-    return {
-      value: (price / 1000).toFixed(0).padStart(3, ' '),
-      suffix: 'k'
-    };
-  }
-  return {
-    value: price.toString().padStart(3, ' '),
-    suffix: ' '
-  };
-};
+const MotionCard = motion(Card)
 
 export default function Courses() {
-  // @ts-expect-error - expected
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { updateBreadcrumb } = useBreadcrumb();
-  const navigate = useNavigate();
-  const { startLoading, stopLoading } = useLoading();
-
-  // Add all refs at the top
-  const loadingRef = useRef(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const { updateBreadcrumb } = useBreadcrumb()
+  const navigate = useNavigate()
 
   // State declarations
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<DataType[]>([]);
-  const [searchText, setSearchText] = useState("");
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [originalData, setOriginalData] = useState<DataType[]>([]);
+  const [data] = useState<DataType[]>([])
+  const [searchText, setSearchText] = useState('')
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const searchTimeoutRef = useRef<NodeJS.Timeout>()
+
+  const queryClient = useQueryClient()
+
+  // Add these queries at the top of your component
+  const { data: cosmetics = [], isLoading: isLoadingCosmetics } = useQuery({
+    queryKey: ['cosmetics'],
+    queryFn: async () => {
+      const response = await cosmeticApi.getCosmetics()
+      return (response.data?.data ?? []).map((item) => ({
+        ...item,
+        key: item.id
+      }))
+    }
+  })
+
+  const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
+    queryKey: ['brands'],
+    queryFn: async () => {
+      const response = await brandApi.getBrands()
+      return response.data.data
+    }
+  })
+
+  const { data: skinTypes = [], isLoading: isLoadingSkinTypes } = useQuery({
+    queryKey: ['skinTypes'],
+    queryFn: async () => {
+      const response = await skinTypeApi.getSkinTypes()
+      return response.data.data
+    }
+  })
+
+  const { data: cosmeticTypes = [], isLoading: isLoadingCosmeticTypes } =
+    useQuery({
+      queryKey: ['cosmeticTypes'],
+      queryFn: async () => {
+        const response = await cosmeticTypeApi.getCosmeticTypes()
+        return response.data.data
+      }
+    })
+
+  // Filter data based on search
+  const filteredData = useMemo(() => {
+    return cosmetics.filter((item) =>
+      Object.values(item).some(
+        (value) =>
+          value &&
+          value.toString().toLowerCase().includes(searchText.toLowerCase())
+      )
+    )
+  }, [cosmetics, searchText])
 
   // Add search handler
-  const handleGlobalSearch = useCallback(
-    (value: string) => {
-      setSearchText(value);
+  const handleGlobalSearch = useCallback((value: string) => {
+    setSearchText(value)
 
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
 
-      searchTimeoutRef.current = setTimeout(() => {
-        if (!value.trim()) {
-          setData(originalData);
-          return;
-        }
-
-        const filteredData = originalData.filter((item) =>
-          Object.entries(item).some(([key, val]) => {
-            if (!val) return false;
-            if (key === "createdDate") {
-              return format(new Date(val), "PPp")
-                .toLowerCase()
-                .includes(value.toLowerCase());
-            }
-            if (Array.isArray(val)) {
-              return val.some((v) =>
-                v?.toString().toLowerCase().includes(value.toLowerCase())
-              );
-            }
-            return val?.toString().toLowerCase().includes(value.toLowerCase());
-          })
-        );
-        setData(filteredData);
-      }, 300);
-    },
-    [originalData]
-  );
+    searchTimeoutRef.current = setTimeout(() => {
+      // The search is now handled by the filteredData memo
+      // so we don't need additional logic here
+    }, 300)
+  }, [])
 
   // Add cleanup effect
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+        clearTimeout(searchTimeoutRef.current)
       }
-    };
-  }, []);
-
-  // Define fetchData first
-  const fetchData = useCallback(async () => {
-    if (loadingRef.current) return;
-
-    try {
-      loadingRef.current = true;
-      setLoading(true);
-      startLoading();
-      const response = await courseApi.getAllCourses();
-
-      // Fetch sections and steps for each course
-      const coursesWithSectionsAndSteps = await Promise.all(
-        response.map(async (course) => {
-          // @ts-expect-error - expected
-          const sections = await courseApi.getCourseSections(course.courseId);
-          const sectionsWithSteps = await Promise.all(
-            sections.map(async (section) => {
-              const steps = await stepApi.getAllSteps();
-              const sectionSteps = steps.filter(
-                // @ts-expect-error - expected
-                (step) => step.sectionId === section.sectionId
-              );
-              return {
-                ...section,
-                steps: sectionSteps,
-              };
-            })
-          );
-
-          return {
-            ...course,
-            // @ts-expect-error - expected
-            key: course.courseId,
-            sections: sectionsWithSteps,
-          };
-        })
-      );
-
-      // @ts-expect-error - expected
-      setData(coursesWithSectionsAndSteps);
-      // @ts-expect-error - expected
-      setOriginalData(coursesWithSectionsAndSteps);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      message.error("Failed to fetch data");
-    } finally {
-      loadingRef.current = false;
-      setLoading(false);
-      stopLoading();
     }
-  }, [startLoading, stopLoading]);
+  }, [])
 
   // Define ALL handler functions before columns
   const handleEdit = useCallback(
     (record: DataType) => {
-      navigate(`/admin/courses/edit/${record.courseId}`);
+      navigate({
+        to: '/admin/cosmetics/$cosmeticId/edit',
+        params: { cosmeticId: record.id }
+      })
     },
     [navigate]
-  );
+  )
 
+  // Update delete handler to use mutation
   const handleDelete = useCallback(
     (record: DataType) => {
       Modal.confirm({
-        title: "Are you sure you want to delete this course?",
-        // @ts-expect-error - expected
-        content: "This action cannot be undone.",
-        okText: "Yes",
-        okType: "danger",
-        cancelText: "No",
+        title: 'Are you sure you want to delete this product?',
+        content: 'This action cannot be undone.',
+        okText: 'Yes',
+        okType: 'danger',
+        cancelText: 'No',
         onOk: async () => {
           try {
-            await courseApi.deleteCourse(record.courseId);
-            message.success("Course deleted successfully");
-            fetchData();
+            await cosmeticApi.deleteCosmetic(record.id)
+            message.success('Product deleted successfully')
+            queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
           } catch (error) {
-            console.error("Error deleting course:", error);
-            message.error("Failed to delete course");
+            console.error('Error deleting product:', error)
+            message.error('Failed to delete product')
           }
-        },
-      });
+        }
+      })
     },
-    [fetchData]
-  );
-
-  const handleEditSection = useCallback(
-    (courseId: string, sectionId: string) => {
-      navigate(`/admin/courses/${courseId}/sections/${sectionId}/edit`);
-    },
-    [navigate]
-  );
-
-  const handleDeleteSection = useCallback(
-    (courseId: string, sectionId: string) => {
-      Modal.confirm({
-        title: "Are you sure you want to delete this section?",
-        // @ts-expect-error - expected
-        content: "This action cannot be undone.",
-        okText: "Yes",
-        okType: "danger",
-        cancelText: "No",
-        onOk: async () => {
-          try {
-            // @ts-expect-error - expected
-            await courseApi.deleteSection(courseId, sectionId);
-            message.success("Section deleted successfully");
-            fetchData();
-          } catch (error) {
-            console.error("Error deleting section:", error);
-            message.error("Failed to delete section");
-          }
-        },
-      });
-    },
-    [fetchData]
-  );
-
-  const handleEditStep = useCallback(
-    (sectionId: string, stepId: string) => {
-      navigate(`/admin/sections/${sectionId}/steps/${stepId}/edit`);
-    },
-    [navigate]
-  );
-
-  const handleDeleteStep = useCallback(
-    (_sectionId: string, stepId: string) => {
-      Modal.confirm({
-        title: "Are you sure you want to delete this step?",
-        // @ts-expect-error - expected
-        content: "This action cannot be undone.",
-        okText: "Yes",
-        okType: "danger",
-        cancelText: "No",
-        onOk: async () => {
-          try {
-            await stepApi.deleteStep(stepId);
-            message.success("Step deleted successfully");
-            fetchData();
-          } catch (error) {
-            console.error("Error deleting step:", error);
-            message.error("Failed to delete step");
-          }
-        },
-      });
-    },
-    [fetchData]
-  );
+    [queryClient]
+  )
 
   // THEN define columns
   const columns = useMemo(
     () => [
       {
-        title: "Course Name",
-        dataIndex: "courseName",
-        key: "courseName",
-        width: '15%', // Even smaller width
+        title: 'Product Name',
+        dataIndex: 'name',
+        key: 'name',
+        width: '25%',
         render: (text: string, record: DataType) => (
-          // @ts-expect-error - expected
-          <Tooltip title={
-            <div>
-              <div className="font-semibold">{text}</div>
-              <div className="text-xs mt-1">{record.summary}</div>
-            </div>
-          }>
-            <div className="flex flex-col max-w-[200px]"> {/* Reduced max width */}
-              <div className="truncate font-medium">
-                <MemoizedHighlightText text={text} searchText={searchText} />
+          <Tooltip
+            title={
+              <div>
+                <div className="font-semibold">{text}</div>
+                <div className="mt-1 text-xs text-gray-300">
+                  {record.mainUsage}
+                </div>
+                <div className="mt-1 text-xs text-gray-400">
+                  {record.ingredients && (
+                    <>
+                      <span className="font-medium">Ingredients:</span>{' '}
+                      {record.ingredients.length > 100
+                        ? `${record.ingredients.substring(0, 100)}...`
+                        : record.ingredients}
+                    </>
+                  )}
+                </div>
               </div>
-              <div className="text-xs text-gray-400 truncate">
-                <MemoizedHighlightText 
-                  text={record.summary?.length > 35 
-                    ? record.summary.substring(0, 35) + '...' 
-                    : record.summary} 
-                  searchText={searchText} 
-                />
+            }
+            placement="rightTop"
+          >
+            <div className="flex items-center gap-3">
+              <div className="relative size-10">
+                {record.cosmeticImages?.[0]?.imageUrl ? (
+                  <img
+                    src={record.cosmeticImages[0].imageUrl}
+                    alt={text}
+                    className="size-10 rounded-lg object-cover shadow-sm"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      target.parentElement
+                        ?.querySelector('.thumbnail-placeholder')
+                        ?.classList.remove('hidden')
+                    }}
+                  />
+                ) : (
+                  <div className="thumbnail-placeholder flex size-10 items-center justify-center rounded-lg bg-gray-800">
+                    <ImageOff className="size-5 text-gray-500" />
+                  </div>
+                )}
+              </div>
+              <div className="flex max-w-[200px] flex-col">
+                <div className="truncate font-medium text-gray-200">
+                  <MemoizedHighlightText
+                    text={text || 'Unnamed Product'}
+                    searchText={searchText}
+                  />
+                </div>
+                <div className="truncate text-xs text-gray-500">
+                  <MemoizedHighlightText
+                    text={record.mainUsage || 'No description'}
+                    searchText={searchText}
+                  />
+                </div>
               </div>
             </div>
           </Tooltip>
-        ),
+        )
       },
       {
-        title: "",
-        dataIndex: "thumbnailUrl",
-        key: "thumbnailUrl",
-        width: '48px',
-        align: "center" as const,
-        render: (thumbnailUrl: string) => (
-          // @ts-expect-error - expected
-          <Button
-            type="text"
-            onClick={() => {
-              Modal.info({
-                title: null,
-                // @ts-expect-error - expected
-                icon: null,
-                content: (
-                  <div className="relative min-h-[20rem]">
-                    {thumbnailUrl && thumbnailUrl.trim() !== '' ? (
-                      <img 
-                        src={thumbnailUrl} 
-                        alt="Course thumbnail" 
-                        style={{ width: '100%', borderRadius: '8px' }}
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          target.parentElement?.querySelector('.thumbnail-placeholder')?.classList.remove('hidden');
-                        }}
-                        className="shadow-lg"
-                      />
-                    ) : null}
-                    <div className={`absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded thumbnail-placeholder min-h-[20rem] ${thumbnailUrl && thumbnailUrl.trim() !== '' ? 'hidden' : ''}`}>
-                      <ImageOff className="text-gray-400 w-[10rem] h-[10rem]" />
-                    </div>
-                  </div>
-                ),
-                footer: null,
-                width: 600,
-                className: "thumbnail-preview-modal",
-                maskClosable: true
-              });
-            }}
-            className="p-0 flex items-center justify-center hover:scale-110 transition-transform duration-200"
-          >
-            <div className="relative w-8 h-8">
-              {thumbnailUrl && thumbnailUrl.trim() !== '' ? (
+        title: 'Brand & Type',
+        key: 'brandAndType',
+        width: '20%',
+        render: (_: unknown, record: DataType) => (
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              {record.brand?.logoUrl && (
                 <img
-                  src={thumbnailUrl}
-                  alt="thumbnail"
-                  className="w-8 h-8 object-cover rounded shadow-sm"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    target.parentElement?.querySelector('.thumbnail-placeholder')?.classList.remove('hidden');
-                  }}
+                  src={record.brand?.logoUrl || ''}
+                  // @ts-expect-error -- logoUrl is optional
+                  alt={record.brand?.name}
+                  className="size-5 object-contain"
                 />
-              ) : null}
-              <div className={`absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded thumbnail-placeholder ${thumbnailUrl && thumbnailUrl.trim() !== '' ? 'hidden' : ''}`}>
-                <ImageOff className="text-gray-400 w-4 h-4" />
-              </div>
+              )}
+              <span className="font-medium text-gray-300">
+                {record.brand?.name || 'No brand'}
+              </span>
             </div>
-          </Button>
-        ),
-      },
-      {
-        title: "Price",
-        dataIndex: "price",
-        key: "price",
-        align: "center",
-        width: '6%',
-        render: (price: number) => {
-          const formatted = formatPriceWithSuffix(price);
-          return (
-            // @ts-expect-error -- expected
-            <Tooltip title={new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)}>
-              <div className="flex items-center justify-center gap-1">
-                <div className="font-mono inline-flex items-baseline">
-                  <span className="font-medium w-[3ch] text-right">{formatted.value}</span>
-                  <span className="text-gray-400 w-[1ch]">{formatted.suffix}</span>
-                </div>
-                <span className="text-gray-400 text-xs">đ</span>
-              </div>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        title: "Attendance",
-        dataIndex: "attendance",
-        key: "attendance",
-        align: "center",
-        width: '7%', // Relative width
-        render: (attendance: number) => (
-          <span>{attendance.toLocaleString()}</span>
-        ),
-      },
-      {
-        title: "Creation Progress",
-        dataIndex: "creationProgress",
-        key: "creationProgress",
-        align: "center",
-        width: '10%',
-        render: (progress: string) => {
-          const progressConfig = {
-            'Not Started': { status: 'default', color: '#8b949e' },
-            'In Progress': { status: 'processing', color: '#3b82f6' },
-            'Complete': { status: 'success', color: '#10b981' },
-            'Failed': { status: 'error', color: '#ef4444' }
-          };
-
-          // Add a fallback for unexpected values
-          const config = progressConfig[progress as keyof typeof progressConfig] || 
-                        { status: 'default', color: '#8b949e' };
-
-          return (
-            <Badge
-              // @ts-expect-error - expected
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              status={config.status as any}
-              text={
-                <span style={{ color: config.color }}>
-                  <MemoizedHighlightText text={progress} searchText={searchText} />
-                </span>
-              }
-            />
-          );
-        }
-      },
-      {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
-        align: "center",
-        width: '8%',
-        render: (status: string) => {
-          const statusConfig = {
-            DRAFT: { status: 'default', color: '#8b949e' },
-            PENDING: { status: 'processing', color: '#3b82f6' },
-            APPROVED: { status: 'success', color: '#10b981' },
-            REJECTED: { status: 'error', color: '#ef4444' }
-          };
-
-          return (
-            <Badge
-              // @ts-expect-error - expected
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              status={statusConfig[status as keyof typeof statusConfig].status as any}
-              text={
-                <span style={{ color: statusConfig[status as keyof typeof statusConfig].color }}>
-                  <MemoizedHighlightText text={status} searchText={searchText} />
-                </span>
-              }
-            />
-          );
-        }
-      },
-      {
-        title: "Duration",
-        dataIndex: "totalDuration",
-        key: "totalDuration",
-        align: "center",
-        width: '7%',
-        render: (duration: number) => (
-          <span>{duration} minutes</span>
-        ),
-      },
-      {
-        title: "Categories",
-        dataIndex: "categories",
-        key: "categories",
-        width: '10%', // Give more space to categories
-        render: (categories: string[]) => (
-          <div className="flex flex-wrap gap-1">
-            {categories.map((category) => (
-              // @ts-expect-error - expected
-              <Tag
-                key={category}
-                className="m-0"
-                style={{ 
-                  backgroundColor: '#1e1f2a',
-                  borderColor: '#3b82f640',
-                  color: '#3b82f6'
-                }}
-              >
-                <MemoizedHighlightText text={category} searchText={searchText} />
-              </Tag>
-            ))}
-          </div>
-        ),
-      },
-      {
-        title: "Rating",
-        dataIndex: "rating",
-        key: "rating",
-        width: '12%', // Relative width
-        render: (rating: number) => (
-          <div className="flex items-center gap-1 min-w-[120px]">
-            <Rate 
-              disabled 
-              allowHalf
-              value={rating}
-              className="text-xs" 
-              style={{ fontSize: '14px' }} 
-            />
-            <span className="text-gray-400 text-xs ml-1 whitespace-nowrap">
-              ({rating.toFixed(1)})
+            <span className="text-xs text-gray-500">
+              {record.cosmeticType?.name || 'No type'}
             </span>
           </div>
-        ),
+        )
       },
       {
-        title: "Created Date",
-        dataIndex: "createdDate",
-        key: "createdDate",
-        render: (date: string) => (
-          <MemoizedHighlightText 
-            text={format(new Date(date), "PPp")} 
-            searchText={searchText} 
-          />
-        ),
-      },
-      {
-        title: "Actions",
-        key: "actions",
-        width: 80,
-        align: "center" as const,
+        title: 'Stock',
+        key: 'stock',
+        width: '15%',
         render: (_: unknown, record: DataType) => (
-          // @ts-expect-error - expected
+          <div className="flex flex-col gap-1">
+            <span className="font-medium text-gray-300">
+              {record.quantity} units
+            </span>
+            <span className="text-xs text-gray-500">
+              {record.batches?.[0]?.expirationDate
+                ? `Expires: ${new Date(
+                    record.batches[0].expirationDate
+                  ).toLocaleDateString()}`
+                : 'No expiry date'}
+            </span>
+          </div>
+        )
+      },
+      {
+        title: 'Rating',
+        dataIndex: 'rating',
+        key: 'rating',
+        width: '15%',
+        render: (rating: number | null, record: DataType) => (
+          <div className="flex items-center gap-2">
+            <Rate
+              disabled
+              allowHalf
+              value={rating || 0}
+              className="text-xs"
+              style={{ fontSize: '14px' }}
+            />
+            <span className="text-xs text-gray-400">
+              ({rating?.toFixed(1) || '0.0'})
+            </span>
+          </div>
+        )
+      },
+      {
+        title: 'Volume',
+        key: 'volume',
+        width: '15%',
+        render: (_: unknown, record: DataType) => (
+          <div className="flex flex-col gap-1">
+            <span className="font-medium text-gray-300">
+              {record.volumeUnit || 'N/A'}
+            </span>
+          </div>
+        )
+      },
+      {
+        title: 'Status',
+        dataIndex: 'isActive',
+        key: 'status',
+        width: '8%',
+        render: (isActive: boolean) => (
+          <Badge
+            status={isActive ? 'success' : 'error'}
+            text={
+              <span style={{ color: isActive ? '#10b981' : '#ef4444' }}>
+                {isActive ? 'Active' : 'Inactive'}
+              </span>
+            }
+          />
+        )
+      },
+      {
+        title: 'Actions',
+        key: 'actions',
+        width: 80,
+        align: 'center' as const,
+        render: (_: unknown, record: DataType) => (
           <Dropdown
             menu={{
               items: [
                 {
-                  key: "edit",
+                  key: 'edit',
                   icon: <EditOutlined />,
-                  label: "Edit",
-                  onClick: () => handleEdit(record),
+                  label: 'Edit',
+                  onClick: () => handleEdit(record)
                 },
                 {
-                  key: "delete",
+                  key: 'delete',
                   icon: <DeleteOutlined />,
-                  label: "Delete",
+                  label: 'Delete',
                   danger: true,
-                  onClick: () => handleDelete(record),
-                },
-              ],
+                  onClick: () => handleDelete(record)
+                }
+              ]
             }}
-            trigger={["click"]}
+            trigger={['click']}
           >
             <Button
               type="text"
-              // @ts-expect-error - expected
               icon={<EllipsisOutlined />}
               className="text-gray-400 hover:text-blue-400"
             />
           </Dropdown>
-        ),
-      },
+        )
+      }
     ],
     [searchText, handleEdit, handleDelete]
-  );
+  )
 
-  const sectionColumns = useMemo(
-    () => [
-      {
-        title: "Section Name",
-        dataIndex: "sectionName",
-        key: "sectionName",
-        render: (text: string) => (
-          <MemoizedHighlightText text={text} searchText={searchText} />
-        ),
-      },
-      {
-        title: "Summary",
-        dataIndex: "summary",
-        key: "summary",
-        render: (text: string) => (
-          // @ts-expect-error - expected
-          <Tooltip title={text}>
-            <div className="max-w-[300px] truncate">
-              <MemoizedHighlightText text={text} searchText={searchText} />
-            </div>
-          </Tooltip>
-        ),
-      },
-      {
-        title: "Actions",
-        key: "actions",
-        width: 80,
-        align: "center",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        render: (_: any, record: SectionDto) => (
-          // @ts-expect-error - expected
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "edit",
-                  icon: <EditOutlined />,
-                  label: "Edit",
-                  onClick: () =>
-                    handleEditSection(record.courseId, record.sectionId),
-                },
-                {
-                  key: "delete",
-                  icon: <DeleteOutlined />,
-                  label: "Delete",
-                  danger: true,
-                  onClick: () =>
-                    handleDeleteSection(record.courseId, record.sectionId),
-                },
-              ],
-            }}
-            trigger={["click"]}
-          >
-            <Button
-              type="text"
-              // @ts-expect-error - expected
-              icon={<EllipsisOutlined />}
-              className="text-gray-400 hover:text-blue-400"
-            />
-          </Dropdown>
-        ),
-      },
-    ],
-    [searchText, handleEditSection, handleDeleteSection]
-  );
-
-  const stepColumns = useMemo(
-    () => [
-      {
-        title: "Step Name",
-        dataIndex: "stepName",
-        key: "stepName",
-        render: (text: string) => (
-          <MemoizedHighlightText text={text} searchText={searchText} />
-        ),
-      },
-      {
-        title: "Summary",
-        dataIndex: "summary",
-        key: "summary",
-        render: (text: string) => (
-          // @ts-expect-error - expected
-          <Tooltip title={text}>
-            <div className="max-w-[300px] truncate">
-              <MemoizedHighlightText text={text} searchText={searchText} />
-            </div>
-          </Tooltip>
-        ),
-      },
-      {
-        title: "Actions",
-        key: "actions",
-        width: 80,
-        align: "center",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        render: (_: any, record: StepDto) => (
-          // @ts-expect-error - expected
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "edit",
-                  icon: <EditOutlined />,
-                  label: "Edit",
-                  onClick: () =>
-                    handleEditStep(record.sectionId, record.stepId),
-                },
-                {
-                  key: "delete",
-                  icon: <DeleteOutlined />,
-                  label: "Delete",
-                  danger: true,
-                  onClick: () =>
-                    handleDeleteStep(record.sectionId, record.stepId),
-                },
-              ],
-            }}
-            trigger={["click"]}
-          >
-            <Button
-              type="text"
-              // @ts-expect-error - expected
-              icon={<EllipsisOutlined />}
-              className="text-gray-400 hover:text-blue-400"
-            />
-          </Dropdown>
-        ),
-      },
-    ],
-    [searchText, handleEditStep, handleDeleteStep]
-  );
-
-  // Then expandable config
+  // Add expandable config for nested tables
   const expandableConfig = useMemo(
     () => ({
       expandedRowRender: (record: DataType) => (
-        <div className="pl-4 border-l-4 border-blue-500">
-          <div className="mb-2 font-semibold text-blue-400">Sections</div>
-          {/* @ts-expect-error - expected */}
-          <Table
-            dataSource={record.sections}
-            columns={sectionColumns}
-            pagination={false}
-            rowKey="sectionId"
-            className="bg-[#282d35]"
-            expandable={{
-              // @ts-expect-error - expected
-              expandedRowRender: (section) => (
-                <div className="pl-4 border-l-4 border-green-500">
-                  <div className="mb-2 font-semibold text-green-400">Steps</div>
-                  {/* @ts-expect-error - expected */}
-                  <Table
-                    dataSource={section.steps}
-                    columns={stepColumns}
-                    pagination={false}
-                    rowKey="stepId"
-                    className="bg-[#2c333a]"
-                  />
-                </div>
-              ),
-              // @ts-expect-error - expected
-              rowExpandable: (section) => section.steps?.length > 0,
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2 }}
+          className="space-y-6 p-4"
+        >
+          {/* Skin Type Details */}
+          <MotionCard
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            title={
+              <span className="text-sm font-medium text-gray-200">
+                Skin Type Details
+              </span>
+            }
+            className="border-0 bg-[#141414]"
+            headStyle={{
+              backgroundColor: '#1f1f1f',
+              borderBottom: '1px solid #303030'
             }}
-          />
-        </div>
-      ),
-      // @ts-expect-error - expected
-      rowExpandable: (record) => record.sections?.length > 0,
-    }),
-    [sectionColumns, stepColumns]
-  );
+            bodyStyle={{ backgroundColor: '#141414' }}
+          >
+            <div className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <div className="text-xs font-medium uppercase text-gray-500">
+                    Name
+                  </div>
+                  <div className="mt-1 text-gray-200">
+                    {record.skinType.name}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <div className="text-xs font-medium uppercase text-gray-500">
+                    Description
+                  </div>
+                  <div className="mt-1 text-gray-200">
+                    {record.skinType.description}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4">
+                <div className="text-xs font-medium uppercase text-gray-500">
+                  Properties
+                </div>
+                <div className="mt-2 flex gap-2">
+                  {record.skinType.isSensitive && (
+                    <motion.span
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="inline-flex items-center rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/20"
+                    >
+                      Sensitive
+                    </motion.span>
+                  )}
+                  {record.skinType.isUneven && (
+                    <motion.span
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.1 }}
+                      className="inline-flex items-center rounded-md bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-400 ring-1 ring-inset ring-yellow-500/20"
+                    >
+                      Uneven
+                    </motion.span>
+                  )}
+                  {record.skinType.isWrinkle && (
+                    <motion.span
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="inline-flex items-center rounded-md bg-purple-500/10 px-2 py-1 text-xs font-medium text-purple-400 ring-1 ring-inset ring-purple-500/20"
+                    >
+                      Wrinkle
+                    </motion.span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </MotionCard>
 
-  // Finally table config
+          {/* Product Details */}
+          <MotionCard
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            title={
+              <span className="text-sm font-medium text-gray-200">
+                Product Details
+              </span>
+            }
+            className="border-0 bg-[#141414]"
+            headStyle={{
+              backgroundColor: '#1f1f1f',
+              borderBottom: '1px solid #303030'
+            }}
+            bodyStyle={{ backgroundColor: '#141414' }}
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
+                <div className="text-xs font-medium uppercase text-gray-500">
+                  Origin
+                </div>
+                <div className="mt-1 text-gray-200">{record.origin}</div>
+              </div>
+              <div className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
+                <div className="text-xs font-medium uppercase text-gray-500">
+                  Texture
+                </div>
+                <div className="mt-1 text-gray-200">{record.texture}</div>
+              </div>
+              <div className="col-span-2 rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
+                <div className="text-xs font-medium uppercase text-gray-500">
+                  Instructions
+                </div>
+                <div className="mt-1 text-gray-200">{record.instructions}</div>
+              </div>
+              <div className="col-span-2 rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
+                <div className="text-xs font-medium uppercase text-gray-500">
+                  Notice
+                </div>
+                <div className="mt-1 text-gray-200">{record.notice}</div>
+              </div>
+            </div>
+          </MotionCard>
+
+          {/* Reviews Section */}
+          <MotionCard
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            title={
+              <span className="text-sm font-medium text-gray-200">
+                Reviews ({record.feedbacks.length})
+              </span>
+            }
+            className="border-0 bg-[#141414]"
+            headStyle={{
+              backgroundColor: '#1f1f1f',
+              borderBottom: '1px solid #303030'
+            }}
+            bodyStyle={{ backgroundColor: '#141414' }}
+          >
+            <div className="space-y-3">
+              {record.feedbacks.map((feedback) => (
+                <div
+                  key={feedback.id}
+                  className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <Rate
+                      disabled
+                      value={feedback.rating}
+                      className="text-sm"
+                    />
+                  </div>
+                  <div className="mt-2 text-sm text-gray-400">
+                    {feedback.content}
+                  </div>
+                </div>
+              ))}
+              {record.feedbacks.length === 0 && (
+                <div className="text-sm text-gray-400">No reviews yet</div>
+              )}
+            </div>
+          </MotionCard>
+
+          {/* Subcategories */}
+          {record.cosmeticSubcategories.length > 0 && (
+            <MotionCard
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              title={
+                <span className="text-sm font-medium text-gray-200">
+                  Subcategories
+                </span>
+              }
+              className="border-0 bg-[#141414]"
+              headStyle={{
+                backgroundColor: '#1f1f1f',
+                borderBottom: '1px solid #303030'
+              }}
+              bodyStyle={{ backgroundColor: '#141414' }}
+            >
+              <motion.div
+                className="grid gap-3"
+                variants={{
+                  hidden: { opacity: 0 },
+                  show: {
+                    opacity: 1,
+                    transition: {
+                      staggerChildren: 0.1
+                    }
+                  }
+                }}
+                initial="hidden"
+                animate="show"
+              >
+                {record.cosmeticSubcategories.map((subCategory) => (
+                  <motion.div
+                    key={subCategory.subCategoryId}
+                    variants={{
+                      hidden: { opacity: 0, x: -20 },
+                      show: { opacity: 1, x: 0 }
+                    }}
+                    className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4"
+                  >
+                    <div className="font-medium text-gray-200">
+                      {subCategory.subCategory.name}
+                    </div>
+                    <div className="mt-1 text-sm text-gray-400">
+                      {subCategory.subCategory.description}
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </MotionCard>
+          )}
+        </motion.div>
+      )
+    }),
+    []
+  )
+
+  const isLoading =
+    isLoadingCosmetics ||
+    isLoadingBrands ||
+    isLoadingSkinTypes ||
+    isLoadingCosmeticTypes
+
+  // Update tableConfig to use new data source
   const tableConfig = useMemo(
     () => ({
       columns,
-      dataSource: data,
-      loading,
+      dataSource: filteredData,
+      loading: isLoading,
       rowSelection: {
-        type: "checkbox" as const,
+        type: 'checkbox' as const,
         selectedRowKeys,
         onChange: setSelectedRowKeys,
-        columnTitle: "",
+        columnTitle: '',
         columnWidth: 48,
-        hideSelectAll: true,
+        hideSelectAll: true
       },
       expandable: expandableConfig,
       pagination: {
-        pageSize: 10,
+        pageSize: 12,
         showSizeChanger: false,
+        showTotal: (total: number) => (
+          <span className="mr-4 text-sm text-gray-400">
+            Total {total} products
+          </span>
+        ),
+        className: 'custom-pagination',
+        itemRender: (
+          _page: number,
+          type: 'page' | 'prev' | 'next' | 'jump-prev' | 'jump-next',
+          originalElement: React.ReactNode
+        ) => {
+          if (type === 'prev') {
+            return <span className="text-sm text-gray-400">Previous</span>
+          }
+          if (type === 'next') {
+            return <span className="text-sm text-gray-400">Next</span>
+          }
+          return originalElement
+        }
       },
-      scroll: { y: 600 },
-      size: "middle" as const,
+      scroll: { y: 800 },
+      size: 'middle' as const,
+      className: 'custom-dark-table'
     }),
-    [columns, data, loading, selectedRowKeys, expandableConfig]
-  );
+    [columns, filteredData, isLoading, selectedRowKeys, expandableConfig]
+  )
 
-  // Initial data fetch
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleMasterCheckboxChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setSelectedRowKeys(e.target.checked ? data.map((item) => item.key) : []);
-  };
+  const handleMasterCheckboxChange = (e: CheckboxChangeEvent) => {
+    setSelectedRowKeys(e.target.checked ? data.map((item) => item.key) : [])
+  }
 
   const handleAdd = () => {
-    navigate("/admin/courses/add");
-  };
+    navigate({
+      to: '/admin/cosmetics/add'
+    })
+  }
 
+  // Update bulk delete handler
   const handleDeleteSelected = async () => {
     Modal.confirm({
-      title: "Are you sure you want to delete selected courses?",
-      // @ts-expect-error - expected
-      content: "This action cannot be undone.",
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
+      title: 'Are you sure you want to delete selected products?',
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
       onOk: async () => {
         try {
           await Promise.all(
-            selectedRowKeys.map((key) => courseApi.deleteCourse(key.toString()))
-          );
-          message.success("Courses deleted successfully");
-          setSelectedRowKeys([]);
-          fetchData();
+            selectedRowKeys.map((key) =>
+              cosmeticApi.deleteCosmetic(key.toString())
+            )
+          )
+          message.success('Products deleted successfully')
+          setSelectedRowKeys([])
+          queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
         } catch (error) {
-          console.error("Error deleting courses:", error);
-          message.error("Failed to delete courses");
+          console.error('Error deleting products:', error)
+          message.error('Failed to delete products')
         }
+      }
+    })
+  }
+
+  // Update table theme with better text contrast and pagination styling
+  const tableTheme = {
+    components: {
+      Table: {
+        colorBgContainer: '#141414',
+        colorBgElevated: '#1f1f1f',
+        colorBorderSecondary: '#303030',
+        borderRadius: 8,
+        padding: 16,
+        colorText: '#e5e7eb',
+        colorTextSecondary: '#9ca3af',
+        fontSize: 14,
+        controlItemBgHover: '#262626',
+        headerBg: '#1f1f1f',
+        headerColor: '#e5e7eb',
+        rowHoverBg: '#262626',
+        // Updated selection colors
+        selectionColumnWidth: 48,
+        selectionBg: 'rgba(74, 222, 128, 0.08)', // Light neon green with low opacity
+        selectionColor: '#e5e7eb'
       },
-    });
-  };
+      Card: {
+        colorBgContainer: '#141414',
+        colorBorderSecondary: '#303030',
+        colorText: '#e5e7eb',
+        colorTextHeading: '#e5e7eb'
+      },
+      Pagination: {
+        colorText: '#9ca3af',
+        colorPrimary: '#3b82f6',
+        colorBgContainer: 'transparent',
+        colorBgTextHover: '#1f2937',
+        colorTextDisabled: '#4b5563',
+        fontSize: 14,
+        controlHeight: 32,
+        borderRadius: 6
+      }
+    },
+    token: {
+      colorText: '#e5e7eb',
+      colorTextSecondary: '#9ca3af',
+      colorTextTertiary: '#6b7280',
+      colorBgContainer: '#141414',
+      colorBorder: '#303030',
+      borderRadius: 6,
+      controlHeight: 32,
+      fontSize: 14
+    }
+  } as const
+
+  // Add these styles to your global CSS
+  const additionalStyles = `
+    .custom-dark-table .ant-table-body {
+      min-height: 800px !important;
+      max-height: 800px !important;
+    }
+
+    .custom-dark-table .ant-table-expanded-row > .ant-table-cell {
+      padding: 20px 16px;
+    }
+
+    .custom-dark-table .ant-table-expanded-row-fixed {
+      margin: 0 !important;
+    }
+
+    .custom-dark-table .ant-table-row-selected > td {
+      background-color: rgba(74, 222, 128, 0.08) !important;
+    }
+    
+    .custom-dark-table .ant-table-row-selected:hover > td {
+      background-color: rgba(74, 222, 128, 0.12) !important;
+    }
+
+    .custom-dark-table .ant-checkbox-checked .ant-checkbox-inner {
+      background-color: #4ade80;
+      border-color: #4ade80;
+    }
+
+    .custom-dark-table .ant-pagination {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .custom-dark-table .ant-pagination-item {
+      background: transparent;
+      border: none;
+      min-width: 32px;
+      height: 32px;
+      line-height: 32px;
+      margin-right: 8px;
+    }
+
+    .custom-dark-table .ant-pagination-item:hover {
+      background: #1f2937;
+    }
+
+    .custom-dark-table .ant-pagination-item-active {
+      background: #3b82f6;
+    }
+
+    .custom-dark-table .ant-pagination-item-active a {
+      color: white !important;
+    }
+
+    .custom-dark-table .ant-pagination-prev,
+    .custom-dark-table .ant-pagination-next {
+      min-width: 32px;
+      height: 32px;
+      line-height: 32px;
+      background: transparent;
+      border: none;
+    }
+
+    .custom-dark-table .ant-pagination-prev:hover,
+    .custom-dark-table .ant-pagination-next:hover {
+      background: #1f2937;
+    }
+
+    .custom-dark-table .ant-pagination-item a {
+      color: #9ca3af;
+      padding: 0 6px;
+    }
+
+    .custom-dark-table .ant-pagination-item:hover a {
+      color: #3b82f6;
+    }
+
+    .custom-pagination.ant-pagination {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .custom-pagination .ant-pagination-item,
+    .custom-pagination .ant-pagination-prev,
+    .custom-pagination .ant-pagination-next {
+      min-width: 32px;
+      height: 32px;
+      line-height: 32px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      margin: 0;
+    }
+
+    .custom-pagination .ant-pagination-item a {
+      color: #9ca3af;
+      font-size: 14px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .custom-pagination .ant-pagination-item:hover {
+      background: #1f2937;
+    }
+
+    .custom-pagination .ant-pagination-item:hover a {
+      color: #3b82f6;
+    }
+
+    .custom-pagination .ant-pagination-item-active {
+      background: #3b82f6;
+    }
+
+    .custom-pagination .ant-pagination-item-active a,
+    .custom-pagination .ant-pagination-item-active:hover a {
+      color: white;
+    }
+
+    .custom-pagination .ant-pagination-prev button,
+    .custom-pagination .ant-pagination-next button {
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .custom-pagination .ant-pagination-prev:hover,
+    .custom-pagination .ant-pagination-next:hover {
+      background: #1f2937;
+    }
+
+    .custom-pagination .ant-pagination-prev:hover button,
+    .custom-pagination .ant-pagination-next:hover button {
+      color: #3b82f6;
+    }
+
+    .custom-pagination .ant-pagination-disabled,
+    .custom-pagination .ant-pagination-disabled:hover {
+      background: transparent;
+    }
+
+    .custom-pagination .ant-pagination-disabled button,
+    .custom-pagination .ant-pagination-disabled:hover button {
+      color: #4b5563;
+    }
+  `
 
   return (
-    <ConfigProvider
-      theme={{
-        components: {
-          Table: {
-            headerBg: "#282d35",
-            headerColor: "#8b949e",
-            bodySortBg: "#282d35",
-            borderColor: "#30363d",
-            rowHoverBg: "#2c333a",
-            rowSelectedBg: "#2c333a",
-            rowSelectedHoverBg: "#2c333a",
-            headerSortActiveBg: "#282d35",
-            headerSortHoverBg: "#282d35",
-            filterDropdownBg: "#282d35",
-            filterDropdownMenuBg: "#282d35",
-            cellPaddingBlock: 8,
-            cellPaddingInline: 32,
-            selectionColumnWidth: 48,
-            headerBorderRadius: 8,
-            borderRadius: 8,
-            padding: 24,
-            headerSplitColor: "transparent",
-            colorBgTextHover: "transparent",
-            colorBgTextActive: "transparent",
-            colorTextPlaceholder: "#ffffff",
-            colorBgContainer: "#282d35",
-            expandedRowClassName: "nested-table",
-          },
-          Empty: {
-            colorText: "#ffffff",
-            colorTextDisabled: "#ffffff",
-            colorFill: "#ffffff",
-            colorFillSecondary: "#ffffff",
-            colorFillQuaternary: "#ffffff",
-            colorIcon: "#ffffff",
-            colorIconHover: "#ffffff",
-          },
-          Input: {
-            colorBgContainer: "#282d35",
-            colorBorder: "#30363d",
-            colorText: "#ffffff",
-            colorTextPlaceholder: "#8b949e",
-            colorIcon: "#ffffff",
-            colorIconHover: "#3b82f6",
-          },
-          Button: {
-            colorPrimary: "#dc2626",
-            colorPrimaryHover: "#b91c1c",
-            colorPrimaryActive: "#991b1b",
-            primaryColor: "#ffffff",
-            colorBgContainer: "#282d35",
-            colorBorder: "#30363d",
-            colorText: "#8b949e",
-          },
-          Checkbox: {
-            colorBgContainer: "#282d35",
-            colorBorder: "#8b949e",
-            colorText: "#8b949e",
-            lineWidth: 1.5,
-            borderRadius: 2,
-            colorPrimary: "#1890ff",
-            controlInteractiveSize: 16,
-          },
-          Dropdown: {
-            colorBgElevated: "#282d35",
-            controlItemBgHover: "#363b42",
-            colorText: "#8b949e",
-          },
-        },
-        token: {
-          colorBgContainer: "#282d35",
-          colorText: "#ffffff",
-          borderRadius: 8,
-          padding: 24,
-          colorTextDisabled: "#ffffff",
-        },
-      }}
-    >
-      {/* @ts-expect-error - expected */}
-      <style jsx global>{`
+    <ConfigProvider theme={tableTheme}>
+      <style>{`
         .nested-table .ant-table {
           margin: 0 !important;
         }
@@ -999,53 +1038,55 @@ export default function Courses() {
         .thumbnail-preview-modal .ant-modal-close:hover {
           color: #ffffff;
         }
+
+        ${additionalStyles}
       `}</style>
       <BreadcrumbUpdater
-        items={["Admin Dashboard", "Courses"]}
-        previousItems={["Admin Dashboard"]}
+        items={['Admin Dashboard', 'Cosmetics']}
+        previousItems={['Admin Dashboard']}
       />
-      <div className="w-[70%] mx-auto mt-[8rem]">
-        <div className="bg-[#1a1b24] px-8 py-5 mb-6 rounded-xl flex items-center justify-between border border-[#282d35] shadow-lg relative overflow-hidden">
+      <div className="mx-auto mt-32 w-[70%]">
+        <div className="relative mb-6 flex items-center justify-between overflow-hidden rounded-xl border border-[#282d35] bg-[#1a1b24] px-8 py-5 shadow-lg">
           {/* Background accent */}
           <div className="absolute inset-0 bg-gradient-to-r from-[#3b82f615] to-transparent"></div>
-          
+
           {/* Left side content */}
-          <div className="flex items-center gap-3 relative">
-            <div className="w-1 h-12 bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] rounded-full shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
+          <div className="relative flex items-center gap-3">
+            <div className="h-12 w-1 rounded-full bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
             <div className="flex flex-col">
-              <span className="text-[#d0dbea] text-[0.95rem] leading-relaxed">
-                Want to <span className="text-[#3b82f6] font-semibold">approve</span> pending courses?
+              <span className="text-[0.95rem] leading-relaxed text-[#d0dbea]">
+                Want to{' '}
+                <span className="font-semibold text-[#3b82f6]">approve</span>{' '}
+                pending products?
               </span>
-              <span className="text-[#8b949e] text-[0.85rem]">
-                Go to Pending Courses page to review and approve courses
+              <span className="text-[0.85rem] text-[#8b949e]">
+                Go to Pending Products page to review and approve products
               </span>
             </div>
           </div>
 
           {/* Button */}
-          {/* @ts-expect-error - expected */}
           <Button
             type="primary"
-            onClick={() => navigate("/admin/approvals/pending")}
+            onClick={() => navigate('/admin/approvals/pending')}
             style={{
-              backgroundColor: "#1e1f2a",
-              color: "#3b82f6",
-              border: "1px solid #3b82f640",
-              boxShadow: "0 0 10px rgba(59,130,246,0.1)",
-              height: "38px",
-              padding: "0 24px",
+              backgroundColor: '#1e1f2a',
+              color: '#3b82f6',
+              border: '1px solid #3b82f640',
+              boxShadow: '0 0 10px rgba(59,130,246,0.1)',
+              height: '38px',
+              padding: '0 24px',
               zIndex: 1
             }}
-            className="hover:!bg-[#3b82f620] hover:!border-[#3b82f660] hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all duration-300"
+            className="transition-all duration-300 hover:!border-[#3b82f660] hover:!bg-[#3b82f620] hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
           >
-            View Pending Courses
+            View Pending Products
           </Button>
         </div>
 
-        <div className="bg-[#282d35] px-6 py-6 mb-4 rounded-lg flex flex-col md:flex-row items-center gap-4">
+        <div className="mb-4 flex flex-col items-center gap-4 rounded-lg bg-[#282d35] p-6 md:flex-row">
           <Checkbox
             checked={selectedRowKeys.length === data.length}
-            // @ts-expect-error - expected
             indeterminate={
               selectedRowKeys.length > 0 && selectedRowKeys.length < data.length
             }
@@ -1054,49 +1095,45 @@ export default function Courses() {
 
           <div className="flex-1">
             <Input
-              // @ts-expect-error - expected
               prefix={<SearchOutlined className="text-[#8b949e]" />}
               placeholder=" Smart Search..."
               className="w-full bg-[#282d35]"
               value={searchText}
-              // @ts-expect-error - expected
               onChange={(e) => handleGlobalSearch(e.target.value)}
               allowClear={{
                 clearIcon: (
                   <CloseOutlined className="text-white hover:text-blue-500" />
-                ),
+                )
               }}
             />
           </div>
 
           <div className="flex items-center gap-4">
             <Button
-              // @ts-expect-error - expected
               icon={<DeleteOutlined />}
               style={{
-                backgroundColor: "#dc2626",
-                color: "white",
-                border: "none",
-                boxShadow: "none",
+                backgroundColor: '#dc2626',
+                color: 'white',
+                border: 'none',
+                boxShadow: 'none'
               }}
               type="primary"
               onClick={handleDeleteSelected}
               disabled={selectedRowKeys.length === 0}
             />
-            {/* @ts-expect-error - expected */}
             <Button
               type="primary"
               icon={<PlusOutlined />}
               onClick={handleAdd}
               style={{
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                boxShadow: "none",
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                boxShadow: 'none'
               }}
               className="hover:!bg-[#2563eb]"
             >
-              Add Course
+              Add Product
             </Button>
           </div>
         </div>
@@ -1105,5 +1142,5 @@ export default function Courses() {
         <Table {...tableConfig} />
       </div>
     </ConfigProvider>
-  );
+  )
 }

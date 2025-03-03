@@ -8,7 +8,9 @@ const cosmeticApi = {
   getCosmeticById: (id: string) =>
     axiosClient.get<ApiResponse<CosmeticResponse>>(
       `/cosmetic/get-by-id?id=${id}`
-    )
+    ),
+  deleteCosmetic: (id: string) =>
+    axiosClient.delete<ApiResponse<void>>(`/cosmetic/${id}`)
 }
 
 export default cosmeticApi

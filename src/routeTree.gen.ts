@@ -40,6 +40,7 @@ import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
+import { Route as AdminCosmeticsIndexImport } from './routes/admin/cosmetics/index'
 
 // Create/Update Routes
 
@@ -214,6 +215,12 @@ const AdminIndexRoute = AdminIndexImport.update({
 const AdminUsersIndexRoute = AdminUsersIndexImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminCosmeticsIndexRoute = AdminCosmeticsIndexImport.update({
+  id: '/cosmetics/',
+  path: '/cosmetics/',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -417,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexImport
       parentRoute: typeof AdminImport
     }
+    '/admin/cosmetics/': {
+      id: '/admin/cosmetics/'
+      path: '/cosmetics'
+      fullPath: '/admin/cosmetics'
+      preLoaderRoute: typeof AdminCosmeticsIndexImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/users/': {
       id: '/admin/users/'
       path: '/users'
@@ -431,11 +445,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminCosmeticsIndexRoute: typeof AdminCosmeticsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminCosmeticsIndexRoute: AdminCosmeticsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 
@@ -470,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
 }
 
@@ -501,6 +518,7 @@ export interface FileRoutesByTo {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
 }
 
@@ -534,6 +552,7 @@ export interface FileRoutesById {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/cosmetics/': typeof AdminCosmeticsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
 }
 
@@ -568,6 +587,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin/'
+    | '/admin/cosmetics'
     | '/admin/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -598,6 +618,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin'
+    | '/admin/cosmetics'
     | '/admin/users'
   id:
     | '__root__'
@@ -629,6 +650,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin/'
+    | '/admin/cosmetics/'
     | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
@@ -745,6 +767,7 @@ export const routeTree = rootRoute
       "filePath": "admin.tsx",
       "children": [
         "/admin/",
+        "/admin/cosmetics/",
         "/admin/users/"
       ]
     },
@@ -819,6 +842,10 @@ export const routeTree = rootRoute
     },
     "/admin/": {
       "filePath": "admin/index.tsx",
+      "parent": "/admin"
+    },
+    "/admin/cosmetics/": {
+      "filePath": "admin/cosmetics/index.tsx",
       "parent": "/admin"
     },
     "/admin/users/": {
