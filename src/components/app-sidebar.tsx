@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import {
-  BookOpen,
+  ShoppingBag,
   CheckCircle,
   CreditCard,
   GalleryVerticalEnd,
@@ -47,24 +47,24 @@ const data = {
       isStandalone: true
     },
     {
-      title: 'Courses',
-      icon: BookOpen,
+      title: 'Cosmetics',
+      icon: ShoppingBag,
       items: [
         {
-          title: 'All Courses',
-          path: '/admin/courses/all-course'
+          title: 'All Cosmetics',
+          path: '/admin/cosmetics'
         },
         {
-          title: 'Categories',
-          path: '/admin/courses/categories'
+          title: 'Cosmetic Types',
+          path: '/admin/cosmetic-types'
         },
         {
-          title: 'Reviews',
-          path: '/admin/reviews'
+          title: 'Skin Types',
+          path: '/admin/cosmetics/skin-type'
         },
         {
-          title: 'Certificates',
-          path: '/admin/certificates'
+          title: 'Brands',
+          path: '/admin/cosmetics/brand_list'
         }
       ]
     },
