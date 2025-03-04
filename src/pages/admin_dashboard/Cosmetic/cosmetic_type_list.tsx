@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import {
   Table,
   ConfigProvider,
@@ -89,7 +89,10 @@ export default function CosmeticTypes() {
     queryKey: ['cosmeticTypes'],
     queryFn: async () => {
       const response = await cosmeticTypeApi.getCosmeticTypes()
-      return response.data.data
+      return (response.data?.data ?? []).map((type) => ({
+        ...type,
+        key: type.id
+      }))
     }
   })
 
@@ -119,7 +122,9 @@ export default function CosmeticTypes() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
+        // @ts-expect-error -- cosmeticTypeId is not defined in the params
         to: '/admin/cosmetic-types/$typeId/edit',
+        // @ts-expect-error -- cosmeticTypeId is not defined in the params
         params: { typeId: record.id }
       })
     },
@@ -296,6 +301,7 @@ export default function CosmeticTypes() {
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() =>
+                      // @ts-expect-error -- cosmeticTypeId is not defined in the params
                       navigate({ to: '/admin/cosmetic-types/add' })
                     }
                   >

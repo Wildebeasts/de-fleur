@@ -4,7 +4,11 @@ import { CosmeticTypeResponse } from '../types/CosmeticType'
 
 const cosmeticTypeApi = {
   getCosmeticTypes: () =>
-    axiosClient.get<ApiResponse<CosmeticTypeResponse[]>>('/cosmetic-type')
+    axiosClient.get<ApiResponse<CosmeticTypeResponse[]>>('/cosmetic-type'),
+  deleteCosmeticType: (cosmeticTypeId: string) =>
+    axiosClient.delete<ApiResponse<CosmeticTypeResponse>>(
+      `/cosmetic-type/${cosmeticTypeId}`
+    )
 }
 
 export default cosmeticTypeApi

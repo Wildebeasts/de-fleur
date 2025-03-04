@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import {
   Table,
   ConfigProvider,
@@ -117,7 +117,10 @@ export default function BlogList() {
     queryKey: ['blogs'],
     queryFn: async () => {
       const response = await blogApi.getBlogs()
-      return response.data.data.items
+      return (response.data?.data?.items ?? []).map((blog) => ({
+        ...blog,
+        key: blog.id
+      }))
     }
   })
 
@@ -147,7 +150,9 @@ export default function BlogList() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
+        // @ts-expect-error -- blogId is not defined in the params
         to: '/admin/blogs/$blogId/edit',
+        // @ts-expect-error -- blogId is not defined in the params
         params: { blogId: record.id }
       })
     },
@@ -164,7 +169,7 @@ export default function BlogList() {
         cancelText: 'No',
         onOk: async () => {
           try {
-            // Implement delete blog API call here
+            await blogApi.deleteBlog(record.id)
             message.success('Blog post deleted successfully')
             queryClient.invalidateQueries({ queryKey: ['blogs'] })
           } catch (error) {
@@ -362,6 +367,7 @@ export default function BlogList() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
+                    // @ts-expect-error -- blogs is not defined in the params
                     onClick={() => navigate({ to: '/admin/blogs/add' })}
                   >
                     Add New

@@ -1,5 +1,4 @@
-import { useBreadcrumb } from '@/lib/context/BreadcrumbContext'
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import {
   Table,
   ConfigProvider,
@@ -7,20 +6,16 @@ import {
   Button,
   Modal,
   message,
-  Tooltip,
-  Badge,
   Card
 } from 'antd'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ColumnType } from 'antd/es/table'
 import 'antd/dist/reset.css'
 import {
   SearchOutlined,
   DeleteOutlined,
   EditOutlined,
   EllipsisOutlined,
-  PlusOutlined,
-  CloseOutlined
+  PlusOutlined
 } from '@ant-design/icons'
 import { Input } from 'antd'
 import { useNavigate } from '@tanstack/react-router'
@@ -134,7 +129,9 @@ export default function SkinTypes() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
+        // @ts-expect-error -- skinTypeId is not defined in the params
         to: '/admin/skin-types/$skinTypeId/edit',
+        // @ts-expect-error -- skinTypeId is not defined in the params
         params: { skinTypeId: record.id }
       })
     },
@@ -381,6 +378,7 @@ export default function SkinTypes() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
+                    // @ts-expect-error -- skinTypeId is not defined in the params
                     onClick={() => navigate({ to: '/admin/skin-types/add' })}
                   >
                     Add New

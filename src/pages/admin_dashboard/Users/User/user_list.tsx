@@ -1,16 +1,11 @@
 import React, { useCallback, useMemo, useRef } from 'react'
-// @ts-expect-error -- expected
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { useBreadcrumb } from '@/contexts/BreadcrumbContext'
 import { useEffect, useState } from 'react'
 import {
   ConfigProvider,
   Dropdown,
   Button,
   Modal,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  Tooltip,
-  Badge,
   Empty,
   Card,
   Row,
@@ -20,7 +15,6 @@ import {
 } from 'antd'
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { ColumnType } from 'antd/es/table'
 import 'antd/dist/reset.css'
 import {
   SearchOutlined,
@@ -39,14 +33,6 @@ import userApi from '@/lib/services/userService'
 import { format } from 'date-fns'
 import { useNavigate } from '@tanstack/react-router'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  useReactTable,
-  getSortedRowModel,
-  getFilteredRowModel
-} from '@tanstack/react-table'
-import type { ColumnDef } from '@tanstack/react-table'
 import { useQuery } from '@tanstack/react-query'
 
 interface UserApiResponse {
@@ -261,10 +247,9 @@ export default function Users() {
     )
   }, [usersData, searchText])
 
-  const columnHelper = createColumnHelper<DataType>()
-
   const handleEdit = useCallback(
     (record: DataType) => {
+      // @ts-expect-error -- id is not defined in the params
       navigate({ to: '/admin/users/edit/$id', params: { id: record.id } })
     },
     [navigate]
@@ -274,99 +259,6 @@ export default function Users() {
     setSelectedUser(user)
     setIsModalVisible(true)
   }, [])
-
-  const columns = useMemo<ColumnDef<DataType, any>[]>(
-    () => [
-      columnHelper.accessor('username', {
-        header: 'Username',
-        cell: (info) => (
-          <MemoizedHighlightText
-            text={info.getValue()}
-            searchText={searchText}
-          />
-        ),
-        sortingFn: 'alphanumeric'
-      }),
-      columnHelper.accessor('emailConfirmed', {
-        header: 'Email Status',
-        cell: (info) => (
-          <Badge
-            status={info.getValue() ? 'success' : 'error'}
-            text={info.getValue() ? 'Confirmed' : 'Unconfirmed'}
-          />
-        ),
-        filterFn: (row, _columnId, value) => {
-          return row.original.emailConfirmed === value
-        }
-      }),
-      columnHelper.accessor('createdDate', {
-        header: 'Created Date',
-        cell: (info) => {
-          const formattedDate = format(new Date(info.getValue()), 'PPp')
-          return (
-            <MemoizedHighlightText
-              text={formattedDate}
-              searchText={searchText}
-            />
-          )
-        },
-        sortingFn: 'datetime'
-      }),
-      columnHelper.accessor('roles', {
-        header: 'Roles',
-        cell: (info) => (
-          <div className="flex flex-wrap gap-1">
-            {info
-              .getValue()
-              .map(
-                (
-                  role:
-                    | string
-                    | number
-                    | boolean
-                    | React.ReactElement<
-                        any,
-                        string | React.JSXElementConstructor<any>
-                      >
-                    | Iterable<React.ReactNode>
-                    | React.ReactPortal
-                    | null
-                    | undefined,
-                  index: React.Key | null | undefined
-                ) => (
-                  <Badge
-                    key={index}
-                    count={role}
-                    style={{
-                      backgroundColor: '#3b82f6',
-                      color: 'white',
-                      borderRadius: '12px',
-                      padding: '0 8px'
-                    }}
-                  />
-                )
-              )}
-          </div>
-        ),
-        filterFn: (row, _columnId, value) => {
-          return row.original.roles.includes(value as string)
-        }
-      }),
-      columnHelper.display({
-        id: 'actions',
-        header: 'Actions',
-        cell: (info) => (
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            className="text-gray-400 hover:text-blue-400"
-            onClick={() => handleEdit(info.row.original)}
-          />
-        )
-      })
-    ],
-    [searchText, handleEdit, handleUserClick]
-  )
 
   const handleGlobalSearch = useCallback((value: string) => {
     setSearchText(value)
@@ -381,6 +273,7 @@ export default function Users() {
   }, [])
 
   const handleAdd = useCallback(() => {
+    // @ts-expect-error -- y e s
     navigate({ to: '/admin/users/add' })
   }, [navigate])
 
@@ -401,14 +294,6 @@ export default function Users() {
     const endIndex = startIndex + pagination.pageSize
     return filteredData.slice(startIndex, endIndex)
   }
-
-  const table = useReactTable({
-    data: getCurrentPageData(),
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel()
-  })
 
   return (
     <ConfigProvider theme={tableTheme}>

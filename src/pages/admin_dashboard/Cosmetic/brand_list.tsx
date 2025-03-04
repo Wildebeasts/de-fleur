@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import {
   Table,
   ConfigProvider,
@@ -91,7 +91,10 @@ export default function Brands() {
     queryKey: ['brands'],
     queryFn: async () => {
       const response = await brandApi.getBrands()
-      return response.data.data
+      return (response.data?.data ?? []).map((brand) => ({
+        ...brand,
+        key: brand.id
+      }))
     }
   })
 
@@ -121,7 +124,9 @@ export default function Brands() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
+        // @ts-expect-error -- brandId is not defined in the params
         to: '/admin/brands/$brandId/edit',
+        // @ts-expect-error -- brandId is not defined in the params
         params: { brandId: record.id }
       })
     },
@@ -338,6 +343,7 @@ export default function Brands() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
+                    // @ts-expect-error -- brands is not defined in the params
                     onClick={() => navigate({ to: '/admin/brands/add' })}
                   >
                     Add New

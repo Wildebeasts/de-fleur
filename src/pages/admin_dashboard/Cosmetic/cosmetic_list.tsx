@@ -251,7 +251,9 @@ export default function Courses() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
+        // @ts-expect-error -- cosmeticId is not defined in the params
         to: '/admin/cosmetics/$cosmeticId/edit',
+        // @ts-expect-error -- cosmeticId is not defined in the params
         params: { cosmeticId: record.id }
       })
     },
@@ -768,6 +770,7 @@ export default function Courses() {
 
   const handleAdd = () => {
     navigate({
+      // @ts-expect-error -- y e s
       to: '/admin/cosmetics/add'
     })
   }
@@ -1105,6 +1108,7 @@ export default function Courses() {
           >
             <Button
               type="primary"
+              // @ts-expect-error -- payments is not defined in the params
               onClick={() => navigate({ to: '/admin/payments' })}
               style={{
                 backgroundColor: '#1e1f2a',
