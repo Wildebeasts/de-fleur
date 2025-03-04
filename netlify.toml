@@ -1,7 +1,13 @@
 [build]
-  command = "npm run build"
+  command = "pnpm install && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--no-frozen-lockfile"
   SKIP_GO_INSTALLATION = "true"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
