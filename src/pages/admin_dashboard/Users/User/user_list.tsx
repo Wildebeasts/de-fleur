@@ -1,7 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable prettier/prettier */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useCallback, useMemo, useRef } from 'react'
 // @ts-expect-error -- expected
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -12,7 +8,6 @@ import {
   Dropdown,
   Button,
   Modal,
-  message,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   Tooltip,
   Badge,
@@ -46,7 +41,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import {
   createColumnHelper,
-  flexRender,
   getCoreRowModel,
   useReactTable,
   getSortedRowModel,
@@ -229,13 +223,15 @@ export default function Users() {
     queryKey: ['users'],
     queryFn: async () => {
       const response: UserApiResponse = await userApi.getUsers(0, 1000)
-      
+
       if (!response.isSuccess || !response.data) {
-        throw new Error(response.errors?.[0]?.description || 'Failed to fetch users')
+        throw new Error(
+          response.errors?.[0]?.description || 'Failed to fetch users'
+        )
       }
 
       return response.data
-        .filter(user => user.id && user.userName)
+        .filter((user) => user.id && user.userName)
         .map((item) => ({
           id: item.id!,
           username: item.userName!,
@@ -255,7 +251,7 @@ export default function Users() {
     return usersData.filter((item) =>
       Object.entries(item).some(([key, val]) => {
         if (!val) return false
-        if (key === 'createdDate') {
+        if (key === 'createdDate' && typeof val === 'string') {
           return format(new Date(val), 'PPp')
             .toLowerCase()
             .includes(searchText.toLowerCase())
@@ -329,9 +325,9 @@ export default function Users() {
                     | number
                     | boolean
                     | React.ReactElement<
-                      any,
-                      string | React.JSXElementConstructor<any>
-                    >
+                        any,
+                        string | React.JSXElementConstructor<any>
+                      >
                     | Iterable<React.ReactNode>
                     | React.ReactPortal
                     | null
@@ -372,20 +368,17 @@ export default function Users() {
     [searchText, handleEdit, handleUserClick]
   )
 
-  const handleGlobalSearch = useCallback(
-    (value: string) => {
-      setSearchText(value)
+  const handleGlobalSearch = useCallback((value: string) => {
+    setSearchText(value)
 
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current)
-      }
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
 
-      searchTimeoutRef.current = setTimeout(() => {
-        setPagination(prev => ({ ...prev, current: 1 }))
-      }, 300)
-    },
-    []
-  )
+    searchTimeoutRef.current = setTimeout(() => {
+      setPagination((prev) => ({ ...prev, current: 1 }))
+    }, 300)
+  }, [])
 
   const handleAdd = useCallback(() => {
     navigate({ to: '/admin/users/add' })
@@ -443,7 +436,9 @@ export default function Users() {
                   value={searchText}
                   onChange={(e) => handleGlobalSearch(e.target.value)}
                   allowClear={{
-                    clearIcon: <CloseOutlined className="text-white hover:text-blue-500" />
+                    clearIcon: (
+                      <CloseOutlined className="text-white hover:text-blue-500" />
+                    )
                   }}
                 />
               </div>
@@ -503,14 +498,14 @@ export default function Users() {
                             menu={{
                               items: [
                                 {
-                                  key: "edit",
+                                  key: 'edit',
                                   icon: <EditOutlined />,
-                                  label: "Edit",
-                                  onClick: () => handleEdit(user),
-                                },
-                              ],
+                                  label: 'Edit',
+                                  onClick: () => handleEdit(user)
+                                }
+                              ]
                             }}
-                            trigger={["click"]}
+                            trigger={['click']}
                             placement="bottomRight"
                           >
                             <Button
@@ -522,7 +517,7 @@ export default function Users() {
                           </Dropdown>
                         </div>
                       }
-                      bodyStyle={{ 
+                      bodyStyle={{
                         padding: '24px',
                         height: '100%',
                         position: 'relative'
@@ -548,12 +543,12 @@ export default function Users() {
                           )}
                           <div className="absolute -bottom-1.5 -right-1.5 z-50">
                             {user.emailConfirmed ? (
-                              <MailFilled 
+                              <MailFilled
                                 className="rounded-full bg-emerald-500/10 p-1.5 text-xl text-emerald-400"
                                 style={{ width: '20px', height: '20px' }}
                               />
                             ) : (
-                              <StopOutlined 
+                              <StopOutlined
                                 className="rounded-full bg-red-500/10 p-1.5 text-xl text-red-400"
                                 style={{ width: '20px', height: '20px' }}
                               />
@@ -570,12 +565,16 @@ export default function Users() {
                         <div className="mb-3 flex items-center justify-center gap-2">
                           <span className="flex items-center gap-1 text-xs text-gray-500">
                             <span className="text-gray-600">Created:</span>
-                            {format(new Date(user.createdDate), "MMM dd, yyyy")}
+                            {format(new Date(user.createdDate), 'MMM dd, yyyy')}
                           </span>
                           <span className="text-xs text-gray-500">•</span>
-                          <span className={`text-xs ${
-                            user.emailConfirmed ? 'text-emerald-400' : 'text-gray-500'
-                          }`}>
+                          <span
+                            className={`text-xs ${
+                              user.emailConfirmed
+                                ? 'text-emerald-400'
+                                : 'text-gray-500'
+                            }`}
+                          >
                             {user.emailConfirmed ? 'Verified' : 'Unverified'}
                           </span>
                         </div>
@@ -587,11 +586,12 @@ export default function Users() {
                               key={index}
                               className={`
                                 flex items-center gap-1 text-xs font-medium
-                                ${role === 'Admin' 
-                                  ? 'text-rose-400' 
-                                  : role === 'Instructor' 
-                                    ? 'text-amber-400'
-                                    : 'text-blue-400'
+                                ${
+                                  role === 'Admin'
+                                    ? 'text-rose-400'
+                                    : role === 'Instructor'
+                                      ? 'text-amber-400'
+                                      : 'text-blue-400'
                                 }
                               `}
                             >
@@ -622,7 +622,7 @@ export default function Users() {
                     onChange={handlePageChange}
                     showSizeChanger={false}
                     className="text-gray-400"
-                    showTotal={(total, range) => 
+                    showTotal={(total, range) =>
                       `${range[0]}-${range[1]} of ${total} items`
                     }
                     hideOnSinglePage={false}
@@ -691,10 +691,11 @@ export default function Users() {
               </span>
               <span className="text-gray-500">•</span>
               <span
-                className={`flex items-center gap-1 text-sm ${selectedUser.emailConfirmed
-                  ? 'text-emerald-400'
-                  : 'text-red-400'
-                  }`}
+                className={`flex items-center gap-1 text-sm ${
+                  selectedUser.emailConfirmed
+                    ? 'text-emerald-400'
+                    : 'text-red-400'
+                }`}
               >
                 {selectedUser.emailConfirmed ? (
                   <>
@@ -715,11 +716,12 @@ export default function Users() {
                   key={index}
                   className={`
                     flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium
-                    ${role === 'Admin'
-                      ? 'bg-rose-500/10 text-rose-400'
-                      : role === 'Instructor'
-                        ? 'bg-amber-500/10 text-amber-400'
-                        : 'bg-blue-500/10 text-blue-400'
+                    ${
+                      role === 'Admin'
+                        ? 'bg-rose-500/10 text-rose-400'
+                        : role === 'Instructor'
+                          ? 'bg-amber-500/10 text-amber-400'
+                          : 'bg-blue-500/10 text-blue-400'
                     }
                   `}
                 >

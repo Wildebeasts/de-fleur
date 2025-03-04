@@ -220,6 +220,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     // Check if any item in this section matches the current path
     const hasActiveItem = section.items.some(
+      // @ts-expect-error -- item.url is optional
       (item) => pathname === item.path || pathname === item.url
     )
 
@@ -228,6 +229,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isActive: hasActiveItem,
       items: section.items.map((item) => ({
         ...item,
+        // @ts-expect-error -- item.url is optional
         isActive: pathname === item.path || pathname === item.url
       }))
     }

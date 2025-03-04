@@ -1,10 +1,8 @@
 /* eslint-disable prettier/prettier */
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Row,
   Col,
-  Button,
-  Dropdown,
   Modal,
   message,
   Spin,
@@ -13,18 +11,17 @@ import {
   ConfigProvider,
   theme
 } from 'antd'
-import { ShoppingCart, MoreHorizontal, X } from 'lucide-react'
-import type { MenuProps } from 'antd'
+import { ShoppingCart, X } from 'lucide-react'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
-import { format } from 'date-fns'
-import cartApi, { CartResponse } from '@/lib/services/cartApi'
+import cartApi from '@/lib/services/cartApi'
 import userApi, { UserDto } from '@/lib/services/userService'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { CartResponse } from '@/lib/types/Cart'
 
 const CartList: React.FC = () => {
   const [selectedCart, setSelectedCart] = useState<CartResponse | null>(null)
-  const [pagination, setPagination] = useState({
+  const [pagination] = useState({
     current: 1,
     pageSize: 12
   })
@@ -36,12 +33,10 @@ const CartList: React.FC = () => {
     queryFn: async () => {
       const response = await cartApi.getAllCarts()
       
-      // Handle authentication error
       if (!response.data.isSuccess) {
         if (response.data.message === "Authentication Required Or Failed.") {
-          // Redirect to login or show auth error
           message.error('Please login to view carts')
-          navigate({ to: '/login' }) // Adjust the route as needed
+          navigate({ to: '/login' })
           throw new Error('Authentication required')
         }
         throw new Error(response.data.message || 'Failed to fetch carts')
@@ -49,16 +44,19 @@ const CartList: React.FC = () => {
 
       return response.data.data || []
     },
-    retry: false, // Don't retry on auth errors
-    onError: (error) => {
-      if (error instanceof Error) {
-        message.error(error.message)
-      }
-    }
+    retry: false,
+    networkMode: 'online'
   })
 
+  // Show error message when error occurs
+  useEffect(() => {
+    if (cartsError instanceof Error) {
+      message.error(cartsError.message)
+    }
+  }, [cartsError])
+
   // Fetch user details only if we have authenticated cart data
-  const { data: userDetails } = useQuery({
+  useQuery({
     queryKey: ['userDetails', cartsData],
     enabled: !!cartsData && cartsData.length > 0,
     queryFn: async () => {
@@ -266,9 +264,9 @@ const CartList: React.FC = () => {
                       className="flex justify-between text-white"
                     >
                       <span>
-                        {item.cosmeticName || `Product ${item.cosmeticId.slice(-8)}`} x {item.quantity}
+                        {item.cosmetic?.name || `Product ${item.cosmeticId.slice(-8)}`} x {item.quantity}
                       </span>
-                      <span>{item.subtotal.toLocaleString()}đ</span>
+                      <span>{((item.cosmetic?.price ?? 0) * item.quantity).toLocaleString()}đ</span>
                     </div>
                   ))}
                 </div>
