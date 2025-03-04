@@ -42,8 +42,7 @@ import {
 import { Input } from 'antd'
 import userApi from '@/lib/services/userService'
 import { format } from 'date-fns'
-import { useNavigate } from 'react-router-dom'
-import { useLoading } from '@/lib/context/LoadingContext'
+import { useNavigate } from '@tanstack/react-router'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import {
   createColumnHelper,
@@ -54,6 +53,27 @@ import {
   getFilteredRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef } from '@tanstack/react-table'
+import { useQuery } from '@tanstack/react-query'
+
+interface UserApiResponse {
+  isSuccess: boolean
+  data: {
+    id: string | null
+    userName: string | null
+    email: string | null
+    phoneNumber: string | null
+    birthDate: string | null
+    firstName: string | null
+    lastName: string | null
+    gender: boolean
+    roles: string[]
+  }[]
+  message: string | null
+  errors: {
+    code: string | null
+    description: string | null
+  }[]
+}
 
 interface UserDto {
   id: string
@@ -193,15 +213,9 @@ const tableTheme = {
 
 export default function Users() {
   const navigate = useNavigate()
-  const { startLoading, stopLoading } = useLoading()
-
-  const loadingRef = useRef(false)
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
 
-  const [loading, setLoading] = useState(false)
-  const [data, setData] = useState<DataType[]>([])
   const [searchText, setSearchText] = useState('')
-  const [originalData, setOriginalData] = useState<DataType[]>([])
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 16,
@@ -211,11 +225,51 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState<DataType | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
 
+  const { data: usersData, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const response: UserApiResponse = await userApi.getUsers(0, 1000)
+      
+      if (!response.isSuccess || !response.data) {
+        throw new Error(response.errors?.[0]?.description || 'Failed to fetch users')
+      }
+
+      return response.data
+        .filter(user => user.id && user.userName)
+        .map((item) => ({
+          id: item.id!,
+          username: item.userName!,
+          emailConfirmed: Boolean(item.email),
+          createdDate: item.birthDate || new Date().toISOString(),
+          roles: item.roles,
+          key: item.id!,
+          avatarUrl: undefined // Add this if you have avatar URLs
+        }))
+    }
+  })
+
+  const filteredData = useMemo(() => {
+    if (!usersData) return []
+    if (!searchText.trim()) return usersData
+
+    return usersData.filter((item) =>
+      Object.entries(item).some(([key, val]) => {
+        if (!val) return false
+        if (key === 'createdDate') {
+          return format(new Date(val), 'PPp')
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+        }
+        return val.toString().toLowerCase().includes(searchText.toLowerCase())
+      })
+    )
+  }, [usersData, searchText])
+
   const columnHelper = createColumnHelper<DataType>()
 
   const handleEdit = useCallback(
     (record: DataType) => {
-      navigate(`/admin/users/edit/${record.id}`)
+      navigate({ to: '/admin/users/edit/$id', params: { id: record.id } })
     },
     [navigate]
   )
@@ -318,57 +372,6 @@ export default function Users() {
     [searchText, handleEdit, handleUserClick]
   )
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel()
-  })
-
-  const fetchData = useCallback(async () => {
-    if (loadingRef.current) return
-
-    try {
-      loadingRef.current = true
-      setLoading(true)
-      startLoading()
-
-      // Get all users with a large page size
-      const response = await userApi.getUsers(0, 1000)
-
-      if (!response || !response.items) {
-        console.error('Invalid response format:', response)
-        return
-      }
-
-      const transformedData = response.items.map((item) => ({
-        ...item,
-        key: item.id
-      }))
-
-
-      setData(transformedData)
-      setOriginalData(transformedData)
-      setPagination((prev) => ({
-        ...prev,
-        total: transformedData.length,
-        current: 1
-      }))
-    } catch (error) {
-      console.error('Error fetching users:', error)
-      message.error('Failed to fetch users')
-    } finally {
-      loadingRef.current = false
-      setLoading(false)
-      stopLoading()
-    }
-  }, [startLoading, stopLoading])
-
-  const handleAdd = useCallback(() => {
-    navigate('/admin/users/add')
-  }, [navigate])
-
   const handleGlobalSearch = useCallback(
     (value: string) => {
       setSearchText(value)
@@ -378,32 +381,15 @@ export default function Users() {
       }
 
       searchTimeoutRef.current = setTimeout(() => {
-        if (!value.trim()) {
-          setData(originalData)
-          return
-        }
-
-        const filteredData = originalData.filter((item) =>
-          Object.entries(item).some(([key, val]) => {
-            if (!val) return false
-            if (key === 'createdDate') {
-              return format(new Date(val), 'PPp')
-                .toLowerCase()
-                .includes(value.toLowerCase())
-            }
-            return val.toString().toLowerCase().includes(value.toLowerCase())
-          })
-        )
-        setData(filteredData)
+        setPagination(prev => ({ ...prev, current: 1 }))
       }, 300)
     },
-    [originalData]
+    []
   )
 
-  useEffect(() => {
-    console.log('Initial fetch')
-    fetchData()
-  }, [fetchData])
+  const handleAdd = useCallback(() => {
+    navigate({ to: '/admin/users/add' })
+  }, [navigate])
 
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, current: page }))
@@ -418,10 +404,18 @@ export default function Users() {
   }, [])
 
   const getCurrentPageData = () => {
-    const startIndex = (pagination.current - 1) * 16
-    const endIndex = startIndex + 16
-    return data.slice(startIndex, endIndex)
+    const startIndex = (pagination.current - 1) * pagination.pageSize
+    const endIndex = startIndex + pagination.pageSize
+    return filteredData.slice(startIndex, endIndex)
   }
+
+  const table = useReactTable({
+    data: getCurrentPageData(),
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel()
+  })
 
   return (
     <ConfigProvider theme={tableTheme}>
@@ -443,23 +437,17 @@ export default function Users() {
               </div>
               <div className="mx-8 flex flex-1 items-center gap-3">
                 <Input
-
                   prefix={<SearchOutlined className="text-[#8b949e]" />}
                   placeholder="Smart Search..."
                   className="w-full bg-[#282d35]"
                   value={searchText}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    handleGlobalSearch(e.target.value)
-                  }
+                  onChange={(e) => handleGlobalSearch(e.target.value)}
                   allowClear={{
-                    clearIcon: (
-                      <CloseOutlined className="text-white hover:text-blue-500" />
-                    )
+                    clearIcon: <CloseOutlined className="text-white hover:text-blue-500" />
                   }}
                 />
               </div>
               <div className="flex items-center gap-3">
-
                 <Button
                   type="primary"
                   icon={<PlusOutlined />}
@@ -475,18 +463,17 @@ export default function Users() {
           className="size-full rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding backdrop-blur-lg
             transition-all duration-300 hover:border-gray-100/20"
         >
-          {loading ? (
+          {isLoading ? (
             <div className="p-12 text-center">
               <Spin size="large" />
             </div>
-          ) : data.length === 0 ? (
+          ) : !usersData?.length ? (
             <div className="flex flex-col items-center justify-center py-12">
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-gray-400">No users found</span>
-
                     <Button
                       type="primary"
                       onClick={handleAdd}
@@ -502,48 +489,140 @@ export default function Users() {
             </div>
           ) : (
             <>
-              <table>
-                <thead>
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th key={header.id}>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
+              <Row gutter={[16, 16]}>
+                {getCurrentPageData().map((user) => (
+                  <Col xs={24} sm={12} md={8} lg={6} xl={6} key={user.id}>
+                    <Card
+                      hoverable
+                      className="group h-full cursor-pointer rounded-lg border-b border-gray-100/10
+                        bg-[#1a1b24] transition-all duration-300 hover:bg-[#1E1F2E]"
+                      onClick={() => handleUserClick(user)}
+                      extra={
+                        <div className="absolute right-4 top-4">
+                          <Dropdown
+                            menu={{
+                              items: [
+                                {
+                                  key: "edit",
+                                  icon: <EditOutlined />,
+                                  label: "Edit",
+                                  onClick: () => handleEdit(user),
+                                },
+                              ],
+                            }}
+                            trigger={["click"]}
+                            placement="bottomRight"
+                          >
+                            <Button
+                              type="text"
+                              icon={<EllipsisOutlined />}
+                              className="text-gray-500 hover:text-gray-400"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </Dropdown>
+                        </div>
+                      }
+                      bodyStyle={{ 
+                        padding: '24px',
+                        height: '100%',
+                        position: 'relative'
+                      }}
+                      headStyle={{ display: 'none' }}
+                    >
+                      {/* Card content */}
+                      <div className="flex h-full flex-col items-center text-center">
+                        {/* Avatar section */}
+                        <div className="relative z-0 mb-3">
+                          {user.avatarUrl ? (
+                            <img
+                              src={user.avatarUrl}
+                              alt={user.username}
+                              className="z-0 size-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex size-12 items-center justify-center rounded-full bg-[#2B2D3A]">
+                              <span className="text-xl font-medium text-gray-300">
+                                {user.username.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
                           )}
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
-                </thead>
-                <tbody>
-                  {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <div className="absolute -bottom-1.5 -right-1.5 z-50">
+                            {user.emailConfirmed ? (
+                              <MailFilled 
+                                className="rounded-full bg-emerald-500/10 p-1.5 text-xl text-emerald-400"
+                                style={{ width: '20px', height: '20px' }}
+                              />
+                            ) : (
+                              <StopOutlined 
+                                className="rounded-full bg-red-500/10 p-1.5 text-xl text-red-400"
+                                style={{ width: '20px', height: '20px' }}
+                              />
+                            )}
+                          </div>
+                        </div>
 
-              {data.length > 0 && (
+                        {/* Username */}
+                        <h3 className="mb-1 line-clamp-1 text-[15px] font-medium text-white">
+                          {user.username}
+                        </h3>
+
+                        {/* Date and Status */}
+                        <div className="mb-3 flex items-center justify-center gap-2">
+                          <span className="flex items-center gap-1 text-xs text-gray-500">
+                            <span className="text-gray-600">Created:</span>
+                            {format(new Date(user.createdDate), "MMM dd, yyyy")}
+                          </span>
+                          <span className="text-xs text-gray-500">•</span>
+                          <span className={`text-xs ${
+                            user.emailConfirmed ? 'text-emerald-400' : 'text-gray-500'
+                          }`}>
+                            {user.emailConfirmed ? 'Verified' : 'Unverified'}
+                          </span>
+                        </div>
+
+                        {/* Roles */}
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {user.roles.map((role, index) => (
+                            <span
+                              key={index}
+                              className={`
+                                flex items-center gap-1 text-xs font-medium
+                                ${role === 'Admin' 
+                                  ? 'text-rose-400' 
+                                  : role === 'Instructor' 
+                                    ? 'text-amber-400'
+                                    : 'text-blue-400'
+                                }
+                              `}
+                            >
+                              {role === 'Admin' ? (
+                                <CrownOutlined className="text-xs" />
+                              ) : role === 'Instructor' ? (
+                                <BookOutlined className="text-xs" />
+                              ) : (
+                                <UserOutlined className="text-xs" />
+                              )}
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+
+              {/* Pagination */}
+              {usersData.length > 0 && (
                 <div className="mt-6 flex justify-end">
                   <Pagination
                     current={pagination.current}
-                    total={data.length}
-                    pageSize={16}
+                    total={usersData.length}
+                    pageSize={pagination.pageSize}
                     onChange={handlePageChange}
                     showSizeChanger={false}
-
                     className="text-gray-400"
-                    showTotal={(total: number, range: number[]) =>
+                    showTotal={(total, range) => 
                       `${range[0]}-${range[1]} of ${total} items`
                     }
                     hideOnSinglePage={false}
@@ -554,7 +633,6 @@ export default function Users() {
           )}
         </Card>
       </div>
-
 
       <Modal
         title={null}
@@ -659,7 +737,6 @@ export default function Users() {
 
             {/* Actions */}
             <div className="mt-6 flex gap-3">
-
               <Button
                 type="primary"
                 icon={<EditOutlined />}

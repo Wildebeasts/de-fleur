@@ -834,6 +834,16 @@ export default function Courses() {
         fontSize: 14,
         controlHeight: 32,
         borderRadius: 6
+      },
+      Input: {
+        colorBgContainer: '#141414',
+        colorBorder: '#282d35',
+        colorText: '#e5e7eb',
+        colorTextPlaceholder: '#8b949e',
+        colorIcon: '#8b949e',
+        colorIconHover: '#3b82f6',
+        activeBorderColor: '#3b82f6',
+        hoverBorderColor: '#141414'
       }
     },
     token: {
@@ -1046,45 +1056,73 @@ export default function Courses() {
         previousItems={['Admin Dashboard']}
       />
       <div className="mx-auto mt-32 w-[70%]">
-        <div className="relative mb-6 flex items-center justify-between overflow-hidden rounded-xl border border-[#282d35] bg-[#1a1b24] px-8 py-5 shadow-lg">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="relative mb-6 flex items-center justify-between overflow-hidden rounded-xl border border-[#282d35] bg-[#1a1b24] px-8 py-5 shadow-lg"
+        >
           {/* Background accent */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#3b82f615] to-transparent"></div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="absolute inset-0 bg-gradient-to-r from-[#3b82f615] to-transparent"
+          />
 
           {/* Left side content */}
           <div className="relative flex items-center gap-3">
-            <div className="h-12 w-1 rounded-full bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-            <div className="flex flex-col">
+            <motion.div
+              initial={{ height: 0 }}
+              animate={{ height: 48 }}
+              transition={{ delay: 0.3, duration: 0.4, ease: 'easeOut' }}
+              className="w-1 rounded-full bg-gradient-to-b from-[#3b82f6] to-[#1d4ed8] shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+            />
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.3 }}
+              className="flex flex-col"
+            >
               <span className="text-[0.95rem] leading-relaxed text-[#d0dbea]">
                 Want to{' '}
-                <span className="font-semibold text-[#3b82f6]">approve</span>{' '}
-                pending products?
+                <span className="font-semibold text-[#3b82f6]">view</span>{' '}
+                payment transactions?
               </span>
               <span className="text-[0.85rem] text-[#8b949e]">
-                Go to Pending Products page to review and approve products
+                Go to Payments page to review and manage transactions
               </span>
-            </div>
+            </motion.div>
           </div>
 
           {/* Button */}
-          <Button
-            type="primary"
-            onClick={() => navigate('/admin/approvals/pending')}
-            style={{
-              backgroundColor: '#1e1f2a',
-              color: '#3b82f6',
-              border: '1px solid #3b82f640',
-              boxShadow: '0 0 10px rgba(59,130,246,0.1)',
-              height: '38px',
-              padding: '0 24px',
-              zIndex: 1
-            }}
-            className="transition-all duration-300 hover:!border-[#3b82f660] hover:!bg-[#3b82f620] hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.3 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            View Pending Products
-          </Button>
-        </div>
+            <Button
+              type="primary"
+              onClick={() => navigate({ to: '/admin/payments' })}
+              style={{
+                backgroundColor: '#1e1f2a',
+                color: '#3b82f6',
+                border: '1px solid #3b82f640',
+                boxShadow: '0 0 10px rgba(59,130,246,0.1)',
+                height: '38px',
+                padding: '0 24px',
+                zIndex: 1
+              }}
+              className="transition-all duration-300 hover:!border-[#3b82f660] hover:!bg-[#3b82f620] hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+            >
+              View Payments
+            </Button>
+          </motion.div>
+        </motion.div>
 
-        <div className="mb-4 flex flex-col items-center gap-4 rounded-lg bg-[#282d35] p-6 md:flex-row">
+        <div className="mb-4 flex flex-col items-center gap-4 rounded-lg bg-[#1f1f1f] p-6 md:flex-row">
           <Checkbox
             checked={selectedRowKeys.length === data.length}
             indeterminate={
@@ -1097,7 +1135,7 @@ export default function Courses() {
             <Input
               prefix={<SearchOutlined className="text-[#8b949e]" />}
               placeholder=" Smart Search..."
-              className="w-full bg-[#282d35]"
+              className="w-full bg-[#141414]"
               value={searchText}
               onChange={(e) => handleGlobalSearch(e.target.value)}
               allowClear={{

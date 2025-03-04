@@ -25,8 +25,7 @@ export interface UserProfile {
 
 const userApi = {
   getUserProfile: async (): Promise<UserProfile> => {
-    const response =
-      await axiosClient.get<ApiResponse<UserProfile>>('/user/profile')
+    const response = await axiosClient.get<ApiResponse<UserProfile>>('/user/me')
     if (!response.data.isSuccess || !response.data.data) {
       throw new Error(response.data.message || 'Failed to fetch user profile')
     }

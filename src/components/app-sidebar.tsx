@@ -56,7 +56,7 @@ const data = {
         },
         {
           title: 'Cosmetic Types',
-          path: '/admin/cosmetic-types'
+          path: '/admin/cosmetics/cosmetic_type'
         },
         {
           title: 'Skin Types',
@@ -75,21 +75,20 @@ const data = {
         {
           title: 'All Users',
           path: '/admin/users'
+        },
+        {
+          title: 'User Carts',
+          path: '/admin/users/carts'
         }
       ]
     },
     {
-      title: 'Approvals',
+      title: 'Blogs',
       icon: CheckCircle,
       items: [
         {
-          title: 'Pending Courses',
-          path: '/admin/approvals/pending'
-        },
-        {
-          title: 'Approved Items',
-          path: '/admin/approvals/approved',
-          url: '/admin/approved-items'
+          title: 'All Blogs',
+          path: '/admin/blogs'
         }
       ]
     },

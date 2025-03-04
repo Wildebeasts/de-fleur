@@ -1,14 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import Users from '@/pages/admin_dashboard/Users/User/user_list'
+import BlogList from '@/pages/admin_dashboard/Blogs/blog_list'
 
-export const Route = createFileRoute('/admin/users/')({
+export const Route = createFileRoute('/admin/blogs/')({
   component: RouteComponent
 })
 
 function RouteComponent() {
   return (
     <>
-      <Users />
+      <BlogList />
     </>
   )
 }

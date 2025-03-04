@@ -19,31 +19,22 @@ import {
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
-import brandApi from '@/lib/services/brandApi'
+import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 
-interface BrandDto {
+interface CosmeticTypeDto {
   id: string
   name: string
   description: string
-  websiteUrl: string
-  logoUrl: string
   key: string
 }
 
-interface DataType extends BrandDto {
+interface DataType extends CosmeticTypeDto {
   key: string
 }
 
-interface BrandApiResponse {
-  isSuccess: boolean
-  data: BrandDto[]
-  message: string
-  errors: string[]
-}
-
-// Highlight text component from original file
+// Highlight text component
 const HighlightText = ({
   text,
   searchText
@@ -87,32 +78,31 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 }
 
-export default function Brands() {
+export default function CosmeticTypes() {
   const navigate = useNavigate()
   const [searchText, setSearchText] = useState('')
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
   const queryClient = useQueryClient()
 
-  // Fetch brands using React Query
-  const { data: brands = [], isLoading: isLoadingBrands } = useQuery({
-    queryKey: ['brands'],
+  // Fetch cosmetic types using React Query
+  const { data: cosmeticTypes = [], isLoading: isLoadingTypes } = useQuery({
+    queryKey: ['cosmeticTypes'],
     queryFn: async () => {
-      const response = await brandApi.getBrands()
+      const response = await cosmeticTypeApi.getCosmeticTypes()
       return response.data.data
     }
   })
 
   // Filter data based on search
   const filteredData = useMemo(() => {
-    return brands.filter((item) =>
+    return cosmeticTypes.filter((item) =>
       Object.values(item).some(
         (value) =>
           value &&
           value.toString().toLowerCase().includes(searchText.toLowerCase())
       )
     )
-  }, [brands, searchText])
+  }, [cosmeticTypes, searchText])
 
   // Add search handler
   const handleGlobalSearch = useCallback((value: string) => {
@@ -129,8 +119,8 @@ export default function Brands() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
-        to: '/admin/brands/$brandId/edit',
-        params: { brandId: record.id }
+        to: '/admin/cosmetic-types/$typeId/edit',
+        params: { typeId: record.id }
       })
     },
     [navigate]
@@ -139,19 +129,19 @@ export default function Brands() {
   const handleDelete = useCallback(
     (record: DataType) => {
       Modal.confirm({
-        title: 'Are you sure you want to delete this brand?',
+        title: 'Are you sure you want to delete this cosmetic type?',
         content: 'This action cannot be undone.',
         okText: 'Yes',
         okType: 'danger',
         cancelText: 'No',
         onOk: async () => {
           try {
-            await brandApi.deleteBrand(record.id)
-            message.success('Brand deleted successfully')
-            queryClient.invalidateQueries({ queryKey: ['brands'] })
+            await cosmeticTypeApi.deleteCosmeticType(record.id)
+            message.success('Cosmetic type deleted successfully')
+            queryClient.invalidateQueries({ queryKey: ['cosmeticTypes'] })
           } catch (error) {
-            console.error('Error deleting brand:', error)
-            message.error('Failed to delete brand')
+            console.error('Error deleting cosmetic type:', error)
+            message.error('Failed to delete cosmetic type')
           }
         }
       })
@@ -175,9 +165,8 @@ export default function Brands() {
         headerBg: '#1f1f1f',
         headerColor: '#e5e7eb',
         rowHoverBg: '#262626',
-        // Updated selection colors
         selectionColumnWidth: 48,
-        selectionBg: 'rgba(74, 222, 128, 0.08)', // Light neon green with low opacity
+        selectionBg: 'rgba(74, 222, 128, 0.08)',
         selectionColor: '#e5e7eb'
       },
       Card: {
@@ -212,31 +201,6 @@ export default function Brands() {
   const columns = useMemo(
     () => [
       {
-        title: 'Logo',
-        dataIndex: 'logoUrl',
-        key: 'logoUrl',
-        width: 100,
-        render: (logoUrl: string) => (
-          <div className="flex size-12 items-center justify-center">
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt="Brand logo"
-                className="max-h-full max-w-full rounded object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.src = '/placeholder-logo.png' // You'll need to add a placeholder image
-                }}
-              />
-            ) : (
-              <div className="flex size-12 items-center justify-center rounded bg-gray-700 text-gray-400">
-                No Logo
-              </div>
-            )}
-          </div>
-        )
-      },
-      {
         title: 'Name',
         dataIndex: 'name',
         key: 'name',
@@ -250,21 +214,6 @@ export default function Brands() {
         key: 'description',
         render: (text: string) => (
           <MemoizedHighlightText text={text} searchText={searchText} />
-        )
-      },
-      {
-        title: 'Website',
-        dataIndex: 'websiteUrl',
-        key: 'websiteUrl',
-        render: (text: string) => (
-          <a
-            href={text}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-500"
-          >
-            {text}
-          </a>
         )
       },
       {
@@ -307,7 +256,7 @@ export default function Brands() {
   return (
     <ConfigProvider theme={tableTheme}>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Brands']}
+        items={['Admin Dashboard', 'Cosmetic Types']}
         previousItems={['Admin Dashboard']}
       />
       <motion.div
@@ -323,7 +272,7 @@ export default function Brands() {
               className="flex items-center justify-between"
               variants={itemVariants}
             >
-              <span className="text-lg font-semibold">Brands</span>
+              <span className="text-lg font-semibold">Cosmetic Types</span>
               <div className="flex items-center gap-4">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -332,7 +281,7 @@ export default function Brands() {
                 >
                   <Input
                     prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
-                    placeholder="Search brands..."
+                    placeholder="Search cosmetic types..."
                     value={searchText}
                     onChange={(e) => handleGlobalSearch(e.target.value)}
                     className="w-64"
@@ -346,7 +295,9 @@ export default function Brands() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    onClick={() => navigate({ to: '/admin/brands/add' })}
+                    onClick={() =>
+                      navigate({ to: '/admin/cosmetic-types/add' })
+                    }
                   >
                     Add New
                   </Button>
@@ -363,7 +314,7 @@ export default function Brands() {
             <Table
               columns={columns}
               dataSource={filteredData}
-              loading={isLoadingBrands}
+              loading={isLoadingTypes}
               pagination={{
                 pageSize: 10,
                 showSizeChanger: false

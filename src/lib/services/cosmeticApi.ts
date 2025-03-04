@@ -4,13 +4,13 @@ import axiosClient from '../context/axiosClient'
 
 const cosmeticApi = {
   getCosmetics: () =>
-    axiosClient.get<ApiResponse<CosmeticResponse[]>>('/cosmetic'),
+    axiosClient.get<ApiResponse<CosmeticResponse[]>>('/cosmetics'),
   getCosmeticById: (id: string) =>
     axiosClient.get<ApiResponse<CosmeticResponse>>(
       `/cosmetic/get-by-id?id=${id}`
     ),
   deleteCosmetic: (id: string) =>
-    axiosClient.delete<ApiResponse<void>>(`/cosmetic/${id}`)
+    axiosClient.delete<ApiResponse<void>>(`/cosmetics/${id}`)
 }
 
 export default cosmeticApi
