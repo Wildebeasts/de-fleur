@@ -20,7 +20,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "lint": "eslint src --max-warnings=0",
-    "typecheck": "tsc --project tsconfig.json --noEmit"
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "start": "vite"
   },
   "dependencies": {
     "@ant-design/icons": "^5.6.1",
