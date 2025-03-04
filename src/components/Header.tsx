@@ -2,7 +2,8 @@ import * as React from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { NavigationLink } from './NavigationLink'
 import { SearchBar } from './SearchBar'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import authApi from '@/lib/services/authApi'
 
 interface NavigationItem {
   label: string
@@ -51,6 +52,49 @@ const UserIcon = () => (
 
 export default function Header() {
   const { scrollY } = useScroll()
+  const navigate = useNavigate()
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
+
+  // Add authentication check
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const accessToken = localStorage.getItem('accessToken')
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      if (!accessToken && !refreshToken) {
+        navigate({ to: '/login' })
+        return
+      }
+
+      if (!accessToken && refreshToken) {
+        try {
+          const response = await authApi.refreshToken({
+            accessToken: '',
+            refreshToken
+          })
+
+          if (response.data.isSuccess && response.data.data) {
+            localStorage.setItem('accessToken', response.data.data.accessToken)
+            localStorage.setItem(
+              'refreshToken',
+              response.data.data.refreshToken
+            )
+            setIsAuthenticated(true)
+          } else {
+            navigate({ to: '/login' })
+          }
+        } catch (error) {
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          navigate({ to: '/login' })
+        }
+      } else {
+        setIsAuthenticated(true)
+      }
+    }
+
+    checkAuth()
+  }, [navigate])
 
   // Transform values based on scroll position
   const headerHeight = useTransform(scrollY, [0, 100], ['5rem', '4rem'])
@@ -117,12 +161,22 @@ export default function Header() {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <button aria-label="User account" className="text-gray-600">
+              <button
+                aria-label="User account"
+                className="text-gray-600"
+                onClick={() =>
+                  isAuthenticated
+                    ? navigate({ to: '/account_manage' })
+                    : navigate({ to: '/login' })
+                }
+              >
                 <UserIcon />
               </button>
-              <Link to="/cart" aria-label="Shopping cart">
-                <CartIcon />
-              </Link>
+              {isAuthenticated && (
+                <Link to="/cart" aria-label="Shopping cart">
+                  <CartIcon />
+                </Link>
+              )}
             </motion.div>
           </motion.div>
         </div>
