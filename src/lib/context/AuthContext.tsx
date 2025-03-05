@@ -1,102 +1,65 @@
-import {
-  createContext,
-  useContext,
-  useCallback,
-  useState,
-  useEffect,
-  ReactNode
-} from 'react'
-import { useLogin, useRefreshToken } from '../hooks/useAuth'
-import type { LoginRequest } from '../types/auth'
+import React, { createContext, useContext, useState } from 'react'
+import { useLogin } from '../hooks/useAuth'
+import { LoginRequest, LoginResponse } from '../types/auth'
+import { LoginApiResponse } from '../types/base/Api'
 
 interface AuthContextType {
   isAuthenticated: boolean
-  accessToken: string | null
-  login: (data: LoginRequest) => Promise<void>
-  logout: () => void
   isLoading: boolean
-  error: Error | null
+  user: LoginResponse | null
+  login: (credentials: LoginRequest) => Promise<LoginApiResponse>
+  logout: () => void
 }
 
-const AuthContext = createContext<AuthContextType | null>(null)
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [accessToken, setAccessToken] = useState<string | null>(
-    localStorage.getItem('accessToken')
-  )
-  const [refreshToken, setRefreshToken] = useState<string | null>(
-    localStorage.getItem('refreshToken')
-  )
-  const [error, setError] = useState<Error | null>(null)
-
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<LoginResponse | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const loginMutation = useLogin()
-  const refreshTokenMutation = useRefreshToken()
 
-  const logout = useCallback(() => {
+  const login = async (credentials: LoginRequest) => {
+    try {
+      const response: LoginApiResponse =
+        await loginMutation.mutateAsync(credentials)
+      console.log('Login response:', response) // Debug log
+
+      // Store tokens
+      if (response.data) {
+        localStorage.setItem('accessToken', response.data.accessToken)
+        localStorage.setItem('refreshToken', response.data.refreshToken)
+        setUser(response.data as LoginResponse)
+        setIsAuthenticated(true)
+      } else {
+        throw new Error('Invalid token data received')
+      }
+
+      return response // Return the response for the component to use
+    } catch (error) {
+      console.error('Login error:', error) // Debug log
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      setUser(null)
+      setIsAuthenticated(false)
+      throw error
+    }
+  }
+
+  const logout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
-    setAccessToken(null)
-    setRefreshToken(null)
-  }, [])
-
-  const refreshAccessToken = useCallback(async () => {
-    if (!refreshToken) return
-
-    try {
-      const response = await refreshTokenMutation.mutateAsync({ refreshToken })
-      if (response.isSuccess && response.data.accessToken) {
-        localStorage.setItem('accessToken', response.data.accessToken)
-        localStorage.setItem('refreshToken', response.data.refreshToken || '')
-        setAccessToken(response.data.accessToken)
-        setRefreshToken(response.data.refreshToken)
-      } else {
-        logout()
-      }
-    } catch (err) {
-      logout()
-    }
-  }, [refreshToken, refreshTokenMutation, logout])
-
-  useEffect(() => {
-    if (!accessToken || !refreshToken) return
-
-    const refreshInterval = 1000 * 60 * 55 // 55 minutes
-    const intervalId = setInterval(refreshAccessToken, refreshInterval)
-
-    return () => clearInterval(intervalId)
-  }, [accessToken, refreshToken, refreshAccessToken])
-
-  const login = useCallback(
-    async (data: LoginRequest) => {
-      try {
-        setError(null)
-        const response = await loginMutation.mutateAsync(data)
-
-        if (response.isSuccess && response.data.accessToken) {
-          localStorage.setItem('accessToken', response.data.accessToken)
-          localStorage.setItem('refreshToken', response.data.refreshToken || '')
-          setAccessToken(response.data.accessToken)
-          setRefreshToken(response.data.refreshToken)
-        } else {
-          throw new Error(response.message || 'Login failed')
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('Login failed'))
-        throw err
-      }
-    },
-    [loginMutation]
-  )
+    setUser(null)
+    setIsAuthenticated(false)
+  }
 
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated: !!accessToken,
-        accessToken,
+        isAuthenticated,
+        isLoading: loginMutation.isPending,
+        user,
         login,
-        logout,
-        isLoading: loginMutation.isPending || refreshTokenMutation.isPending,
-        error
+        logout
       }}
     >
       {children}
@@ -106,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext)
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')
   }
   return context

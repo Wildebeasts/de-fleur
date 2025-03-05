@@ -1,19 +1,46 @@
 import { SkinTypeResponse } from './SkinType'
 import { SubCategoryResponse } from './SubCategory'
+import { BrandResponse } from './Brand'
+import { CosmeticTypeResponse } from './CosmeticType'
+
+export enum VolumeUnit {
+  ML = 'ML',
+  G = 'G'
+  // Add other units as needed
+}
+
+export interface CosmeticImageCosmeticResponse {
+  id: string
+  imageUrl: string
+  // Add other properties as needed
+}
+
+export interface BatchResponse {
+  id: string
+  quantity: number
+  expirationDate: string
+  // Add other properties as needed
+}
+
+export interface FeedbackCosmeticResponse {
+  id: string
+  rating: number
+  // Add other properties as needed
+}
 
 export interface CosmeticResponse {
   id: string
-  createAt: string
-  createdBy: string
-  lastModified: string
-  lastModifiedBy: string
+  createAt: string | null
+  createdBy: string | null
+  lastModified: string | null
+  lastModifiedBy: string | null
   isActive: boolean
   brandId: string
-  brand: string | null
+  brand: BrandResponse | null
   skinTypeId: string
-  skinType: SkinTypeResponse
+  skinType: SkinTypeResponse | null
   cosmeticTypeId: string
-  cosmeticType: string | null
+  cosmeticType: CosmeticTypeResponse | null
   name: string
   price: number
   gender: boolean
@@ -23,7 +50,16 @@ export interface CosmeticResponse {
   texture: string
   origin: string
   instructions: string
+  weight: number
+  length: number
+  width: number
+  height: number
+  thumbnailUrl: string | null
+  volumeUnit: VolumeUnit
   cosmeticSubcategories: SubCategoryResponse[]
-  cosmeticImages: string[]
-  feedbacks: string[]
+  cosmeticImages: CosmeticImageCosmeticResponse[]
+  batches: BatchResponse[]
+  feedbacks: FeedbackCosmeticResponse[]
+  quantity: number
+  rating: number | null
 }

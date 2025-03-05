@@ -26,22 +26,18 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const { addToCart } = useCart()
 
   const handleAddToCart = () => {
-    // Create a cart item from the cosmetic product
     const cartItem = {
       id: cosmetic.id,
       name: cosmetic.name,
       price: cosmetic.price,
       quantity: 1,
-      imageUrl: cosmetic.cosmeticImages?.[0] || '',
+      imageUrl: cosmetic.cosmeticImages?.[0]?.imageUrl || '',
       ingredients: cosmetic.ingredients,
-      cosmeticType: cosmetic.cosmeticType as string,
-      brand: cosmetic.brand as string
+      cosmeticType: cosmetic.cosmeticType?.name || '',
+      brand: cosmetic.brand?.name || ''
     }
 
-    // Add the item to the cart
     addToCart(cartItem)
-
-    // Show success message
     toast.success(`${cosmetic.name} added to cart!`)
   }
 
@@ -73,7 +69,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
           <img
             loading="lazy"
             src={
-              cosmetic.cosmeticImages?.[0] ||
+              cosmetic.cosmeticImages?.[0]?.imageUrl ||
               'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e'
             }
             alt={cosmetic.name}
@@ -147,7 +143,12 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            ${cosmetic.price}
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(cosmetic.price)}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}

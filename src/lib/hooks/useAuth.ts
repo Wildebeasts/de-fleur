@@ -4,41 +4,39 @@ import type {
   LoginResponse,
   RefreshTokenRequest
 } from '../types/auth'
+import axiosClient from '../api/axiosClient'
+import { ApiResponse } from '../types/base/Api'
 
-const API_URL = 'https://api.pak160404.click'
+// const API_URL = 'https://api.pak160404.click'
 
-async function loginRequest(data: LoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/api/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
+async function loginRequest(
+  data: LoginRequest
+): Promise<ApiResponse<LoginResponse>> {
+  const response = await axiosClient.post<ApiResponse<LoginResponse>>(
+    '/auth/login',
+    data
+  )
 
-  if (!response.ok) {
-    throw new Error('Login failed')
+  if (!response.data.isSuccess) {
+    throw new Error(response.data.message || 'Login failed')
   }
 
-  return response.json()
+  return response.data
 }
 
 async function refreshTokenRequest(
   data: RefreshTokenRequest
-): Promise<LoginResponse> {
-  const response = await fetch(`${API_URL}/api/auth/refresh-token`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  })
+): Promise<ApiResponse<LoginResponse>> {
+  const response = await axiosClient.post<ApiResponse<LoginResponse>>(
+    '/auth/refresh-token',
+    data
+  )
 
-  if (!response.ok) {
-    throw new Error('Token refresh failed')
+  if (!response.data.isSuccess || !response.data.data) {
+    throw new Error(response.data.message || 'Token refresh failed')
   }
 
-  return response.json()
+  return response.data
 }
 
 export function useLogin() {

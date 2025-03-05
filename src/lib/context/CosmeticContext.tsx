@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
-import { useCosmetics } from '@/lib/hooks/useCosmetics'
+import cosmeticApi from '@/lib/services/cosmeticApi'
 
 interface CosmeticContextType {
   filteredCosmetics: CosmeticResponse[] | null
@@ -23,10 +23,12 @@ const CosmeticContext = createContext<CosmeticContextType | null>(null)
 export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   children
 }) => {
-  const { data: cosmetics = [], isLoading, error } = useCosmetics()
+  const [cosmetics, setCosmetics] = useState<CosmeticResponse[]>([])
   const [filteredCosmetics, setFilteredCosmetics] = useState<
     CosmeticResponse[]
   >([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
@@ -34,62 +36,99 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   )
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState([0, 200])
+  const [priceRange, setPriceRange] = useState<number[]>([0, 2000000])
 
+  // Fetch cosmetics when component mounts
   useEffect(() => {
-    if (cosmetics.length > 0) {
-      setFilteredCosmetics(cosmetics)
+    const fetchCosmetics = async () => {
+      try {
+        setIsLoading(true)
+        const response = await cosmeticApi.getCosmetics()
+        console.log('API Response:', response.data)
+        if (response.data.isSuccess) {
+          setCosmetics(response.data.data || [])
+          setFilteredCosmetics(response.data.data || [])
+        } else {
+          throw new Error(response.data.message || 'Failed to fetch cosmetics')
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error('An error occurred'))
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }, [cosmetics])
 
+    fetchCosmetics()
+  }, [])
+
+  // Filter cosmetics when filters change
   useEffect(() => {
-    let filtered = cosmetics
+    console.log('Starting filters with cosmetics:', cosmetics.length)
 
+    let filtered = [...cosmetics]
+
+    // Only apply filters if there are active filters
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((cosmetic) =>
-        cosmetic.cosmeticSubcategories.some((sub) =>
+        cosmetic.cosmeticSubcategories?.some((sub) =>
           selectedCategories.includes(sub.id)
         )
       )
+      console.log('After category filter:', filtered.length)
     }
 
     if (selectedBrands.length > 0) {
       filtered = filtered.filter((cosmetic) =>
         selectedBrands.includes(cosmetic.brandId)
       )
+      console.log('After brand filter:', filtered.length)
     }
 
     if (selectedCosmeticTypes.length > 0) {
       filtered = filtered.filter((cosmetic) =>
         selectedCosmeticTypes.includes(cosmetic.cosmeticTypeId)
       )
+      console.log('After type filter:', filtered.length)
     }
 
     if (selectedConcerns.length > 0) {
       filtered = filtered.filter((cosmetic) =>
-        selectedConcerns.every((skinType) => {
-          if (skinType === 'Dry') return cosmetic.skinType.isDry
-          if (skinType === 'Sensitive') return cosmetic.skinType.isSensitive
-          if (skinType === 'Pigmented') return cosmetic.skinType.isUneven
-          if (skinType === 'Wrinkle-Prone') return cosmetic.skinType.isWrinkle
-          return false
+        selectedConcerns.every((concern) => {
+          switch (concern) {
+            case 'Dry':
+              return cosmetic.skinType?.isDry
+            case 'Sensitive':
+              return cosmetic.skinType?.isSensitive
+            case 'Pigmented':
+              return cosmetic.skinType?.isUneven
+            case 'Wrinkle-Prone':
+              return cosmetic.skinType?.isWrinkle
+            default:
+              return false
+          }
         })
       )
+      console.log('After concerns filter:', filtered.length)
     }
 
-    filtered = filtered.filter(
-      (product) =>
-        product.price >= priceRange[0] && product.price <= priceRange[1]
-    )
+    // Price filter for VND (only apply if not at min/max)
+    if (priceRange[0] > 0 || priceRange[1] < 2000000) {
+      filtered = filtered.filter(
+        (cosmetic) =>
+          cosmetic.price >= priceRange[0] && cosmetic.price <= priceRange[1]
+      )
+      console.log('After price filter:', filtered.length)
+    }
 
+    console.log('Final filtered cosmetics:', filtered.length)
     setFilteredCosmetics(filtered)
   }, [
+    cosmetics,
     selectedCategories,
     selectedBrands,
     selectedCosmeticTypes,
     selectedConcerns,
-    priceRange,
-    cosmetics
+    priceRange
   ])
 
   return (
