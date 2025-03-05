@@ -31,7 +31,11 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       name: cosmetic.name,
       price: cosmetic.price,
       quantity: 1,
-      imageUrl: cosmetic.cosmeticImages?.[0]?.imageUrl || '',
+      imageUrl:
+        typeof cosmetic.cosmeticImages?.[0] === 'string'
+          ? cosmetic.cosmeticImages[0]
+          : (cosmetic.cosmeticImages?.[0] as { imageUrl: string })?.imageUrl ||
+            '',
       ingredients: cosmetic.ingredients,
       cosmeticType: cosmetic.cosmeticType?.name || '',
       brand: cosmetic.brand?.name || ''

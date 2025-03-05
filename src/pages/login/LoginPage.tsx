@@ -61,7 +61,7 @@ export const LoginPage: React.FC = () => {
       toast.success('Login successful!')
       navigate({ to: search.redirect || '/' })
     } catch (err) {
-      toast.error(error?.message || 'Login failed. Please try again.')
+      toast.error((err as Error)?.message || 'Login failed. Please try again.')
     }
   }
 

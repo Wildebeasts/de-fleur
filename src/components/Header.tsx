@@ -62,7 +62,12 @@ export default function Header() {
       const refreshToken = localStorage.getItem('refreshToken')
 
       if (!accessToken && !refreshToken) {
-        navigate({ to: '/login' })
+        navigate({
+          to: '/login',
+          search: {
+            redirect: location.pathname
+          }
+        })
         return
       }
 
@@ -81,12 +86,22 @@ export default function Header() {
             )
             setIsAuthenticated(true)
           } else {
-            navigate({ to: '/login' })
+            navigate({
+              to: '/login',
+              search: {
+                redirect: location.pathname
+              }
+            })
           }
         } catch (error) {
           localStorage.removeItem('accessToken')
           localStorage.removeItem('refreshToken')
-          navigate({ to: '/login' })
+          navigate({
+            to: '/login',
+            search: {
+              redirect: location.pathname
+            }
+          })
         }
       } else {
         setIsAuthenticated(true)
@@ -167,7 +182,12 @@ export default function Header() {
                 onClick={() =>
                   isAuthenticated
                     ? navigate({ to: '/account_manage' })
-                    : navigate({ to: '/login' })
+                    : navigate({
+                        to: '/login',
+                        search: {
+                          redirect: location.pathname
+                        }
+                      })
                 }
               >
                 <UserIcon />

@@ -40,6 +40,7 @@ import { CheckboxChangeEvent } from 'antd/es/checkbox'
 import brandApi from '@/lib/services/brandApi'
 import skinTypeApi from '@/lib/services/skinTypeApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
+import { UploadFile, UploadFileStatus } from 'antd/es/upload/interface'
 
 interface CosmeticDto {
   id: string
@@ -169,17 +170,8 @@ const MemoizedHighlightText = React.memo(HighlightText)
 const MotionCard = motion(Card)
 
 // Add this interface near your other interfaces
-interface UploadFile {
-  uid: string
-  name: string
-  status?: 'error' | 'success' | 'done' | 'uploading' | 'removed'
-  percent?: number
-  originFileObj?: File
-  response?: Record<string, unknown>
-  xhr?: XMLHttpRequest
-  preview?: string
-  type?: string
-  size: number
+interface CustomUploadFile extends Omit<UploadFile, 'status'> {
+  status?: UploadFileStatus
 }
 
 // Replace the existing ImageUploadModal with this simplified version
@@ -194,7 +186,7 @@ const ImageUploadModal = ({
   cosmeticId: string
   onSuccess: () => void
 }) => {
-  const [fileList, setFileList] = useState<UploadFile[]>([])
+  const [fileList, setFileList] = useState<CustomUploadFile[]>([])
   const [uploading, setUploading] = useState(false)
 
   const handleUpload = async () => {
