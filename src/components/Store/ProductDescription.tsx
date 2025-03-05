@@ -5,9 +5,15 @@ import { Star } from 'lucide-react'
 interface Feedback {
   id: string
   customerId: string
-  customerName: string | null
+  customer: CustomerInfo
   content: string | null
   rating: number
+}
+
+interface CustomerInfo {
+  id: string
+  email: string
+  userName: string
 }
 
 interface ProductDescriptionProps {
@@ -164,11 +170,11 @@ const ProductDescription: React.FC<ProductDescriptionProps> = ({
                     <div className="mb-2 flex items-center justify-between">
                       <div className="flex items-center">
                         <div className="flex size-10 items-center justify-center rounded-full bg-[#3A4D39]/20 font-medium text-[#3A4D39]">
-                          {feedback.customerName?.charAt(0) || 'U'}
+                          {feedback.customer.userName?.charAt(0) || 'U'}
                         </div>
                         <div className="ml-3">
                           <p className="font-medium text-gray-900">
-                            {feedback.customerName || 'Anonymous User'}
+                            {feedback.customer.userName || 'Anonymous User'}
                           </p>
                           <div className="flex items-center">
                             {[1, 2, 3, 4, 5].map((star) => (

@@ -122,17 +122,19 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
 
       <div className="z-10 w-full">
         <motion.div className="mb-2 flex items-center gap-1">
-          {/* {[...Array(5)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <motion.span
               key={i}
               initial={{ opacity: 0 }}
-              animate={{ opacity: i < Math.floor(rating) ? 1 : 0.3 }}
+              animate={{ opacity: i < Math.floor(cosmetic.rating!) ? 1 : 0.3 }}
               className="text-yellow-400"
             >
               ★
             </motion.span>
           ))}
-          <span className="ml-2 text-sm text-gray-500">({reviewCount})</span> */}
+          <span className="ml-2 text-sm text-gray-500">
+            ({cosmetic.feedbacks.length!})
+          </span>
         </motion.div>
 
         <h3 className="mb-2 font-inter text-2xl font-medium text-[#3A4D39] transition-colors duration-300 hover:text-[#4A5D49]">
