@@ -33,7 +33,7 @@ const itemVariants = {
 }
 
 export const LoginPage: React.FC = () => {
-  const { login, isLoading, error } = useAuth()
+  const { login, isLoading } = useAuth()
   const navigate = useNavigate()
   const search = useSearch({ from: '/login' })
   const [formData, setFormData] = useState({
@@ -51,8 +51,13 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
     try {
-      await login(formData)
+      await login({
+        userName: formData.userName,
+        password: formData.password
+      })
+
       toast.success('Login successful!')
       navigate({ to: search.redirect || '/' })
     } catch (err) {

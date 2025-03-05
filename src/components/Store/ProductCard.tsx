@@ -26,22 +26,18 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const { addToCart } = useCart()
 
   const handleAddToCart = () => {
-    // Create a cart item from the cosmetic product
     const cartItem = {
       id: cosmetic.id,
       name: cosmetic.name,
       price: cosmetic.price,
       quantity: 1,
-      imageUrl: cosmetic.cosmeticImages?.[0] || '',
+      imageUrl: cosmetic.cosmeticImages?.[0]?.imageUrl || '',
       ingredients: cosmetic.ingredients,
-      cosmeticType: cosmetic.cosmeticType as string,
-      brand: cosmetic.brand as string
+      cosmeticType: cosmetic.cosmeticType?.name || '',
+      brand: cosmetic.brand?.name || ''
     }
 
-    // Add the item to the cart
     addToCart(cartItem)
-
-    // Show success message
     toast.success(`${cosmetic.name} added to cart!`)
   }
 
@@ -148,7 +144,12 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            ${cosmetic.price}
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(cosmetic.price)}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}

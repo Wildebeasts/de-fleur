@@ -2,22 +2,13 @@ export interface LoginRequest {
   userName: string
   password: string
 }
-
 export interface LoginResponse {
-  isSuccess: boolean
-  data: {
-    userName: string | null
-    email: string | null
-    accessToken: string | null
-    accessTokenExpiration: number
-    refreshToken: string | null
-    refreshTokenExpiration: number
-  }
-  message: string | null
-  errors: Array<{
-    code: string | null
-    description: string | null
-  }>
+  userName: string
+  email: string
+  accessToken: string
+  accessTokenExpiration: number
+  refreshToken: string
+  refreshTokenExpiration: number
 }
 
 export interface RegisterRequest {

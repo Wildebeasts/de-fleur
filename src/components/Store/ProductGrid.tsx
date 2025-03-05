@@ -5,36 +5,9 @@ import { useCosmetic } from '@/lib/context/CosmeticContext'
 import Pagination from './Pagination'
 import { Loader2 } from 'lucide-react'
 
-// interface Product {
-//   id: string
-//   title: string
-//   description: string
-//   price: string
-//   imageSrc: string
-//   isNew?: boolean
-//   rating?: number
-//   reviewCount?: number
-// }
-
 const ITEMS_PER_PAGE = 12 // Number of items per page
 
 const ProductGrid: React.FC = () => {
-  // Sample product data - replace with your actual data
-  // const products: Product[] = [
-  //   {
-  //     id: '1',
-  //     title: 'Vitamin C Brightening Serum',
-  //     description: 'Advanced formula for radiant skin',
-  //     price: '$68.00',
-  //     imageSrc:
-  //       'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e',
-  //     isNew: true,
-  //     rating: 4.5,
-  //     reviewCount: 124
-  //   }
-  //   // Add more products...
-  // ]
-
   const { filteredCosmetics, isLoading, error } = useCosmetic()
 
   // Add this for debugging
@@ -47,6 +20,8 @@ const ProductGrid: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1)
 
+  console.log('ProductGrid received cosmetics:', filteredCosmetics?.length)
+
   // Calculate total pages
   const totalPages = Math.ceil(
     (filteredCosmetics?.length || 0) / ITEMS_PER_PAGE
@@ -58,6 +33,8 @@ const ProductGrid: React.FC = () => {
       (currentPage - 1) * ITEMS_PER_PAGE,
       currentPage * ITEMS_PER_PAGE
     ) || []
+
+  console.log('Paginated cosmetics:', paginatedCosmetics.length)
 
   if (isLoading) {
     return (
@@ -77,7 +54,7 @@ const ProductGrid: React.FC = () => {
     )
   }
 
-  if (paginatedCosmetics.length === 0) {
+  if (!filteredCosmetics || paginatedCosmetics.length === 0) {
     return (
       <div className="flex h-64 w-full items-center justify-center">
         <p className="text-lg text-[#3A4D39]">
