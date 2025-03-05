@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import ProductDetails from '@/pages/store/ProductDetails'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
@@ -111,8 +112,8 @@ function RouteComponent() {
       image:
         'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
       name: 'Related Product 2',
-      price: '$75.00',
-      id: '123e4567-e89b-12d3-a456-426614174002'
+      price: '$75.00'
+      // id: '123e4567-e89b-12d3-a456-426614174002'
     }
   ]
 
@@ -174,20 +175,24 @@ function RouteComponent() {
         }
         cosmeticImages={processedCosmeticImages}
         feedbacks={
-          product.feedbacks
-            ? product.feedbacks.map((feedback) => {
-                if (typeof feedback === 'string') {
-                  return {
-                    id: String(Math.random()),
-                    customerId: '',
-                    customerName: null,
-                    content: feedback,
-                    rating: 0
-                  }
-                }
-                return feedback
-              })
-            : []
+          product.feedbacks?.map((feedback) => {
+            if (typeof feedback === 'string') {
+              return {
+                id: String(Math.random()),
+                customerId: '',
+                customerName: null,
+                content: feedback,
+                rating: 0
+              }
+            }
+            return {
+              id: (feedback as any).id || String(Math.random()),
+              customerId: (feedback as any).customerId || '',
+              customerName: (feedback as any).customerName || null,
+              content: (feedback as any).content || null,
+              rating: (feedback as any).rating || 0
+            }
+          }) || []
         }
         cosmeticSubCategories={
           product.cosmeticSubcategories ? product.cosmeticSubcategories : []

@@ -9,6 +9,15 @@ const ITEMS_PER_PAGE = 12 // Number of items per page
 
 const ProductGrid: React.FC = () => {
   const { filteredCosmetics, isLoading, error } = useCosmetic()
+
+  // Add this for debugging
+  console.log('ProductGrid rendering with:', {
+    filteredCosmetics,
+    count: filteredCosmetics?.length || 0,
+    isLoading,
+    error
+  })
+
   const [currentPage, setCurrentPage] = useState(1)
 
   console.log('ProductGrid received cosmetics:', filteredCosmetics?.length)
@@ -74,12 +83,14 @@ const ProductGrid: React.FC = () => {
         ))}
       </motion.div>
 
-      {paginatedCosmetics.length > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={setCurrentPage}
-        />
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
       )}
     </>
   )

@@ -25,6 +25,9 @@ export interface BatchResponse {
 export interface FeedbackCosmeticResponse {
   id: string
   rating: number
+  content: string
+  customerId: string
+  customerName: string | null
   // Add other properties as needed
 }
 
@@ -54,7 +57,6 @@ export interface CosmeticResponse {
   length: number
   width: number
   height: number
-  thumbnailUrl: string | null
   volumeUnit: VolumeUnit
   cosmeticSubcategories: CosmeticSubCategoryResponse[]
   cosmeticImages: CosmeticImageCosmeticResponse[]

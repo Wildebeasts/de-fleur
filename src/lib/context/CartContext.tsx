@@ -89,13 +89,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const [billingAddress, setBillingAddress] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
 
-  const { isAuthenticated, accessToken } = useAuth()
+  const { isAuthenticated, user } = useAuth()
 
   // Decode token to get user ID
   useEffect(() => {
-    if (isAuthenticated && accessToken) {
+    if (isAuthenticated && user) {
       try {
-        const decoded = jwtDecode<DecodedToken>(accessToken)
+        const decoded = jwtDecode<DecodedToken>(user.accessToken)
         setUserId(decoded.nameid)
       } catch (error) {
         console.error('Failed to decode token:', error)
@@ -103,12 +103,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     } else {
       setUserId(null)
     }
-  }, [isAuthenticated, accessToken])
+  }, [isAuthenticated, user])
 
   // Load cart when component mounts or auth state changes
   useEffect(() => {
     const loadCart = async () => {
-      if (isAuthenticated && accessToken) {
+      if (isAuthenticated && user) {
         try {
           // Get cart for authenticated user from server
           const response = await cartApi.getCurrentUserCart()
@@ -142,7 +142,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     loadCart()
-  }, [isAuthenticated, accessToken])
+  }, [isAuthenticated, user])
 
   // Save guest cart to localStorage whenever it changes
   useEffect(() => {

@@ -27,6 +27,9 @@ declare module '@tanstack/react-router' {
     routeContext: {
       isAuthenticated: boolean
     }
+    search: {
+      redirect?: string
+    }
   }
   // Add this interface to register the admin route
   interface FileRoutesByPath {
@@ -39,24 +42,32 @@ declare module '@tanstack/react-router' {
 export const Route = createRootRoute({
   component: RootComponent,
   beforeLoad: async ({ location }) => {
+    // Get auth status from localStorage
+    const accessToken = localStorage.getItem('accessToken')
+    const refreshToken = localStorage.getItem('refreshToken')
+
+    // Check if trying to access admin routes
+    const isAdminRoute = location.pathname.startsWith('/admin')
+
+    if (isAdminRoute) {
+      if (!accessToken && !refreshToken) {
+        throw redirect({
+          to: '/login',
+          search: {
+            redirect: location.pathname
+          }
+        })
+      }
+      return { isAuthenticated: true }
+    }
+
+    // Your existing protected routes logic
     const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
       location.pathname.startsWith(route)
     )
 
     if (!isProtectedRoute) {
       return { isAuthenticated: false }
-    }
-
-    const accessToken = localStorage.getItem('accessToken')
-    const refreshToken = localStorage.getItem('refreshToken')
-
-    if (!accessToken && !refreshToken) {
-      throw redirect({
-        to: '/login',
-        search: {
-          redirect: location.pathname
-        }
-      })
     }
 
     if (!accessToken && refreshToken) {

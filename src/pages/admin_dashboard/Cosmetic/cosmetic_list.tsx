@@ -11,7 +11,9 @@ import {
   Tooltip,
   Badge,
   Rate,
-  Card
+  Card,
+  Image,
+  Upload
 } from 'antd'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { ColumnType } from 'antd/es/table'
@@ -22,7 +24,9 @@ import {
   EditOutlined,
   EllipsisOutlined,
   PlusOutlined,
-  CloseOutlined
+  CloseOutlined,
+  UploadOutlined,
+  InboxOutlined
 } from '@ant-design/icons'
 import { Input, Checkbox } from 'antd'
 import { useNavigate } from '@tanstack/react-router'
@@ -36,6 +40,7 @@ import { CheckboxChangeEvent } from 'antd/es/checkbox'
 import brandApi from '@/lib/services/brandApi'
 import skinTypeApi from '@/lib/services/skinTypeApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
+import { UploadFile, UploadFileStatus } from 'antd/es/upload/interface'
 
 interface CosmeticDto {
   id: string
@@ -65,6 +70,7 @@ interface CosmeticDto {
   quantity: number
   rating: number | null
   volumeUnit: string | null
+  thumbnailUrl?: string
 }
 
 interface BrandDto {
@@ -163,6 +169,119 @@ const MemoizedHighlightText = React.memo(HighlightText)
 
 const MotionCard = motion(Card)
 
+// Add this interface near your other interfaces
+interface CustomUploadFile extends Omit<UploadFile, 'status'> {
+  status?: UploadFileStatus
+}
+
+// Replace the existing ImageUploadModal with this simplified version
+const ImageUploadModal = ({
+  visible,
+  onCancel,
+  cosmeticId,
+  onSuccess
+}: {
+  visible: boolean
+  onCancel: () => void
+  cosmeticId: string
+  onSuccess: () => void
+}) => {
+  const [fileList, setFileList] = useState<CustomUploadFile[]>([])
+  const [uploading, setUploading] = useState(false)
+
+  const handleUpload = async () => {
+    if (fileList.length === 0) {
+      message.warning('Please select at least one image to upload')
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      const file = fileList[0].originFileObj
+      if (!file) {
+        throw new Error('No file selected')
+      }
+
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+
+      reader.onload = async () => {
+        const base64String = reader.result as string
+        const base64Data = base64String.split(',')[1]
+
+        const payload = {
+          cosmeticId,
+          images: [base64Data]
+        }
+
+        const response = await cosmeticApi.uploadCosmeticImages(payload)
+        if (response.data?.isSuccess) {
+          message.success('Image uploaded successfully')
+          setFileList([])
+          onSuccess()
+          onCancel()
+        } else {
+          message.error(response.data?.message || 'Failed to upload image')
+        }
+      }
+
+      reader.onerror = () => {
+        message.error('Failed to read file')
+        setUploading(false)
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      message.error('Failed to upload image. Please try again.')
+      setUploading(false)
+    }
+  }
+
+  return (
+    <Modal
+      title="Upload Product Image"
+      open={visible}
+      onCancel={onCancel}
+      footer={[
+        <Button key="back" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          loading={uploading}
+          onClick={handleUpload}
+          style={{ backgroundColor: '#3b82f6' }}
+        >
+          {uploading ? 'Uploading' : 'Upload'}
+        </Button>
+      ]}
+    >
+      <Upload
+        accept="image/*"
+        maxCount={1}
+        fileList={fileList}
+        beforeUpload={(file) => {
+          setFileList([
+            {
+              uid: '1',
+              name: file.name,
+              status: 'done',
+              size: file.size,
+              type: file.type,
+              originFileObj: file
+            }
+          ])
+          return false
+        }}
+        onRemove={() => setFileList([])}
+      >
+        <Button icon={<UploadOutlined />}>Select Image</Button>
+      </Upload>
+    </Modal>
+  )
+}
+
 export default function Courses() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { updateBreadcrumb } = useBreadcrumb()
@@ -173,6 +292,8 @@ export default function Courses() {
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
+  const [uploadModalVisible, setUploadModalVisible] = useState(false)
+  const [selectedCosmeticId, setSelectedCosmeticId] = useState<string>('')
 
   const queryClient = useQueryClient()
 
@@ -316,11 +437,36 @@ export default function Courses() {
           >
             <div className="flex items-center gap-3">
               <div className="relative size-10">
-                {record.cosmeticImages?.[0]?.imageUrl ? (
-                  <img
+                {record.thumbnailUrl ? (
+                  <Image
+                    src={record.thumbnailUrl}
+                    alt={text}
+                    className="size-10 cursor-pointer rounded-lg object-cover shadow-sm"
+                    preview={{
+                      mask: null,
+                      maskClassName:
+                        'opacity-0 hover:opacity-100 transition-opacity',
+                      rootClassName: 'product-image-preview'
+                    }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      target.parentElement
+                        ?.querySelector('.thumbnail-placeholder')
+                        ?.classList.remove('hidden')
+                    }}
+                  />
+                ) : record.cosmeticImages?.[0]?.imageUrl ? (
+                  <Image
                     src={record.cosmeticImages[0].imageUrl}
                     alt={text}
-                    className="size-10 rounded-lg object-cover shadow-sm"
+                    className="size-10 cursor-pointer rounded-lg object-cover shadow-sm"
+                    preview={{
+                      mask: null,
+                      maskClassName:
+                        'opacity-0 hover:opacity-100 transition-opacity',
+                      rootClassName: 'product-image-preview'
+                    }}
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.style.display = 'none'
@@ -330,8 +476,13 @@ export default function Courses() {
                     }}
                   />
                 ) : (
-                  <div className="thumbnail-placeholder flex size-10 items-center justify-center rounded-lg bg-gray-800">
-                    <ImageOff className="size-5 text-gray-500" />
+                  <div
+                    className="thumbnail-placeholder flex size-10 cursor-pointer items-center justify-center rounded-lg bg-gray-800 transition-colors hover:bg-gray-700"
+                    onClick={() => handleOpenUploadModal(record.id)}
+                  >
+                    <Tooltip title="Upload image">
+                      <UploadOutlined className="size-5 text-gray-500" />
+                    </Tooltip>
                   </div>
                 )}
               </div>
@@ -1013,7 +1164,94 @@ export default function Courses() {
     .custom-pagination .ant-pagination-disabled:hover button {
       color: #4b5563;
     }
+
+    /* Product image preview styles */
+    .product-image-preview .ant-image-preview-root {
+      z-index: 1050;
+    }
+    
+    .product-image-preview .ant-image-preview-img {
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    
+    .product-image-preview .ant-image-preview-operations {
+      background: rgba(0, 0, 0, 0.7);
+    }
+    
+    .product-image-preview .ant-image-preview-switch-left,
+    .product-image-preview .ant-image-preview-switch-right {
+      background: rgba(0, 0, 0, 0.3);
+      color: white;
+      border-radius: 50%;
+      padding: 8px;
+    }
+    
+    .product-image-preview .ant-image-preview-switch-left:hover,
+    .product-image-preview .ant-image-preview-switch-right:hover {
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    /* Image upload modal styles */
+    .image-upload-modal .ant-modal-content {
+      background-color: #1a1b24;
+      border: 1px solid #282d35;
+    }
+    
+    .image-upload-modal .ant-modal-header {
+      background-color: #1a1b24;
+      border-bottom: 1px solid #282d35;
+    }
+    
+    .image-upload-modal .ant-modal-title {
+      color: #e5e7eb;
+    }
+    
+    .image-upload-modal .ant-modal-close {
+      color: #8b949e;
+    }
+    
+    .image-upload-modal .ant-modal-close:hover {
+      color: #e5e7eb;
+    }
+    
+    .image-upload-modal .ant-upload-list {
+      color: #e5e7eb;
+    }
+    
+    .image-upload-modal .ant-upload-drag {
+      background-color: #141414;
+      border: 1px dashed #303030;
+    }
+    
+    .image-upload-modal .ant-upload-drag:hover {
+      border-color: #3b82f6;
+    }
+    
+    .image-upload-modal .ant-upload-list-item {
+      border-color: #303030;
+    }
+    
+    .image-upload-modal .ant-upload-list-item-name {
+      color: #e5e7eb;
+    }
+    
+    .image-upload-modal .ant-upload-list-item-card-actions .anticon {
+      color: #e5e7eb;
+    }
   `
+
+  // Add this function to handle opening the upload modal
+  const handleOpenUploadModal = useCallback((cosmeticId: string) => {
+    setSelectedCosmeticId(cosmeticId)
+    setUploadModalVisible(true)
+  }, [])
+
+  // Add this function to handle successful uploads
+  const handleUploadSuccess = () => {
+    // Refresh the cosmetics data after successful upload
+    queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
+  }
 
   return (
     <ConfigProvider theme={tableTheme}>
@@ -1182,6 +1420,16 @@ export default function Courses() {
 
         {/* @ts-expect-error - Table is actually supported */}
         <Table {...tableConfig} />
+
+        {/* Add the upload modal */}
+        <ImageUploadModal
+          visible={uploadModalVisible}
+          onCancel={() => setUploadModalVisible(false)}
+          cosmeticId={selectedCosmeticId}
+          onSuccess={() =>
+            queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
+          }
+        />
       </div>
     </ConfigProvider>
   )

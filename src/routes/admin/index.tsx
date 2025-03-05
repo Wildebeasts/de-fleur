@@ -7,7 +7,7 @@ export const Route = createFileRoute('/admin/')({
   beforeLoad: ({ context }) => {
     // Add authentication check
     if (!context.isAuthenticated) {
-      throw redirect({ to: '/login' })
+      throw redirect({ to: '/login', search: { redirect: '/admin' } })
     }
   }
 })
