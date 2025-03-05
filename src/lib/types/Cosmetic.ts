@@ -1,5 +1,5 @@
 import { SkinTypeResponse } from './SkinType'
-import { SubCategoryResponse } from './SubCategory'
+import { CosmeticSubCategoryResponse } from './SubCategory'
 import { BrandResponse } from './Brand'
 import { CosmeticTypeResponse } from './CosmeticType'
 
@@ -56,7 +56,7 @@ export interface CosmeticResponse {
   height: number
   thumbnailUrl: string | null
   volumeUnit: VolumeUnit
-  cosmeticSubcategories: SubCategoryResponse[]
+  cosmeticSubcategories: CosmeticSubCategoryResponse[]
   cosmeticImages: CosmeticImageCosmeticResponse[]
   batches: BatchResponse[]
   feedbacks: FeedbackCosmeticResponse[]
