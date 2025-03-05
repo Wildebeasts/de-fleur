@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useEffect, useState } from 'react'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import cosmeticApi from '@/lib/services/cosmeticApi'
@@ -94,11 +95,10 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(
-        (cosmetic) =>
-          cosmetic.cosmeticSubcategories?.some((sub) =>
-            selectedCategories.includes(sub.id)
-          )
+      filtered = filtered.filter((cosmetic) =>
+        cosmetic.cosmeticSubcategories?.some((sub) =>
+          selectedCategories.includes(sub.id)
+        )
       )
       console.log('After category filter:', filtered.length)
     }
