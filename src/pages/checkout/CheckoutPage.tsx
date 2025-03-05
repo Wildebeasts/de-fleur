@@ -12,6 +12,10 @@ import { toast } from 'sonner'
 import vnpayLogo from '@/assets/vnpay.jpg'
 import paymentApi from '@/lib/services/paymentApi'
 import { useCart } from '@/lib/context/CartContext' // Assuming you have a cart context
+import orderApi from '@/lib/services/orderApi'
+import { useNavigate } from '@tanstack/react-router'
+import { CreateOrderRequest } from '@/lib/types/order'
+import cartApi from '@/lib/services/cartApi'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -37,49 +41,108 @@ interface PaymentMethod {
   description: string
 }
 
+interface ShippingInfo {
+  address: string
+  wardCode: string
+  districtId: number
+}
+
+interface ShippingForm {
+  firstName: string
+  lastName: string
+  address: string
+  city: string
+  postalCode: string
+}
+
 const CheckoutPage: React.FC = () => {
   const [selectedPayment, setSelectedPayment] = useState('vnpay')
   const [isLoading, setIsLoading] = useState(false)
-  const { cartItems, getCartTotal } = useCart()
-  const cartTotal = getCartTotal()
+  const [currentCart, setCurrentCart] = useState<string | null>(null)
+  const { getCartTotal, coupon } = useCart()
+  const navigate = useNavigate()
 
-  // Format currency for VND
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
-    }).format(amount)
+  // Form state
+  const [formData, setFormData] = useState<ShippingForm>({
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    postalCode: ''
+  })
+
+  // Fetch current cart when component mounts
+  useEffect(() => {
+    const fetchCurrentCart = async () => {
+      try {
+        const response = await cartApi.getCurrentCart()
+        if (response.data.isSuccess) {
+          setCurrentCart(response.data.data?.id || null)
+        }
+      } catch (error) {
+        console.error('Error fetching cart:', error)
+        toast.error('Không thể tải thông tin giỏ hàng')
+      }
+    }
+
+    fetchCurrentCart()
+  }, [])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
-  const createOrder = async () => {
-    // Mock GUID for testing only
-    return '20556cf0-0556-4cb3-ad6f-90acbf6fc947'
+  const validateForm = () => {
+    const { firstName, lastName, address, city, postalCode } = formData
+    if (!firstName || !lastName || !address || !city || !postalCode) {
+      toast.error('Vui lòng điền đầy đủ thông tin giao hàng')
+      return false
+    }
+    return true
   }
 
-  const handlePayment = async () => {
+  const handleCheckout = async () => {
     try {
+      if (!validateForm()) return
       setIsLoading(true)
-      const orderId = await createOrder()
 
-      if (selectedPayment === 'vnpay') {
-        const paymentData = {
-          orderId,
-          paymentMethod: 'VNPay',
-          amount: cartTotal,
-          currency: 'VND'
-        }
+      if (!currentCart) {
+        toast.error('Không tìm thấy giỏ hàng')
+        return
+      }
 
-        const response = await paymentApi.createPayment(paymentData)
+      // Construct full address string
+      const fullAddress = `${formData.address}, ${formData.city}, ${formData.postalCode}`
 
-        if (response.data.isSuccess && response.data.data) {
-          window.location.href = response.data.data
-        } else {
-          toast.error('Failed to create payment link')
-        }
+      const orderRequest: CreateOrderRequest = {
+        cartId: currentCart,
+        shippingAddress: fullAddress,
+        billingAddress: fullAddress, // Using same address for billing
+        paymentMethod: 'ONLINE',
+        currency: 'VND',
+        wardCode: '21009', // You'll need to get these from a dropdown or API
+        districtId: 1462 // You'll need to get these from a dropdown or API
+      }
+
+      if (coupon) {
+        orderRequest.couponId = coupon.code
+      }
+
+      const response = await orderApi.createOrder(orderRequest)
+
+      if (response.data.isSuccess && response.data.data?.paymentUrl) {
+        // Redirect to VNPay payment page
+        window.location.href = response.data.data.paymentUrl
+      } else {
+        toast.error('Không thể tạo đơn hàng')
       }
     } catch (error) {
-      console.error('Payment error:', error)
-      toast.error('Payment processing failed. Please try again.')
+      console.error('Checkout error:', error)
+      toast.error('Đặt hàng thất bại. Vui lòng thử lại.')
     } finally {
       setIsLoading(false)
     }
@@ -94,6 +157,8 @@ const CheckoutPage: React.FC = () => {
       description: 'Thanh toán nhanh chóng và an toàn với VNPay'
     }
   ]
+
+  const cartTotal = getCartTotal()
 
   return (
     <motion.div
@@ -119,25 +184,50 @@ const CheckoutPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">First Name</label>
-                      <Input className="border-rose-200" />
+                      <Input
+                        name="firstName"
+                        placeholder="First Name"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Last Name</label>
-                      <Input className="border-rose-200" />
+                      <Input
+                        name="lastName"
+                        placeholder="Last Name"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                      />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Address</label>
-                    <Input className="border-rose-200" />
+                    <Input
+                      name="address"
+                      placeholder="Address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">City</label>
-                      <Input className="border-rose-200" />
+                      <Input
+                        name="city"
+                        placeholder="City"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                      />
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Postal Code</label>
-                      <Input className="border-rose-200" />
+                      <Input
+                        name="postalCode"
+                        placeholder="Postal Code"
+                        value={formData.postalCode}
+                        onChange={handleInputChange}
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -193,12 +283,12 @@ const CheckoutPage: React.FC = () => {
               >
                 <Button
                   className="w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
-                  onClick={handlePayment}
-                  disabled={isLoading}
+                  onClick={handleCheckout}
+                  disabled={isLoading || !currentCart}
                 >
                   {isLoading
                     ? 'Đang xử lý...'
-                    : `Thanh toán ${formatAmount(cartTotal)}`}
+                    : `Thanh toán ${cartTotal.toLocaleString('vi-VN')}₫`}
                 </Button>
               </motion.div>
             </motion.div>

@@ -1,14 +1,19 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useCart } from '@/lib/context/CartContext'
+import { toast } from 'sonner'
 
 interface ProductCardProps {
   imageSrc: string
   title: string
   description: string
-  price: string
-  id?: string
+  price: number
+  id: string
+  cosmeticType?: string
+  brand?: string
   onQuickView?: () => void
 }
 
@@ -17,14 +22,43 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   title,
   description,
   price,
+  id,
+  cosmeticType,
+  brand,
   onQuickView
 }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const { addToCart } = useCart()
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering parent click
+    e.stopPropagation()
     if (onQuickView) {
       onQuickView()
+    }
+  }
+
+  const handleAddToCart = async () => {
+    try {
+      setIsAddingToCart(true)
+      await addToCart({
+        id,
+        quantity: 1,
+        name: title,
+        price: price,
+        imageUrl: imageSrc,
+        subtotal: price,
+        weight: 0,
+        length: 0,
+        width: 0,
+        height: 0
+      })
+      toast.success('Đã thêm vào giỏ hàng')
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      toast.error('Không thể thêm vào giỏ hàng')
+    } finally {
+      setIsAddingToCart(false)
     }
   }
 
@@ -94,15 +128,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            {price}
+            {price.toLocaleString('vi-VN')}₫
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49]"
+            className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49] disabled:opacity-50"
             aria-label={`Add ${title} to cart`}
+            onClick={handleAddToCart}
+            disabled={isAddingToCart}
           >
-            Add to Cart
+            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </motion.button>
         </div>
       </div>

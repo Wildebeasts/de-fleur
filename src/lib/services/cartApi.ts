@@ -12,14 +12,13 @@ const cartApi = {
   viewCart: (cartId: string) =>
     axiosClient.get<ApiResponse<CartResponse>>(`/cart/${cartId}`),
 
-  getCurrentCart: () =>
-    axiosClient.get<ApiResponse<CartResponse>>('/api/cart/me'),
+  getCurrentCart: () => axiosClient.get<ApiResponse<CartResponse>>('/cart/me'),
 
   addToCart: (request: AddProductRequest) =>
-    axiosClient.put<ApiResponse<CartResponse>>('/api/cart/me/items', request),
+    axiosClient.put<ApiResponse<CartResponse>>('/cart/me/items', request),
 
   updateCart: (request: UpdateCartRequest) =>
-    axiosClient.put<ApiResponse<CartResponse>>('/api/cart/me', request),
+    axiosClient.put<ApiResponse<CartResponse>>('/cart/me', request),
 
   removeFromCart: (cartId: string, cosmeticId: string) =>
     axiosClient.delete<ApiResponse<CartResponse>>(

@@ -13,7 +13,9 @@ interface CosmeticCardProps {
 
 const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
   const navigate = useNavigate()
+  const { addToCart } = useCart()
 
   const handleQuickView = () => {
     navigate({
@@ -23,26 +25,29 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       }
     })
   }
-  const { addToCart } = useCart()
 
-  const handleAddToCart = () => {
-    const cartItem = {
-      id: cosmetic.id,
-      name: cosmetic.name,
-      price: cosmetic.price,
-      quantity: 1,
-      imageUrl:
-        typeof cosmetic.cosmeticImages?.[0] === 'string'
-          ? cosmetic.cosmeticImages[0]
-          : (cosmetic.cosmeticImages?.[0] as { imageUrl: string })?.imageUrl ||
-            '',
-      ingredients: cosmetic.ingredients,
-      cosmeticType: cosmetic.cosmeticType?.name || '',
-      brand: cosmetic.brand?.name || ''
+  const handleAddToCart = async () => {
+    try {
+      setIsAddingToCart(true)
+      await addToCart({
+        id: cosmetic.id,
+        name: cosmetic.name,
+        price: cosmetic.price,
+        quantity: 1,
+        imageUrl: cosmetic.thumbnailUrl || cosmetic.cosmeticImages?.[0],
+        subtotal: cosmetic.price,
+        weight: cosmetic.weight || 0,
+        length: cosmetic.length || 0,
+        width: cosmetic.width || 0,
+        height: cosmetic.height || 0
+      })
+      toast.success(`${cosmetic.name} added to cart!`)
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      toast.error('Không thể thêm vào giỏ hàng')
+    } finally {
+      setIsAddingToCart(false)
     }
-
-    addToCart(cartItem)
-    toast.success(`${cosmetic.name} added to cart!`)
   }
 
   return (
@@ -158,11 +163,12 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49]"
+            className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49] disabled:opacity-50"
             aria-label={`Add ${cosmetic.name} to cart`}
             onClick={handleAddToCart}
+            disabled={isAddingToCart}
           >
-            Add to Cart
+            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </motion.button>
         </div>
       </div>
