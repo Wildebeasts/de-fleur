@@ -36,7 +36,7 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   )
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
-  const [priceRange, setPriceRange] = useState<number[]>([0, 2000000])
+  const [priceRange, setPriceRange] = useState<number[]>([0, 4000000])
 
   // Fetch cosmetics when component mounts
   useEffect(() => {
@@ -112,7 +112,7 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     // Price filter for VND (only apply if not at min/max)
-    if (priceRange[0] > 0 || priceRange[1] < 2000000) {
+    if (priceRange[0] > 0 || priceRange[1] < 4000000) {
       filtered = filtered.filter(
         (cosmetic) =>
           cosmetic.price >= priceRange[0] && cosmetic.price <= priceRange[1]
