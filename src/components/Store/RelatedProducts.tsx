@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 interface RelatedProduct {
   image: string
   name: string
-  price: string
+  price: number
   id?: string
 }
 
@@ -123,7 +123,12 @@ const RelatedProducts: React.FC<RelatedProductsProps> = ({ products }) => {
                     {product.name}
                   </h3>
                   <p className="font-inter text-lg font-semibold text-[#3A4D39]">
-                    {product.price}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    }).format(product.price)}
                   </p>
                 </CardContent>
 

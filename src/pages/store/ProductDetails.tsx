@@ -8,7 +8,7 @@ import RelatedProducts from '../../components/Store/RelatedProducts'
 interface ProductDetailsProps {
   productId: string
   productName: string
-  price: string
+  price: number
   reviewCount: number
   description: string
   features: Array<{
@@ -19,7 +19,7 @@ interface ProductDetailsProps {
   relatedProducts: Array<{
     image: string
     name: string
-    price: string
+    price: number
     id?: string
   }>
   productImage?: string
@@ -29,9 +29,20 @@ interface ProductDetailsProps {
   feedbacks?: Array<{
     id: string
     customerId: string
-    customerName: string | null
+    customer: {
+      id: string
+      email: string
+      userName: string
+    }
     content: string | null
     rating: number
+  }>
+  cosmeticSubCategories: Array<{
+    subCategory: {
+      id: string
+      name: string
+      description: string
+    }
   }>
 }
 
@@ -47,7 +58,8 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
   cosmeticImages,
   ingredients,
   instructions,
-  feedbacks
+  feedbacks,
+  cosmeticSubCategories
 }) => {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -87,6 +99,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                     productName={productName}
                     price={price}
                     reviewCount={reviewCount}
+                    cosmeticSubcategories={cosmeticSubCategories}
                   />
                 </div>
               </motion.div>

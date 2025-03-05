@@ -6,7 +6,7 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import { Loader2 } from 'lucide-react'
 
 export const Route = createFileRoute('/shopDetails')({
-  validateSearch: (search) => {
+  validateSearch: (search: { productId: string }) => {
     return {
       productId: search.productId as string
     }
@@ -91,7 +91,7 @@ function RouteComponent() {
   const mappedRelatedProducts = relatedProducts?.map((item) => ({
     id: item.id,
     name: item.name || 'Unnamed Product',
-    price: `$${item.price}`,
+    price: item.price,
     image:
       typeof item.cosmeticImages?.[0] === 'object' &&
       item.cosmeticImages?.[0] !== null
@@ -142,7 +142,7 @@ function RouteComponent() {
       <ProductDetails
         productId={productId}
         productName={product.name || 'Unnamed Product'}
-        price={`${product.price}VND`}
+        price={product.price}
         reviewCount={product.feedbacks?.length || 0}
         description={product.notice || product.mainUsage || ''}
         ingredients={product.ingredients || ''}
@@ -193,6 +193,9 @@ function RouteComponent() {
               rating: (feedback as any).rating || 0
             }
           }) || []
+        }
+        cosmeticSubCategories={
+          product.cosmeticSubcategories ? product.cosmeticSubcategories : []
         }
       />
     </>

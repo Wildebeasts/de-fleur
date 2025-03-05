@@ -1,25 +1,38 @@
-import React from 'react'
+import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
+import { CosmeticTypeResponse } from '@/lib/types/CosmeticType'
+import React, { useEffect, useState } from 'react'
 
-interface Tag {
-  id: string
-  name: string
-}
+const PopularTags: React.FC = () => {
+  const [cosmeticTypes, setCosmeticTypes] = useState<CosmeticTypeResponse[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-interface PopularTagsProps {
-  tags: Tag[]
-}
+  useEffect(() => {
+    const fetchCosmeticTypes = async () => {
+      try {
+        const response = await cosmeticTypeApi.getCosmeticTypes()
+        if (response.data.isSuccess) {
+          setCosmeticTypes(response.data.data || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch cosmetic types:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchCosmeticTypes()
+  }, [])
 
-const PopularTags: React.FC<PopularTagsProps> = ({ tags }) => {
+  if (isLoading) return <p>Loading tags...</p>
   return (
     <div className="mt-4 flex flex-wrap gap-4 pr-20 text-sm text-zinc-800 max-md:pr-5">
       <div className="my-auto leading-none">Popular:</div>
-      {tags.map((tag) => (
+      {cosmeticTypes.map((type: CosmeticTypeResponse) => (
         <button
-          key={tag.id}
-          className="rounded-full bg-gray-200 px-3 pb-3 pt-1.5"
-          aria-label={`Search for ${tag.name}`}
+          key={type.id}
+          className="rounded-full bg-[#E8F5E9] px-3 py-1 text-sm font-medium text-[#3A4D39] transition-colors hover:bg-[#C5E1A5]"
+          aria-label={`Search for ${type.name}`}
         >
-          {tag.name}
+          {type.name}
         </button>
       ))}
     </div>

@@ -286,14 +286,14 @@ const Sidebar: React.FC = () => {
         <div className="px-2">
           <Slider
             defaultValue={[0]}
-            max={200}
-            step={1}
+            max={4000000}
+            step={100000}
             value={priceRange}
             onValueChange={setPriceRange}
           />
           <div className="mt-4 flex justify-between text-sm text-gray-600">
-            <span>${priceRange[0]}</span>
-            <span>$200+</span>
+            <span>{priceRange[0]}</span>
+            <span>{priceRange[1]}</span>
           </div>
         </div>
       </motion.section>
