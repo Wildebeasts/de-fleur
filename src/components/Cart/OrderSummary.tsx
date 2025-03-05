@@ -68,30 +68,30 @@ const OrderSummary: React.FC = () => {
 
         <div className="mt-6 flex flex-col gap-4 border-t border-solid border-gray-300 pt-6 text-black">
           <div className="flex justify-between gap-5 py-px">
-            <div className="text-sm">Subtotal</div>
+            <div className="text-sm">Tạm tính</div>
             <div className="text-right text-sm font-medium">
-              ${subtotal.toFixed(2)}
+              {subtotal.toLocaleString('vi-VN')}₫
             </div>
           </div>
 
           {discount > 0 && (
             <div className="flex justify-between gap-5 py-px text-green-600">
-              <div className="text-sm">Discount</div>
+              <div className="text-sm">Giảm giá</div>
               <div className="text-right text-sm font-medium">
-                -${discount.toFixed(2)}
+                -{discount.toLocaleString('vi-VN')}₫
               </div>
             </div>
           )}
 
           <div className="flex justify-between gap-5 py-px">
-            <div className="text-sm">Shipping</div>
-            <div className="text-right text-sm font-medium">Free</div>
+            <div className="text-sm">Phí vận chuyển</div>
+            <div className="text-right text-sm font-medium">Miễn phí</div>
           </div>
 
           <div className="mt-2 flex justify-between gap-5 border-t border-solid border-gray-300 pt-4">
-            <div className="text-base font-semibold">Total</div>
+            <div className="text-base font-semibold">Tổng</div>
             <div className="text-right text-lg font-semibold">
-              ${total.toFixed(2)}
+              {total.toLocaleString('vi-VN')}₫
             </div>
           </div>
         </div>

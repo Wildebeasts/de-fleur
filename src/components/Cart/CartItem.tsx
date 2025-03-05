@@ -42,12 +42,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             </div>
             {item.brand && (
               <div className="mt-1 self-start text-xs text-gray-600">
-                Brand: {item.brand}
+                Thương hiệu: {item.brand}
               </div>
             )}
           </div>
           <div className="self-start text-base font-medium text-black">
-            ${item.price.toFixed(2)}
+            {item.price.toLocaleString('vi-VN')}₫
           </div>
         </div>
         <div className="mt-4 flex w-full flex-wrap justify-between gap-5 max-md:max-w-full">

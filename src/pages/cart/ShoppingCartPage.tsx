@@ -35,7 +35,7 @@ const ShoppingCartPage: React.FC = () => {
     const fetchUserCart = async () => {
       if (isAuthenticated) {
         try {
-          const response = await cartApi.getCurrentUserCart()
+          const response = await cartApi.getCurrentCart()
           // The cart data will be automatically handled by CartContext
           console.log('Cart fetched successfully:', response.data)
         } catch (error) {

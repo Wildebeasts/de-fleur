@@ -37,79 +37,21 @@ interface PaymentMethod {
   description: string
 }
 
-const paymentMethods: PaymentMethod[] = [
-  {
-    id: 'card',
-    name: 'Credit/Debit Card',
-    icon: '/assets/logos/credit-card.svg',
-    description: 'Pay securely with your card'
-  },
-  {
-    id: 'vnpay',
-    name: 'VNPay',
-    icon: vnpayLogo,
-    description: 'Fast and secure payment with VNPay'
-  },
-  {
-    id: 'braintree',
-    name: 'Braintree',
-    icon: '/assets/logos/braintree-logo.svg',
-    description: 'Powered by PayPal'
-  }
-]
-
 const CheckoutPage: React.FC = () => {
-  const [selectedPayment, setSelectedPayment] = useState('card')
+  const [selectedPayment, setSelectedPayment] = useState('vnpay')
   const [isLoading, setIsLoading] = useState(false)
-  const [exchangeRate, setExchangeRate] = useState(23500) // Default fallback rate (1 USD ≈ 23,500 VND)
-  const [amountInVND, setAmountInVND] = useState<number>(0)
   const { cartItems, getCartTotal } = useCart()
-  const cartTotal = getCartTotal() // USD total
+  const cartTotal = getCartTotal()
 
-  // Fetch exchange rate on component mount
-  useEffect(() => {
-    const fetchExchangeRate = async () => {
-      try {
-        // Using ExchangeRate-API - replace with your preferred API
-        const response = await fetch('https://open.er-api.com/v6/latest/USD')
-        const data = await response.json()
-        if (data.rates && data.rates.VND) {
-          setExchangeRate(data.rates.VND)
-        }
-      } catch (error) {
-        console.error('Failed to fetch exchange rate:', error)
-        // Keep the fallback rate
-      }
-    }
-
-    fetchExchangeRate()
-  }, [])
-
-  // Update VND amount whenever exchange rate or cart total changes
-  useEffect(() => {
-    const vndAmount = Math.round(cartTotal * exchangeRate)
-    setAmountInVND(vndAmount)
-  }, [cartTotal, exchangeRate])
-
-  // Format currency based on payment method
-  const formatAmount = (amount: number, currency: 'USD' | 'VND') => {
-    if (currency === 'VND') {
-      return new Intl.NumberFormat('vi-VN', {
-        style: 'currency',
-        currency: 'VND'
-      }).format(amount)
-    }
-    return new Intl.NumberFormat('en-US', {
+  // Format currency for VND
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'VND'
     }).format(amount)
   }
 
   const createOrder = async () => {
-    // This would typically call your API to create an order
-    // For now, we'll just mock a GUID string as the order ID
-    // In production, replace this with your actual order creation API call
-
     // Mock GUID for testing only
     return '20556cf0-0556-4cb3-ad6f-90acbf6fc947'
   }
@@ -117,21 +59,13 @@ const CheckoutPage: React.FC = () => {
   const handlePayment = async () => {
     try {
       setIsLoading(true)
-
-      // Create an order and get the order ID
       const orderId = await createOrder()
 
       if (selectedPayment === 'vnpay') {
-        // Ensure we have a valid VND amount
-        if (amountInVND <= 0) {
-          throw new Error('Invalid VND amount')
-        }
-
-        // Create VNPay payment with VND amount
         const paymentData = {
           orderId,
           paymentMethod: 'VNPay',
-          amount: amountInVND,
+          amount: cartTotal,
           currency: 'VND'
         }
 
@@ -142,26 +76,6 @@ const CheckoutPage: React.FC = () => {
         } else {
           toast.error('Failed to create payment link')
         }
-      } else if (selectedPayment === 'card') {
-        // Handle credit card payment in USD
-        const paymentData = {
-          orderId,
-          paymentMethod: 'Card',
-          amount: cartTotal,
-          currency: 'USD'
-        }
-        // Implement card payment logic
-        toast.success('Processing credit card payment...')
-      } else if (selectedPayment === 'braintree') {
-        // Handle Braintree payment in USD
-        const paymentData = {
-          orderId,
-          paymentMethod: 'Braintree',
-          amount: cartTotal,
-          currency: 'USD'
-        }
-        // Implement Braintree payment logic
-        toast.success('Processing Braintree payment...')
       }
     } catch (error) {
       console.error('Payment error:', error)
@@ -170,6 +84,16 @@ const CheckoutPage: React.FC = () => {
       setIsLoading(false)
     }
   }
+
+  // Update payment methods to only include VNPay
+  const paymentMethods: PaymentMethod[] = [
+    {
+      id: 'vnpay',
+      name: 'VNPay',
+      icon: vnpayLogo,
+      description: 'Thanh toán nhanh chóng và an toàn với VNPay'
+    }
+  ]
 
   return (
     <motion.div
@@ -256,59 +180,12 @@ const CheckoutPage: React.FC = () => {
                       </div>
                     ))}
                   </RadioGroup>
-
-                  {/* Conditional render based on selected payment method */}
-                  {selectedPayment === 'card' && (
-                    <div className="mt-6 space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Card Number
-                        </label>
-                        <Input
-                          className="border-rose-200"
-                          placeholder="**** **** **** ****"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">
-                            Expiry Date
-                          </label>
-                          <Input
-                            className="border-rose-200"
-                            placeholder="MM/YY"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium">CVV</label>
-                          <Input
-                            className="border-rose-200"
-                            placeholder="***"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             </motion.div>
 
             <motion.div variants={itemVariants} className="w-1/3 max-md:w-full">
               <OrderSummary />
-              {selectedPayment === 'vnpay' && (
-                <div className="mt-4 rounded-lg border border-rose-200/50 bg-white p-4 shadow-sm">
-                  <h3 className="text-sm font-medium text-gray-700">
-                    VNPay Payment Amount
-                  </h3>
-                  <p className="mt-1 text-lg font-semibold text-[#3A4D39]">
-                    {formatAmount(amountInVND, 'VND')}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Exchange rate: 1 USD ={' '}
-                    {new Intl.NumberFormat('vi-VN').format(exchangeRate)} VND
-                  </p>
-                </div>
-              )}
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -320,12 +197,8 @@ const CheckoutPage: React.FC = () => {
                   disabled={isLoading}
                 >
                   {isLoading
-                    ? 'Processing...'
-                    : `Pay ${
-                        selectedPayment === 'vnpay'
-                          ? formatAmount(amountInVND, 'VND')
-                          : formatAmount(cartTotal, 'USD')
-                      }`}
+                    ? 'Đang xử lý...'
+                    : `Thanh toán ${formatAmount(cartTotal)}`}
                 </Button>
               </motion.div>
             </motion.div>
