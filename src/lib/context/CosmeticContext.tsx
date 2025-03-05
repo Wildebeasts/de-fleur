@@ -36,14 +36,42 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState([0, 200])
 
-  useEffect(() => {
-    if (cosmetics.length > 0) {
-      setFilteredCosmetics(cosmetics)
-    }
-  }, [cosmetics])
+  // Check for URL parameters
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
 
   useEffect(() => {
+    if (cosmetics.length > 0 && !initialLoadComplete) {
+      // Handle URL parameters if needed
+      const params = new URLSearchParams(window.location.search)
+      const typeIdFromUrl = params.get('cosmeticTypeId')
+
+      if (typeIdFromUrl) {
+        setSelectedCosmeticTypes([typeIdFromUrl])
+      }
+
+      setFilteredCosmetics(cosmetics)
+      setInitialLoadComplete(true)
+    }
+  }, [cosmetics, initialLoadComplete])
+
+  useEffect(() => {
+    if (!initialLoadComplete) return
+
     let filtered = cosmetics
+
+    // Only apply filtering if any filters are actually selected
+    const hasActiveFilters =
+      selectedCategories.length > 0 ||
+      selectedBrands.length > 0 ||
+      selectedCosmeticTypes.length > 0 ||
+      selectedConcerns.length > 0 ||
+      priceRange[0] > 0 ||
+      priceRange[1] < 200
+
+    if (!hasActiveFilters) {
+      setFilteredCosmetics(cosmetics)
+      return
+    }
 
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((cosmetic) =>
@@ -83,7 +111,21 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     )
 
     setFilteredCosmetics(filtered)
+
+    // Log for debugging
+    console.log('Filtered products:', {
+      total: cosmetics.length,
+      filtered: filtered.length,
+      filters: {
+        categories: selectedCategories,
+        brands: selectedBrands,
+        types: selectedCosmeticTypes,
+        concerns: selectedConcerns,
+        price: priceRange
+      }
+    })
   }, [
+    initialLoadComplete,
     selectedCategories,
     selectedBrands,
     selectedCosmeticTypes,

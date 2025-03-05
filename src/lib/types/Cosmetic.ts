@@ -26,4 +26,5 @@ export interface CosmeticResponse {
   cosmeticSubcategories: SubCategoryResponse[]
   cosmeticImages: string[]
   feedbacks: string[]
+  thumbnailUrl?: string
 }

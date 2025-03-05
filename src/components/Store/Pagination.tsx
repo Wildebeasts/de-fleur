@@ -4,18 +4,18 @@ import { motion } from 'framer-motion'
 interface PaginationProps {
   currentPage: number
   totalPages: number
-  setCurrentPage: (page: number) => void
+  onPageChange: (page: number) => void
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
-  setCurrentPage
+  onPageChange
 }) => {
   // Handle page change
   const changePage = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage)
+      onPageChange(newPage)
       // Scroll to top when changing pages
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }

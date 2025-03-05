@@ -13,7 +13,7 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { FaGoogle, FaApple } from 'react-icons/fa'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
 import { toast } from 'sonner'
 
@@ -35,6 +35,7 @@ const itemVariants = {
 export const LoginPage: React.FC = () => {
   const { login, isLoading, error } = useAuth()
   const navigate = useNavigate()
+  const search = useSearch({ from: '/login' })
   const [formData, setFormData] = useState({
     userName: '',
     password: ''
@@ -53,7 +54,7 @@ export const LoginPage: React.FC = () => {
     try {
       await login(formData)
       toast.success('Login successful!')
-      navigate({ to: '/' })
+      navigate({ to: search.redirect || '/' })
     } catch (err) {
       toast.error(error?.message || 'Login failed. Please try again.')
     }
