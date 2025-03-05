@@ -71,7 +71,7 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     if (selectedCategories.length > 0) {
       filtered = filtered.filter((cosmetic) =>
         cosmetic.cosmeticSubcategories?.some((sub) =>
-          selectedCategories.includes(sub.id)
+          selectedCategories.includes(sub.subCategoryId)
         )
       )
       console.log('After category filter:', filtered.length)
