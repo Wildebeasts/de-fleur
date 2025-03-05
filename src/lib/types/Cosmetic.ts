@@ -54,7 +54,6 @@ export interface CosmeticResponse {
   length: number
   width: number
   height: number
-  thumbnailUrl: string | null
   volumeUnit: VolumeUnit
   cosmeticSubcategories: SubCategoryResponse[]
   cosmeticImages: string[]

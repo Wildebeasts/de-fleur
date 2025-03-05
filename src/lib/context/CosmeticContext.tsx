@@ -41,6 +41,20 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   // Check for URL parameters
   const [initialLoadComplete, setInitialLoadComplete] = useState(false)
 
+  const fetchCosmetics = async () => {
+    try {
+      const response = await cosmeticApi.getCosmetics()
+      setCosmetics(response.data.data ?? [])
+      setIsLoading(false)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch cosmetics')
+      )
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchCosmetics()
   }, [])
 
@@ -80,10 +94,11 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((cosmetic) =>
-        cosmetic.cosmeticSubcategories?.some((sub) =>
-          selectedCategories.includes(sub.id)
-        )
+      filtered = filtered.filter(
+        (cosmetic) =>
+          cosmetic.cosmeticSubcategories?.some((sub) =>
+            selectedCategories.includes(sub.id)
+          )
       )
       console.log('After category filter:', filtered.length)
     }
