@@ -31,7 +31,11 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       name: cosmetic.name,
       price: cosmetic.price,
       quantity: 1,
-      imageUrl: cosmetic.cosmeticImages?.[0]?.imageUrl || '',
+      imageUrl:
+        typeof cosmetic.cosmeticImages?.[0] === 'string'
+          ? cosmetic.cosmeticImages[0]
+          : (cosmetic.cosmeticImages?.[0] as { imageUrl: string })?.imageUrl ||
+            '',
       ingredients: cosmetic.ingredients,
       cosmeticType: cosmetic.cosmeticType?.name || '',
       brand: cosmetic.brand?.name || ''
@@ -69,7 +73,8 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
           <img
             loading="lazy"
             src={
-              cosmetic.cosmeticImages?.[0]?.imageUrl ||
+              cosmetic.thumbnailUrl ||
+              cosmetic.cosmeticImages?.[0] ||
               'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e'
             }
             alt={cosmetic.name}

@@ -38,41 +38,67 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<number[]>([0, 2000000])
 
-  // Fetch cosmetics when component mounts
-  useEffect(() => {
-    const fetchCosmetics = async () => {
-      try {
-        setIsLoading(true)
-        const response = await cosmeticApi.getCosmetics()
-        console.log('API Response:', response.data)
-        if (response.data.isSuccess) {
-          setCosmetics(response.data.data || [])
-          setFilteredCosmetics(response.data.data || [])
-        } else {
-          throw new Error(response.data.message || 'Failed to fetch cosmetics')
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('An error occurred'))
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // Check for URL parameters
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
 
+  const fetchCosmetics = async () => {
+    try {
+      const response = await cosmeticApi.getCosmetics()
+      setCosmetics(response.data.data ?? [])
+      setIsLoading(false)
+    } catch (err) {
+      setError(
+        err instanceof Error ? err : new Error('Failed to fetch cosmetics')
+      )
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
     fetchCosmetics()
   }, [])
 
   // Filter cosmetics when filters change
   useEffect(() => {
-    console.log('Starting filters with cosmetics:', cosmetics.length)
+    if (cosmetics.length > 0 && !initialLoadComplete) {
+      // Handle URL parameters if needed
+      const params = new URLSearchParams(window.location.search)
+      const typeIdFromUrl = params.get('cosmeticTypeId')
 
-    let filtered = [...cosmetics]
+      if (typeIdFromUrl) {
+        setSelectedCosmeticTypes([typeIdFromUrl])
+      }
 
-    // Only apply filters if there are active filters
+      setFilteredCosmetics(cosmetics)
+      setInitialLoadComplete(true)
+    }
+  }, [cosmetics, initialLoadComplete])
+
+  useEffect(() => {
+    if (!initialLoadComplete) return
+
+    let filtered = cosmetics
+
+    // Only apply filtering if any filters are actually selected
+    const hasActiveFilters =
+      selectedCategories.length > 0 ||
+      selectedBrands.length > 0 ||
+      selectedCosmeticTypes.length > 0 ||
+      selectedConcerns.length > 0 ||
+      priceRange[0] > 0 ||
+      priceRange[1] < 200
+
+    if (!hasActiveFilters) {
+      setFilteredCosmetics(cosmetics)
+      return
+    }
+
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter((cosmetic) =>
-        cosmetic.cosmeticSubcategories?.some((sub) =>
-          selectedCategories.includes(sub.id)
-        )
+      filtered = filtered.filter(
+        (cosmetic) =>
+          cosmetic.cosmeticSubcategories?.some((sub) =>
+            selectedCategories.includes(sub.id)
+          )
       )
       console.log('After category filter:', filtered.length)
     }
@@ -122,8 +148,21 @@ export const CosmeticProvider: React.FC<{ children: React.ReactNode }> = ({
 
     console.log('Final filtered cosmetics:', filtered.length)
     setFilteredCosmetics(filtered)
+
+    // Log for debugging
+    console.log('Filtered products:', {
+      total: cosmetics.length,
+      filtered: filtered.length,
+      filters: {
+        categories: selectedCategories,
+        brands: selectedBrands,
+        types: selectedCosmeticTypes,
+        concerns: selectedConcerns,
+        price: priceRange
+      }
+    })
   }, [
-    cosmetics,
+    initialLoadComplete,
     selectedCategories,
     selectedBrands,
     selectedCosmeticTypes,
