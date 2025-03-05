@@ -12,12 +12,12 @@ export interface CartItem {
   name: string
   price: number
   quantity: number
-  // Additional fields useful for UI display
-  imageUrl?: string
-  ingredients?: string
-  cosmeticType?: string
-  brand?: string
-  cosmeticImages?: string[]
+  subtotal: number
+  weight: number
+  length: number
+  width: number
+  height: number
+  imageUrl: string // Maps to cosmeticImage from backend
 }
 
 // Define the context type
@@ -110,33 +110,32 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     const loadCart = async () => {
       if (isAuthenticated && user) {
         try {
-          // Get cart for authenticated user from server
-          const response = await cartApi.getCurrentUserCart()
+          const response = await cartApi.getCurrentCart()
           const userCart = response.data.data
 
           if (userCart) {
             setCartId(userCart.id)
             const items: CartItem[] = userCart.items.map((item) => ({
               id: item.cosmeticId,
-              name: item.cosmetic?.name || 'Unknown Product',
-              price: item.cosmetic?.price || 0,
+              name: item.cosmeticName,
+              price: item.price,
               quantity: item.quantity,
-              cosmeticImages: item.cosmetic?.cosmeticImages,
-              ingredients: item.cosmetic?.ingredients,
-              cosmeticType: item.cosmetic?.cosmeticType,
-              brand: item.cosmetic?.brand
+              subtotal: item.subtotal,
+              weight: item.weight,
+              length: item.length,
+              width: item.width,
+              height: item.height,
+              imageUrl: item.cosmeticImage
             }))
             setCartItems(items)
 
-            // Clear guest cart after successful login and cart fetch
             localStorage.removeItem(CART_STORAGE_KEY)
           }
         } catch (error) {
           console.error('Failed to load cart from server:', error)
-          loadGuestCart() // Fallback to guest cart if server fails
+          loadGuestCart()
         }
       } else {
-        // Load guest cart for non-authenticated users
         loadGuestCart()
       }
     }
@@ -177,11 +176,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isAuthenticated && userId && cartId) {
       try {
         const request: AddProductRequest = {
-          cartId: cartId,
           cosmeticId: item.id,
           quantity: item.quantity
         }
-        await cartApi.addToCart(cartId, request)
+        await cartApi.addToCart(request)
       } catch (error) {
         console.error('Failed to add item to cart on server:', error)
         return
@@ -234,8 +232,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         await cartApi.removeFromCart(cartId, id)
         const item = cartItems.find((item) => item.id === id)
         if (item) {
-          await cartApi.addToCart(cartId, {
-            cartId: cartId,
+          await cartApi.addToCart({
             cosmeticId: id,
             quantity: quantity
           })
