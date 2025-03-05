@@ -58,18 +58,23 @@ export const RecommendedProducts: React.FC = () => {
             {products.map((product, index) => (
               <Card key={index} className="w-full border shadow-sm">
                 <CardContent className="space-y-4 p-4">
-                  {/* <img
+                  <img
                     src={product.cosmeticImageUrl} // Assuming API returns this field
                     className="h-48 w-full rounded-lg object-cover"
                     alt={product.cosmeticName}
-                  /> */}
+                  />
                   <div className="space-y-2">
                     <h4 className="font-medium">{product.cosmeticName}</h4>
                     {/* <p className="text-sm text-muted-foreground">
                       {product.cosmeticDescription}
                     </p> */}
                     <p className="text-lg font-medium">
-                      ${product.cosmeticPrice}
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      }).format(product.cosmeticPrice)}
                     </p>
                     {/* <p className="text-sm text-muted-foreground">
                       {product.cosmeticBenefit}

@@ -83,7 +83,12 @@ export const PersonalizedRoutine: React.FC = () => {
                           {step.cosmeticNotice}
                         </div>
                         <div className="mt-1 text-sm font-semibold text-gray-700">
-                          ${step.cosmeticPrice}
+                          {new Intl.NumberFormat('vi-VN', {
+                            style: 'currency',
+                            currency: 'VND',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                          }).format(step.cosmeticPrice)}
                         </div>
                       </div>
                     </div>
