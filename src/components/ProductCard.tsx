@@ -7,7 +7,7 @@ interface ProductCardProps {
   imageSrc: string
   title: string
   description: string
-  price: string
+  price: number
   id?: string
   onQuickView?: () => void
 }
@@ -94,7 +94,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            {price}
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(price)}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}

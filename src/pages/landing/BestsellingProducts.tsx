@@ -74,7 +74,7 @@ export const BestsellingProducts: React.FC = () => {
       title: product.name || 'Unnamed Product',
       description:
         product.notice || product.mainUsage || 'Premium skincare product',
-      price: `$${product.price.toFixed(2)}`
+      price: product.price
     }))
   }, [cosmetics])
 
