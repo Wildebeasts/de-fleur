@@ -153,6 +153,7 @@ export const RegisterPage: React.FC = () => {
               Already have an account?{' '}
               <Link
                 to="/login"
+                search={{ redirect: '/register' }}
                 className="h-auto p-0 text-rose-500 hover:text-rose-600"
               >
                 Sign in

@@ -57,9 +57,8 @@ export const LoginPage: React.FC = () => {
         userName: formData.userName,
         password: formData.password
       })
-
       toast.success('Login successful!')
-      navigate({ to: search.redirect || '/' })
+      navigate(search.redirect || '/')
     } catch (err) {
       toast.error((err as Error)?.message || 'Login failed. Please try again.')
     }

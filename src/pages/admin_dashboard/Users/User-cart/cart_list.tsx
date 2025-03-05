@@ -32,11 +32,11 @@ const CartList: React.FC = () => {
     queryKey: ['carts'],
     queryFn: async () => {
       const response = await cartApi.getAllCarts()
-      
+
       if (!response.data.isSuccess) {
         if (response.data.message === "Authentication Required Or Failed.") {
           message.error('Please login to view carts')
-          navigate({ to: '/login' })
+          navigate({ to: '/login', search: { redirect: '/admin' } })
           throw new Error('Authentication required')
         }
         throw new Error(response.data.message || 'Failed to fetch carts')
@@ -193,7 +193,7 @@ const CartList: React.FC = () => {
 
                     <div className="absolute right-4 top-4">
                       <div
-                        className={`rounded-full border border-white/20 px-4 py-1.5 
+                        className={`rounded-full border border-white/20 px-4 py-1.5
                         text-xs font-medium backdrop-blur-sm
                         ${getStatusConfig(cart.items.length).color}`}
                       >

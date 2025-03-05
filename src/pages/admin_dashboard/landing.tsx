@@ -81,7 +81,7 @@ function StatCard({
 
   return (
     <div
-      className="cursor-pointer rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 
+      className="cursor-pointer rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60
         bg-clip-padding p-6 backdrop-blur-lg transition-all duration-300 hover:border-gray-100/20"
       onClick={onClick}
     >
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate({ to: '/login' })
+      navigate({ to: '/login', search: { redirect: '/admin' } })
     }
   }, [isAuthenticated, navigate])
 
@@ -328,12 +328,12 @@ export default function AdminDashboard() {
               <button
                 key={action.title}
                 onClick={() => handleNavigation(action.path)}
-                className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding 
+                className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
                   p-6 backdrop-blur-lg transition-all duration-300 hover:border-gray-100/20"
               >
                 <div className="flex items-center gap-4">
                   <div
-                    className="rounded-lg bg-[#282d35]/50 p-3 backdrop-blur-lg transition-colors 
+                    className="rounded-lg bg-[#282d35]/50 p-3 backdrop-blur-lg transition-colors
                     duration-300 group-hover:bg-[#2c333a]/50"
                   >
                     <action.icon className={`size-5 ${action.color}`} />
