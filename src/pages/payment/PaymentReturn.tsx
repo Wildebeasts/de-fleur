@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
-import paymentApi from '@/lib/services/paymentApi'
+import orderApi from '@/lib/services/orderApi'
 import { Button } from '@/components/ui/button'
-import { useCart } from '@/lib/context/CartContext'
 
 interface VNPayReturnParams {
   vnp_Amount: string
@@ -22,13 +21,17 @@ interface VNPayReturnParams {
   vnp_SecureHash: string
 }
 
+interface PaymentReturnData {
+  transactionId: string
+  totalAmount: string
+  responseCode: string
+}
+
 const PaymentReturn: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(true)
   const [isSuccess, setIsSuccess] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const navigate = useNavigate()
-  //const search = useSearch()
-  const { clearCart } = useCart()
 
   useEffect(() => {
     const processPayment = async () => {
@@ -42,17 +45,39 @@ const PaymentReturn: React.FC = () => {
           paymentParams[key as keyof VNPayReturnParams] = value
         })
 
-        // Call the API to process the payment return
-        const response = await paymentApi.processVnPayReturn(paymentParams)
+        // Extract orderId from vnp_OrderInfo or vnp_TxnRef
+        // The format depends on how you structured it when creating the payment
+        const orderIdMatch =
+          paymentParams.vnp_OrderInfo?.match(/OrderId:([a-f0-9-]+)/i)
+        const orderId = orderIdMatch
+          ? orderIdMatch[1]
+          : paymentParams.vnp_TxnRef
+
+        if (!orderId) {
+          throw new Error('Order ID not found in payment return data')
+        }
+
+        // Create PaymentReturnData object
+        const paymentReturnData: PaymentReturnData = {
+          transactionId: paymentParams.vnp_TransactionNo || '',
+          totalAmount: paymentParams.vnp_Amount || '',
+          responseCode: paymentParams.vnp_ResponseCode || ''
+        }
+
+        // Call API to complete the order
+        const response = await orderApi.completeOrder(
+          orderId,
+          paymentParams.vnp_ResponseCode || '',
+          paymentReturnData
+        )
 
         if (response.data.isSuccess) {
           setIsSuccess(true)
-          // Clear the cart after successful payment
-          clearCart()
         } else {
           setIsSuccess(false)
           setErrorMessage(
-            'Payment verification failed. Please contact support.'
+            response.data.message ||
+              'Payment verification failed. Please contact support.'
           )
         }
       } catch (error) {
@@ -65,7 +90,7 @@ const PaymentReturn: React.FC = () => {
     }
 
     processPayment()
-  }, [clearCart])
+  }, [])
 
   if (isProcessing) {
     return (
@@ -114,7 +139,7 @@ const PaymentReturn: React.FC = () => {
             <div className="space-y-3">
               <Button
                 className="w-full bg-[#3A4D39] hover:bg-[#4A5D49]"
-                onClick={() => navigate({ to: '/' })}
+                onClick={() => navigate({ to: '/account_manage' })}
               >
                 View Orders
               </Button>

@@ -264,9 +264,9 @@ const CartList: React.FC = () => {
                       className="flex justify-between text-white"
                     >
                       <span>
-                        {item.cosmetic?.name || `Product ${item.cosmeticId.slice(-8)}`} x {item.quantity}
+                        Product {item.cosmeticId.slice(-8)} x {item.quantity}
                       </span>
-                      <span>{((item.cosmetic?.price ?? 0) * item.quantity).toLocaleString()}đ</span>
+                      <span>{item.price.toLocaleString()}đ</span>
                     </div>
                   ))}
                 </div>

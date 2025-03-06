@@ -79,7 +79,7 @@ const QuickViewModal: React.FC<QuickViewModalProps> = ({
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-[#F9F5F0]/50 to-transparent" />
                     <img
-                      src={product.thumbnailUrl || ''}
+                      src={product.cosmeticImages?.[0].imageUrl || ''}
                       alt={product.name}
                       className="aspect-square w-full object-cover"
                     />
