@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { useNavigate } from '@tanstack/react-router'
-import { useCart } from '@/lib/context/CartContext'
 import { toast } from 'sonner'
+import cartApi from '@/lib/services/cartApi'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
@@ -13,6 +13,7 @@ interface CosmeticCardProps {
 
 const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const [isHovered, setIsHovered] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
   const navigate = useNavigate()
 
   const handleQuickView = () => {
@@ -23,26 +24,25 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       }
     })
   }
-  const { addToCart } = useCart()
 
-  const handleAddToCart = () => {
-    const cartItem = {
-      id: cosmetic.id,
-      name: cosmetic.name,
-      price: cosmetic.price,
-      quantity: 1,
-      imageUrl:
-        typeof cosmetic.cosmeticImages?.[0] === 'string'
-          ? cosmetic.cosmeticImages[0]
-          : (cosmetic.cosmeticImages?.[0] as { imageUrl: string })?.imageUrl ||
-            '',
-      ingredients: cosmetic.ingredients,
-      cosmeticType: cosmetic.cosmeticType?.name || '',
-      brand: cosmetic.brand?.name || ''
+  const handleAddToCart = async () => {
+    try {
+      setIsAddingToCart(true)
+
+      // Call the updateCartItem API with the correct parameters
+      const response = await cartApi.addToCart(cosmetic.id, 1)
+
+      if (response.data.isSuccess) {
+        toast.success(`${cosmetic.name} added to cart!`)
+      } else {
+        toast.error(response.data.message || 'Failed to add item to cart')
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      toast.error('Không thể thêm vào giỏ hàng')
+    } finally {
+      setIsAddingToCart(false)
     }
-
-    addToCart(cartItem)
-    toast.success(`${cosmetic.name} added to cart!`)
   }
 
   return (
@@ -72,11 +72,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         >
           <img
             loading="lazy"
-            src={
-              cosmetic.thumbnailUrl ||
-              cosmetic.cosmeticImages?.[0] ||
-              'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e'
-            }
+            src={cosmetic.cosmeticImages?.[0]?.imageUrl || ''}
             alt={cosmetic.name}
             className="size-full object-cover"
           />
@@ -160,11 +156,12 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49]"
+            className="rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#4A5D49] disabled:opacity-50"
             aria-label={`Add ${cosmetic.name} to cart`}
             onClick={handleAddToCart}
+            disabled={isAddingToCart}
           >
-            Add to Cart
+            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
           </motion.button>
         </div>
       </div>
