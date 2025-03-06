@@ -67,32 +67,34 @@ export const PersonalizedRoutine: React.FC = () => {
                   </h3>
                 </div>
                 <div className="mt-5 flex w-full flex-col text-black max-md:max-w-full">
-                  {routine.routineSteps.map((step, stepIndex) => (
-                    <div
-                      key={stepIndex}
-                      className="mt-4 flex flex-wrap gap-3 rounded-lg border border-solid py-3.5 pl-3.5 pr-20 max-md:pr-5"
-                    >
-                      <div className="my-auto flex size-8 items-center justify-center whitespace-nowrap rounded-full bg-orange-50 text-base">
-                        {stepIndex + 1}
+                  {routine.routineSteps
+                    .sort((a, b) => a.stepNumber - b.stepNumber)
+                    .map((step, stepIndex) => (
+                      <div
+                        key={stepIndex}
+                        className="mt-4 flex flex-wrap gap-3 rounded-lg border border-solid py-3.5 pl-3.5 pr-20 max-md:pr-5"
+                      >
+                        <div className="my-auto flex size-8 items-center justify-center whitespace-nowrap rounded-full bg-orange-50 text-base">
+                          {stepIndex + 1}
+                        </div>
+                        <div className="flex flex-col pb-2 pt-0.5 leading-none">
+                          <div className="text-base font-medium">
+                            {step.cosmeticName}
+                          </div>
+                          <div className="mt-3 self-start text-sm text-gray-600">
+                            {step.cosmeticNotice}
+                          </div>
+                          <div className="mt-1 text-sm font-semibold text-gray-700">
+                            {new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
+                            }).format(step.cosmeticPrice)}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col pb-2 pt-0.5 leading-none">
-                        <div className="text-base font-medium">
-                          {step.cosmeticName}
-                        </div>
-                        <div className="mt-3 self-start text-sm text-gray-600">
-                          {step.cosmeticNotice}
-                        </div>
-                        <div className="mt-1 text-sm font-semibold text-gray-700">
-                          {new Intl.NumberFormat('vi-VN', {
-                            style: 'currency',
-                            currency: 'VND',
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                          }).format(step.cosmeticPrice)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>
@@ -107,17 +109,51 @@ export const PersonalizedRoutine: React.FC = () => {
           </div>
           <div className="flex flex-1 flex-col pb-2.5">
             <div>
-              Estimated Budget: $
-              {quizResults
-                ?.flatMap((routine) => routine?.routineSteps || []) // Ensure routineSteps exists
-                ?.reduce(
-                  (sum, step) => sum + (Number(step?.cosmeticPrice) || 0),
-                  0
+              Estimated Budget:
+              {' ' +
+                new Intl.NumberFormat('vi-VN', {
+                  style: 'currency',
+                  currency: 'VND',
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0
+                }).format(
+                  (() => {
+                    const uniqueSteps = new Map()
+
+                    quizResults?.forEach((routine) => {
+                      routine?.routineSteps?.forEach((step) => {
+                        if (
+                          step?.cosmeticId &&
+                          !uniqueSteps.has(step.cosmeticId)
+                        ) {
+                          uniqueSteps.set(step.cosmeticId, step)
+                        }
+                      })
+                    })
+
+                    return Array.from(uniqueSteps.values()).reduce(
+                      (sum, step) => sum + (Number(step?.cosmeticPrice) || 0),
+                      0
+                    )
+                  })()
                 )}
             </div>
+
             <div className="mt-1.5 self-start">
               Products Needed:{' '}
-              {quizResults.flatMap((r) => r.routineSteps).length}
+              {(() => {
+                const uniqueSteps = new Set()
+
+                quizResults?.forEach((routine) => {
+                  routine?.routineSteps?.forEach((step) => {
+                    if (step?.cosmeticId) {
+                      uniqueSteps.add(step.cosmeticId)
+                    }
+                  })
+                })
+
+                return uniqueSteps.size
+              })()}
             </div>
           </div>
         </div>

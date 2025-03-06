@@ -2,6 +2,8 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useQuizResult } from '@/lib/context/QuizResultContext'
+import { useNavigate } from '@tanstack/react-router'
+import { useAuth } from '@/lib/context/AuthContext'
 
 // interface SkinProfileInfoItem {
 //   icon: string
@@ -25,6 +27,8 @@ import { useQuizResult } from '@/lib/context/QuizResultContext'
 
 export const SkinProfileInfo: React.FC = () => {
   const { quizResults } = useQuizResult()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
 
   if (!quizResults || quizResults.length === 0) {
     return (
@@ -44,6 +48,12 @@ export const SkinProfileInfo: React.FC = () => {
             <p className="text-gray-600">
               No quiz results found. Please take the quiz.
             </p>
+            <button
+              onClick={() => navigate({ to: '/quiz' })}
+              className="mt-4 w-full rounded-md bg-orange-500 px-4 py-2 text-white hover:bg-orange-600"
+            >
+              Take the Quiz
+            </button>
           </CardContent>
         </Card>
       </div>
@@ -108,16 +118,23 @@ export const SkinProfileInfo: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          {!isAuthenticated && (
+            <Button
+              variant="secondary"
+              className="w-full bg-pink-200 hover:bg-pink-300"
+            >
+              Save Results to Profile
+            </Button>
+          )}
+
+          {/* <Button variant="outline" className="w-full">
+            Share Results
+          </Button> */}
           <Button
-            variant="secondary"
+            variant="outline"
+            onClick={() => navigate({ to: '/quiz' })}
             className="w-full bg-pink-200 hover:bg-pink-300"
           >
-            Save Results to Profile
-          </Button>
-          <Button variant="outline" className="w-full">
-            Share Results
-          </Button>
-          <Button variant="outline" className="w-full">
             Retake Quiz
           </Button>
         </CardContent>
