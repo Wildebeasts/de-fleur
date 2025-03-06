@@ -29,13 +29,14 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
     try {
       setIsAddingToCart(true)
 
-      // Use PUT API to update cart item (adds if not exists, updates if exists)
-      await cartApi.updateCart({
-        cartId: '',
-        items: [{ cosmeticId: cosmetic.id, quantity: 1 }]
-      })
+      // Call the updateCartItem API with the correct parameters
+      const response = await cartApi.updateCartItem(cosmetic.id, 1)
 
-      toast.success(`${cosmetic.name} added to cart!`)
+      if (response.data.isSuccess) {
+        toast.success(`${cosmetic.name} added to cart!`)
+      } else {
+        toast.error(response.data.message || 'Failed to add item to cart')
+      }
     } catch (error) {
       console.error('Error adding to cart:', error)
       toast.error('Không thể thêm vào giỏ hàng')

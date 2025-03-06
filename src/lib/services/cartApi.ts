@@ -1,28 +1,43 @@
 import axiosClient from '../api/axiosClient'
-import { ApiResponse } from '../types/base/Api'
+import { ApiResponse } from '@/lib/types/base/Api'
 import {
   CartResponse,
   AddProductRequest,
-  UpdateCartRequest
-} from '../types/Cart'
+  UpdateCartItemDto
+} from '@/lib/types/Cart'
 
 const cartApi = {
-  getAllCarts: () => axiosClient.get<ApiResponse<CartResponse[]>>('/cart'),
-
-  viewCart: (cartId: string) =>
-    axiosClient.get<ApiResponse<CartResponse>>(`/cart/${cartId}`),
-
+  // Get current user's cart
   getCurrentCart: () => axiosClient.get<ApiResponse<CartResponse>>('/cart/me'),
 
-  addToCart: (request: AddProductRequest) =>
-    axiosClient.put<ApiResponse<CartResponse>>('/cart/me/items', request),
+  // Get cart by ID (admin)
+  getCartById: (cartId: string) =>
+    axiosClient.get<ApiResponse<CartResponse>>(`/cart/${cartId}`),
 
-  updateCart: (request: UpdateCartRequest) =>
-    axiosClient.put<ApiResponse<CartResponse>>('/cart/me', request),
+  // Get all carts (admin)
+  getAllCarts: () => axiosClient.get<ApiResponse<CartResponse[]>>('/cart'),
 
-  removeFromCart: (cartId: string, cosmeticId: string) =>
+  // This method is for adding a new item to cart (incrementing quantity)
+  addToCart: (cosmeticId: string, quantity: number) =>
+    axiosClient.put<ApiResponse<CartResponse>>('/cart/me/items', {
+      cosmeticId,
+      quantity
+    } as AddProductRequest),
+
+  // This method is for updating the entire cart with absolute quantities
+  updateCart: (items: UpdateCartItemDto[]) =>
+    axiosClient.put<ApiResponse<CartResponse>>('/cart/me', items),
+
+  // Remove cart item for current user
+  removeCartItem: (cosmeticId: string) =>
     axiosClient.delete<ApiResponse<CartResponse>>(
-      `/api/cart/${cartId}/items/${cosmeticId}`
+      `/cart/me/items/${cosmeticId}`
+    ),
+
+  // Remove cart item (admin)
+  removeCartItemAdmin: (cartId: string, cosmeticId: string) =>
+    axiosClient.delete<ApiResponse<CartResponse[]>>(
+      `/cart/${cartId}/items/${cosmeticId}`
     )
 }
 

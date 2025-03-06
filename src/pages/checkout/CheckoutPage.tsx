@@ -69,7 +69,7 @@ const CheckoutPage: React.FC = () => {
     lastName: '',
     address: '',
     wardCode: '21009', // Default value, should be selected by user
-    districtId: 1462, // Default value, should be selected by user
+    districtId: 1566, // Default value, should be selected by user
     city: '',
     postalCode: ''
   })

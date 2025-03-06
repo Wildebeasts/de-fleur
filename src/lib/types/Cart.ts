@@ -21,7 +21,11 @@ export interface CartItem {
 export interface CartResponse {
   id: string
   totalPrice: number
-  customer: CartCustomer
+  customer: {
+    id: string
+    userName: string
+    email: string
+  }
   items: CartItem[]
 }
 
