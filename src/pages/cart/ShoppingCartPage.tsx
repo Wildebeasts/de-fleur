@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import OrderSummary from '@/components/Cart/OrderSummary'
 import CartItem from '@/components/Cart/CartItem'
 import NeedHelp from '@/components/Cart/NeedHelp'
 import SecurityInfo from '@/components/Cart/SecurityInfo'
 import { Button } from '@/components/ui/button'
-import { useCart } from '@/lib/context/CartContext'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import cartApi from '@/lib/services/cartApi'
-import { useAuth } from '@/lib/context/AuthContext'
+import { toast } from 'sonner'
+import { CartItem as ApiCartItem } from '@/lib/types/Cart'
 
 // Define animation variants
 const containerVariants = {
@@ -27,26 +28,150 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 }
 
+// Define your local CartItem type
+interface CartItem {
+  cosmeticId: string
+  cosmeticName: string
+  cosmeticImage: string
+  price: number
+  quantity: number
+  subtotal: number
+  weight: number
+  length: number
+  width: number
+  height: number
+}
+
 const ShoppingCartPage: React.FC = () => {
-  const { cartItems, getItemCount } = useCart()
-  const { isAuthenticated } = useAuth()
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [cartId, setCartId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const navigate = useNavigate()
+
+  // Fetch cart data directly from API
+  const fetchCart = async () => {
+    try {
+      setIsLoading(true)
+      const response = await cartApi.getCurrentCart()
+      if (response.data.isSuccess) {
+        // Map API response to your component's CartItem type
+        const items =
+          response.data.data?.items?.map((item: ApiCartItem) => ({
+            cosmeticId: item.cosmeticId,
+            cosmeticName: item.cosmeticName,
+            cosmeticImage: item.cosmeticImage || '',
+            price: item.price,
+            quantity: item.quantity,
+            subtotal: item.price * item.quantity,
+            weight: item.weight || 0,
+            length: item.length || 0,
+            width: item.width || 0,
+            height: item.height || 0
+          })) || []
+
+        setCartItems(items)
+        setCartId(response.data.data?.id || null)
+      }
+    } catch (error) {
+      console.error('Error fetching cart:', error)
+      toast.error('Không thể tải giỏ hàng')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    const fetchUserCart = async () => {
-      if (isAuthenticated) {
-        try {
-          const response = await cartApi.getCurrentCart()
-          // The cart data will be automatically handled by CartContext
-          console.log('Cart fetched successfully:', response.data)
-        } catch (error) {
-          console.error('Error fetching cart:', error)
-        }
-      }
+    fetchCart()
+  }, [])
+
+  // Update item quantity
+  const updateItemQuantity = async (cosmeticId: string, quantity: number) => {
+    try {
+      setIsUpdating(true)
+
+      // Optimistically update UI
+      const updatedItems = cartItems.map((item) =>
+        item.cosmeticId === cosmeticId ? { ...item, quantity } : item
+      )
+      setCartItems(updatedItems)
+
+      // Send API request using your existing cart API
+      await cartApi.updateCart({
+        cartId: cartId || '',
+        items: [{ cosmeticId, quantity }]
+      })
+
+      // Refetch to confirm update
+      fetchCart()
+    } catch (error) {
+      console.error('Error updating cart:', error)
+      toast.error('Không thể cập nhật giỏ hàng')
+      // Revert to original state on error
+      fetchCart()
+    } finally {
+      setIsUpdating(false)
     }
+  }
 
-    fetchUserCart()
-  }, [isAuthenticated])
+  // Remove item
+  const removeItem = async (cosmeticId: string) => {
+    try {
+      setIsUpdating(true)
 
+      // Optimistically update UI
+      const updatedItems = cartItems.filter(
+        (item) => item.cosmeticId !== cosmeticId
+      )
+      setCartItems(updatedItems)
+
+      // Send API request
+      await cartApi.removeFromCart(cartId || '', cosmeticId)
+
+      // Success message
+      toast.success('Đã xóa sản phẩm khỏi giỏ hàng')
+    } catch (error) {
+      console.error('Error removing item:', error)
+      toast.error('Không thể xóa sản phẩm')
+      // Revert to original state on error
+      fetchCart()
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleCheckout = () => {
+    navigate({ to: '/checkout' })
+  }
+
+  const getCartTotal = () => {
+    return cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    )
+  }
+
+  // Render loading state
+  if (isLoading) {
+    return <div className="container mx-auto p-4">Loading cart...</div>
+  }
+
+  // Render empty cart state
+  if (cartItems.length === 0) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <h2 className="mb-4 text-2xl font-semibold">Your cart is empty</h2>
+        <button
+          className="rounded-full bg-[#3A4D39] px-6 py-2 text-white"
+          onClick={() => navigate({ to: '/shop' })}
+        >
+          Continue Shopping
+        </button>
+      </div>
+    )
+  }
+
+  // Render cart with items
   return (
     <motion.div
       initial="hidden"
@@ -71,7 +196,7 @@ const ShoppingCartPage: React.FC = () => {
                       variants={itemVariants}
                       className="text-2xl font-semibold leading-none text-black"
                     >
-                      Shopping Cart ({getItemCount()})
+                      Shopping Cart ({cartItems.length})
                     </motion.h1>
                     <Link to="/collections">
                       <Button variant="ghost" className="hover:bg-[#D1E2C4]/20">
@@ -103,23 +228,21 @@ const ShoppingCartPage: React.FC = () => {
                     variants={itemVariants}
                     className="mt-6 flex w-full flex-col gap-4"
                   >
-                    {cartItems.length > 0 ? (
-                      cartItems.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-                          variants={itemVariants}
-                          initial="hidden"
-                          animate="visible"
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <CartItem item={item} />
-                        </motion.div>
-                      ))
-                    ) : (
-                      <div className="py-8 text-center text-gray-500">
-                        Your cart is empty
-                      </div>
-                    )}
+                    {cartItems.map((item, index) => (
+                      <motion.div
+                        key={item.cosmeticId}
+                        variants={itemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <CartItem
+                          item={item}
+                          updateQuantity={updateItemQuantity}
+                          removeItem={removeItem}
+                        />
+                      </motion.div>
+                    ))}
                   </motion.div>
                 </div>
               </div>

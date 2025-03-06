@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react'
-import { ProductCard } from '../../components/ProductCard'
-import { useNavigate } from '@tanstack/react-router'
+import ProductCard from '@/components/Store/ProductCard'
 import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
 import { Loader2 } from 'lucide-react'
+import { CosmeticResponse } from '@/lib/types/Cosmetic'
 
 // Fallback products in case API fails
 const fallbackProducts = [
@@ -42,8 +43,6 @@ const fallbackProducts = [
 ]
 
 export const BestsellingProducts: React.FC = () => {
-  const navigate = useNavigate()
-
   // Fetch products from API
   const { data: cosmetics, isLoading } = useQuery({
     queryKey: ['bestsellers'],
@@ -56,37 +55,6 @@ export const BestsellingProducts: React.FC = () => {
     }
   })
 
-  // Process products for display
-  const products = React.useMemo(() => {
-    if (!cosmetics || cosmetics.length === 0) return fallbackProducts
-
-    // Sort by popularity, rating, or any other criteria you want
-    // Here we're just taking the first 4 products
-    return cosmetics.slice(0, 4).map((product) => ({
-      id: product.id,
-      imageSrc:
-        typeof product.cosmeticImages?.[0] === 'object' &&
-        product.cosmeticImages?.[0] !== null
-          ? (product.cosmeticImages[0] as { imageUrl?: string }).imageUrl || ''
-          : typeof product.cosmeticImages?.[0] === 'string'
-            ? product.cosmeticImages[0]
-            : 'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
-      title: product.name || 'Unnamed Product',
-      description:
-        product.notice || product.mainUsage || 'Premium skincare product',
-      price: `$${product.price.toFixed(2)}`
-    }))
-  }, [cosmetics])
-
-  const handleProductClick = (productId: string) => {
-    navigate({
-      to: '/shopDetails',
-      search: {
-        productId
-      }
-    })
-  }
-
   if (isLoading) {
     return (
       <section className="flex h-96 items-center justify-center bg-gradient-to-b from-white to-[#F9F5F0] px-20 py-16 max-md:px-5">
@@ -97,6 +65,9 @@ export const BestsellingProducts: React.FC = () => {
       </section>
     )
   }
+
+  // Get the first 4 products or fewer if not enough
+  const bestsellingProducts = cosmetics?.slice(0, 4) || []
 
   return (
     <section
@@ -123,15 +94,20 @@ export const BestsellingProducts: React.FC = () => {
 
         <div className="mt-14 max-md:mt-10 max-md:max-w-full">
           <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
-            {products.map((product, index) => (
-              <div
-                key={index}
-                className="group cursor-pointer transition-all duration-300 hover:scale-105"
-                onClick={() => handleProductClick(product.id)}
-              >
-                <ProductCard {...product} />
+            {bestsellingProducts.length > 0 ? (
+              bestsellingProducts.map((cosmetic: CosmeticResponse) => (
+                <div
+                  key={cosmetic.id}
+                  className="group transition-all duration-300"
+                >
+                  <ProductCard cosmetic={cosmetic} />
+                </div>
+              ))
+            ) : (
+              <div className="col-span-4 text-center text-lg text-gray-500">
+                No bestselling products available at the moment.
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

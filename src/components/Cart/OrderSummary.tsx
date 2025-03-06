@@ -1,128 +1,128 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Link } from '@tanstack/react-router'
-import { useCart } from '@/lib/context/CartContext'
-import { useState } from 'react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState, useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
+import cartApi from '@/lib/services/cartApi'
+import { Button } from '@/components/ui/button'
 
-const OrderSummary: React.FC = () => {
-  const { getSubtotal, getCartTotal, coupon, applyCoupon, removeCoupon } =
-    useCart()
-  const [couponCode, setCouponCode] = useState('')
+interface OrderSummaryProps {
+  refreshTrigger?: number // Optional prop to trigger refresh
+}
 
-  const subtotal = getSubtotal()
-  const total = getCartTotal()
-  const discount = coupon ? subtotal - total : 0
+const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
+  const [isLoading, setIsLoading] = useState(true)
+  const [cartData, setCartData] = useState<any>(null)
+  const navigate = useNavigate()
 
-  const handleApplyCoupon = () => {
-    if (!couponCode.trim()) {
-      toast.error('Please enter a coupon code')
-      return
+  // Fetch cart data directly from API
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        setIsLoading(true)
+        const response = await cartApi.getCurrentCart()
+        if (response.data.isSuccess) {
+          setCartData(response.data.data)
+        }
+      } catch (error) {
+        console.error('Error fetching cart:', error)
+        toast.error('Không thể tải thông tin giỏ hàng')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    // In a real application, you would validate the coupon with your API
-    applyCoupon(couponCode)
-    toast.success('Coupon applied successfully!')
-    setCouponCode('')
+    fetchCart()
+  }, [refreshTrigger]) // Refetch when refreshTrigger changes
+
+  const handleCheckout = () => {
+    navigate({ to: '/checkout' })
+  }
+
+  // Calculate cart totals
+  const getSubtotal = () => {
+    if (!cartData || !cartData.items || !cartData.items.length) return 0
+    return cartData.items.reduce(
+      (total: number, item: any) => total + item.price * item.quantity,
+      0
+    )
+  }
+
+  // You can add shipping calculation logic here if needed
+  const getShipping = () => {
+    return 0 // Free shipping or calculate based on your business logic
+  }
+
+  const getTotal = () => {
+    return getSubtotal() + getShipping()
+  }
+
+  if (isLoading) {
+    return (
+      <div className="rounded-lg bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+        <div className="animate-pulse">
+          <div className="mb-4 h-4 w-full rounded bg-gray-200"></div>
+          <div className="mb-4 h-4 w-3/4 rounded bg-gray-200"></div>
+          <div className="mb-4 h-4 w-1/2 rounded bg-gray-200"></div>
+          <div className="mt-6 h-10 w-full rounded bg-gray-200"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!cartData || !cartData.items || cartData.items.length === 0) {
+    return (
+      <div className="rounded-lg bg-white p-6 shadow-sm">
+        <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+        <p className="mb-4 text-gray-500">Your cart is empty</p>
+        <Button
+          className="w-full rounded-full bg-[#3A4D39] py-3 text-white hover:bg-[#4A5D49]"
+          onClick={() => navigate({ to: '/shop' })}
+        >
+          Continue Shopping
+        </Button>
+      </div>
+    )
   }
 
   return (
-    <div className="flex w-full flex-col rounded-lg bg-white p-6 shadow-sm max-md:max-w-full max-md:px-5">
-      <div className="flex w-full flex-col p-0.5 max-md:max-w-full">
-        <div className="text-xl font-semibold leading-none text-black">
-          Order Summary
+    <div className="rounded-lg bg-white p-6 shadow-sm">
+      <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+
+      <div className="space-y-3">
+        <div className="flex justify-between">
+          <span className="text-gray-600">Subtotal</span>
+          <span>{getSubtotal().toLocaleString('vi-VN')}₫</span>
         </div>
 
-        <div className="mt-6 flex w-full flex-col rounded-lg bg-[#D1E2C4]/20 px-4 pb-6 pt-4">
-          <div className="pb-4 text-xs font-semibold leading-none text-black">
-            Apply Discount Code
-          </div>
-          <div className="flex gap-2.5">
-            <Input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              className="flex-1 rounded-lg border border-solid border-gray-300 px-4 py-2.5 text-sm text-black"
-              placeholder="Enter code"
-            />
-            <Button
-              onClick={handleApplyCoupon}
-              className="rounded-lg bg-[#3A4D39] px-4 py-2.5 text-sm font-medium text-white"
-            >
-              Apply
-            </Button>
-          </div>
-
-          {coupon && (
-            <div className="mt-2 flex justify-between text-sm">
-              <span>Applied: {coupon.code}</span>
-              <button
-                onClick={removeCoupon}
-                className="text-red-500 hover:text-red-700"
-              >
-                Remove
-              </button>
-            </div>
-          )}
+        <div className="flex justify-between">
+          <span className="text-gray-600">Shipping</span>
+          <span>
+            {getShipping() === 0
+              ? 'Free'
+              : getShipping().toLocaleString('vi-VN') + '₫'}
+          </span>
         </div>
 
-        <div className="mt-6 flex flex-col gap-4 border-t border-solid border-gray-300 pt-6 text-black">
-          <div className="flex justify-between gap-5 py-px">
-            <div className="text-sm">Tạm tính</div>
-            <div className="text-right text-sm font-medium">
-              {subtotal.toLocaleString('vi-VN')}₫
-            </div>
-          </div>
+        {/* You can add tax, discounts, etc. here */}
 
-          {discount > 0 && (
-            <div className="flex justify-between gap-5 py-px text-green-600">
-              <div className="text-sm">Giảm giá</div>
-              <div className="text-right text-sm font-medium">
-                -{discount.toLocaleString('vi-VN')}₫
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-between gap-5 py-px">
-            <div className="text-sm">Phí vận chuyển</div>
-            <div className="text-right text-sm font-medium">Miễn phí</div>
-          </div>
-
-          <div className="mt-2 flex justify-between gap-5 border-t border-solid border-gray-300 pt-4">
-            <div className="text-base font-semibold">Tổng</div>
-            <div className="text-right text-lg font-semibold">
-              {total.toLocaleString('vi-VN')}₫
-            </div>
-          </div>
-        </div>
-
-        <Link to="/checkout" className="mt-6">
-          <Button className="w-full rounded-full bg-[#3A4D39] py-3 text-center text-base font-medium text-white">
-            Proceed to Checkout
-          </Button>
-        </Link>
-
-        <div className="mt-6 flex w-full flex-col gap-2">
-          <div className="flex items-center gap-2 text-sm text-black">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/8a8c03b5ff6d7872e14f9d5dedd22c8fe52e56bd293e2b71b00fef03f84c1d83"
-              alt="Secure payment"
-              className="aspect-square w-5 object-contain"
-            />
-            <div>Secure Payment</div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-black">
-            <img
-              loading="lazy"
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/5a22c1452f1ec70602818a323e77c5d6ace2332e46f93d8ab8f9b6eaf4b3d3bc"
-              alt="Free shipping"
-              className="aspect-square w-5 object-contain"
-            />
-            <div>Free Shipping Over $75</div>
+        <div className="border-t pt-3">
+          <div className="flex justify-between font-semibold">
+            <span>Total</span>
+            <span className="text-lg text-[#3A4D39]">
+              {getTotal().toLocaleString('vi-VN')}₫
+            </span>
           </div>
         </div>
       </div>
+
+      <Button
+        className="mt-6 w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
+        onClick={handleCheckout}
+        disabled={!cartData || !cartData.items || cartData.items.length === 0}
+      >
+        Proceed to Checkout
+      </Button>
     </div>
   )
 }

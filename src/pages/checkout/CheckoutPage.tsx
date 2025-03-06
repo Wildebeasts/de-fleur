@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -11,7 +12,6 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import vnpayLogo from '@/assets/vnpay.jpg'
 import paymentApi from '@/lib/services/paymentApi'
-import { useCart } from '@/lib/context/CartContext' // Assuming you have a cart context
 import orderApi from '@/lib/services/orderApi'
 import { useNavigate } from '@tanstack/react-router'
 import { CreateOrderRequest } from '@/lib/types/order'
@@ -51,15 +51,16 @@ interface ShippingForm {
   firstName: string
   lastName: string
   address: string
+  wardCode: string
+  districtId: number
   city: string
   postalCode: string
 }
 
 const CheckoutPage: React.FC = () => {
-  const [selectedPayment, setSelectedPayment] = useState('vnpay')
   const [isLoading, setIsLoading] = useState(false)
-  const [currentCart, setCurrentCart] = useState<string | null>(null)
-  const { getCartTotal, coupon } = useCart()
+  const [isCartLoading, setIsCartLoading] = useState(true)
+  const [cartData, setCartData] = useState<any>(null)
   const navigate = useNavigate()
 
   // Form state
@@ -67,26 +68,35 @@ const CheckoutPage: React.FC = () => {
     firstName: '',
     lastName: '',
     address: '',
+    wardCode: '21009', // Default value, should be selected by user
+    districtId: 1462, // Default value, should be selected by user
     city: '',
     postalCode: ''
   })
 
-  // Fetch current cart when component mounts
+  // Fetch cart data on component mount
   useEffect(() => {
-    const fetchCurrentCart = async () => {
-      try {
-        const response = await cartApi.getCurrentCart()
-        if (response.data.isSuccess) {
-          setCurrentCart(response.data.data?.id || null)
-        }
-      } catch (error) {
-        console.error('Error fetching cart:', error)
-        toast.error('Không thể tải thông tin giỏ hàng')
-      }
-    }
-
-    fetchCurrentCart()
+    fetchCart()
   }, [])
+
+  const fetchCart = async () => {
+    try {
+      setIsCartLoading(true)
+      const response = await cartApi.getCurrentCart()
+      if (response.data.isSuccess && response.data.data) {
+        setCartData(response.data.data)
+      } else {
+        toast.error('Giỏ hàng trống')
+        navigate({ to: '/cart' })
+      }
+    } catch (error) {
+      console.error('Error fetching cart:', error)
+      toast.error('Không thể tải thông tin giỏ hàng')
+      navigate({ to: '/cart' })
+    } finally {
+      setIsCartLoading(false)
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -110,32 +120,29 @@ const CheckoutPage: React.FC = () => {
       if (!validateForm()) return
       setIsLoading(true)
 
-      if (!currentCart) {
+      if (!cartData || !cartData.id) {
         toast.error('Không tìm thấy giỏ hàng')
+        navigate({ to: '/cart' })
         return
       }
 
       // Construct full address string
-      const fullAddress = `${formData.address}, ${formData.city}, ${formData.postalCode}`
+      const fullAddress = `${formData.firstName} ${formData.lastName}, ${formData.address}, ${formData.city}, ${formData.postalCode}`
 
-      const orderRequest: CreateOrderRequest = {
-        cartId: currentCart,
+      const orderRequest = {
+        cartId: cartData.id,
         shippingAddress: fullAddress,
         billingAddress: fullAddress, // Using same address for billing
         paymentMethod: 'ONLINE',
         currency: 'VND',
-        wardCode: '21009', // You'll need to get these from a dropdown or API
-        districtId: 1462 // You'll need to get these from a dropdown or API
-      }
-
-      if (coupon) {
-        orderRequest.couponId = coupon.code
+        wardCode: formData.wardCode,
+        districtId: formData.districtId
       }
 
       const response = await orderApi.createOrder(orderRequest)
 
       if (response.data.isSuccess && response.data.data?.paymentUrl) {
-        // Redirect to VNPay payment page
+        // Redirect to payment page
         window.location.href = response.data.data.paymentUrl
       } else {
         toast.error('Không thể tạo đơn hàng')
@@ -158,7 +165,30 @@ const CheckoutPage: React.FC = () => {
     }
   ]
 
-  const cartTotal = getCartTotal()
+  if (isCartLoading) {
+    return (
+      <div className="container mx-auto p-4">
+        Loading checkout information...
+      </div>
+    )
+  }
+
+  if (!cartData || cartData.items.length === 0) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <h2 className="mb-4 text-2xl font-semibold">Your cart is empty</h2>
+        <Button onClick={() => navigate({ to: '/shop' })}>
+          Continue Shopping
+        </Button>
+      </div>
+    )
+  }
+
+  // Calculate cart total
+  const cartTotal = cartData.items.reduce(
+    (sum: number, item: any) => sum + item.price * item.quantity,
+    0
+  )
 
   return (
     <motion.div
@@ -241,8 +271,10 @@ const CheckoutPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <RadioGroup
-                    value={selectedPayment}
-                    onValueChange={setSelectedPayment}
+                    value={formData.wardCode}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({ ...prev, wardCode: value }))
+                    }
                     className="space-y-4"
                   >
                     {paymentMethods.map((method) => (
@@ -284,7 +316,7 @@ const CheckoutPage: React.FC = () => {
                 <Button
                   className="w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
                   onClick={handleCheckout}
-                  disabled={isLoading || !currentCart}
+                  disabled={isLoading}
                 >
                   {isLoading
                     ? 'Đang xử lý...'

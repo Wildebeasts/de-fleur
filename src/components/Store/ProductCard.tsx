@@ -4,8 +4,8 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { useNavigate } from '@tanstack/react-router'
-import { useCart } from '@/lib/context/CartContext'
 import { toast } from 'sonner'
+import cartApi from '@/lib/services/cartApi'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
@@ -15,7 +15,6 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const navigate = useNavigate()
-  const { addToCart } = useCart()
 
   const handleQuickView = () => {
     navigate({
@@ -29,18 +28,13 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
   const handleAddToCart = async () => {
     try {
       setIsAddingToCart(true)
-      await addToCart({
-        id: cosmetic.id,
-        name: cosmetic.name,
-        price: cosmetic.price,
-        quantity: 1,
-        imageUrl: cosmetic.thumbnailUrl || cosmetic.cosmeticImages?.[0],
-        subtotal: cosmetic.price,
-        weight: cosmetic.weight || 0,
-        length: cosmetic.length || 0,
-        width: cosmetic.width || 0,
-        height: cosmetic.height || 0
+
+      // Use PUT API to update cart item (adds if not exists, updates if exists)
+      await cartApi.updateCart({
+        cartId: '',
+        items: [{ cosmeticId: cosmetic.id, quantity: 1 }]
       })
+
       toast.success(`${cosmetic.name} added to cart!`)
     } catch (error) {
       console.error('Error adding to cart:', error)

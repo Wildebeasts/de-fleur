@@ -3,7 +3,6 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { useCart } from '@/lib/context/CartContext'
 import { toast } from 'sonner'
 
 interface ProductCardProps {
@@ -29,7 +28,6 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
-  const { addToCart } = useCart()
 
   const handleQuickViewClick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -41,18 +39,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const handleAddToCart = async () => {
     try {
       setIsAddingToCart(true)
-      await addToCart({
-        id,
-        quantity: 1,
-        name: title,
-        price: price,
-        imageUrl: imageSrc,
-        subtotal: price,
-        weight: 0,
-        length: 0,
-        width: 0,
-        height: 0
-      })
+
       toast.success('Đã thêm vào giỏ hàng')
     } catch (error) {
       console.error('Error adding to cart:', error)

@@ -3,7 +3,6 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AuthProvider } from './lib/context/AuthContext'
-import { CartProvider } from './lib/context/CartContext'
 import { Toaster } from 'sonner'
 import './index.css'
 
@@ -34,12 +33,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <CartProvider>
-          <main>
-            <RouterProvider router={router} />
-          </main>
-          <Toaster position="bottom-right" richColors />
-        </CartProvider>
+        <main>
+          <RouterProvider router={router} />
+        </main>
+        <Toaster position="bottom-right" richColors />
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

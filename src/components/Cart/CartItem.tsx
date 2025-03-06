@@ -1,78 +1,115 @@
-import React from 'react'
-import { QuantityInput } from '@/components/ui/quantity-input'
-import { useCart } from '@/lib/context/CartContext'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 
-interface CartItemProps {
-  item: {
-    id: string
-    name: string
-    price: number
-    quantity: number
-    cosmeticImages?: string[]
-    ingredients?: string
-    cosmeticType?: string
-    brand?: string
-  }
+interface CartItemData {
+  cosmeticId: string
+  cosmeticName: string
+  cosmeticImage: string
+  price: number
+  quantity: number
+  subtotal: number
+  weight: number
+  length: number
+  width: number
+  height: number
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item }) => {
-  const { updateQuantity, removeFromCart } = useCart()
+interface CartItemProps {
+  item: CartItemData
+  updateQuantity: (cosmeticId: string, quantity: number) => Promise<void>
+  removeItem: (cosmeticId: string) => Promise<void>
+}
 
-  const handleQuantityChange = (newQuantity: number) => {
-    updateQuantity(item.id, newQuantity)
+const CartItem: React.FC<CartItemProps> = ({
+  item,
+  updateQuantity,
+  removeItem
+}) => {
+  const [isUpdating, setIsUpdating] = useState(false)
+
+  const handleUpdateQuantity = async (newQuantity: number) => {
+    if (newQuantity < 1) return
+
+    try {
+      setIsUpdating(true)
+      await updateQuantity(item.cosmeticId, newQuantity)
+    } catch (error) {
+      console.error('Error updating quantity:', error)
+      toast.error('Không thể cập nhật số lượng')
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleRemoveItem = async () => {
+    try {
+      setIsUpdating(true)
+      await removeItem(item.cosmeticId)
+    } catch (error) {
+      console.error('Error removing item:', error)
+      toast.error('Không thể xóa sản phẩm')
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
   return (
-    <div className="flex flex-wrap gap-4 pb-6">
+    <div className="flex items-center border-b py-4">
       <img
-        loading="lazy"
-        src={
-          item.cosmeticImages?.[0] ||
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/5601b244a695bdf6e6696f50c1b6d1beeb7b5877098233b16a614080b6cb9ccc'
-        }
-        alt={item.name}
-        className="aspect-square w-24 shrink-0 self-start object-contain"
+        src={item.cosmeticImage}
+        alt={item.cosmeticName}
+        className="w-20 h-20 object-cover rounded"
       />
-      <div className="flex w-fit shrink-0 grow basis-0 flex-col py-px max-md:max-w-full">
-        <div className="flex flex-wrap justify-between gap-5 leading-none max-md:max-w-full">
-          <div className="flex flex-col pb-2.5 pt-0.5">
-            <div className="text-base font-medium text-black">{item.name}</div>
-            <div className="mt-3 self-start text-sm text-black">
-              {item.ingredients || item.cosmeticType || ''}
-            </div>
-            {item.brand && (
-              <div className="mt-1 self-start text-xs text-gray-600">
-                Thương hiệu: {item.brand}
-              </div>
-            )}
-          </div>
-          <div className="self-start text-base font-medium text-black">
-            {item.price.toLocaleString('vi-VN')}₫
-          </div>
-        </div>
-        <div className="mt-4 flex w-full flex-wrap justify-between gap-5 max-md:max-w-full">
-          <QuantityInput
-            value={item.quantity}
-            onValueChange={handleQuantityChange}
-            className="w-32"
-            aria-label="Product quantity"
-          />
-          <div className="my-auto flex gap-4 text-center text-sm text-black">
-            <button className="px-px pb-2 pt-px">Save for Later</button>
-            <button
-              onClick={() => removeFromCart(item.id)}
-              className="flex items-center"
-            >
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/a232d000dcece140f9fcf3bb7cd14e47345d8408fe2becf4582d85f4bc6b9046"
-                alt="Remove item"
-                className="aspect-[0.7] w-3.5 shrink-0 object-contain"
-              />
-            </button>
-          </div>
-        </div>
+
+      <div className="ml-4 flex-grow">
+        <h3 className="font-medium">{item.cosmeticName}</h3>
+        <p className="text-[#3A4D39] font-semibold">
+          {item.price.toLocaleString('vi-VN')}₫
+        </p>
+        <p className="text-sm text-gray-500">
+          Subtotal: {item.subtotal.toLocaleString('vi-VN')}₫
+        </p>
       </div>
+
+      <div className="flex items-center">
+        <button
+          className="px-3 py-1 border rounded-l"
+          onClick={() => handleUpdateQuantity(item.quantity - 1)}
+          disabled={isUpdating}
+        >
+          -
+        </button>
+        <span className="px-4 py-1 border-t border-b">{item.quantity}</span>
+        <button
+          className="px-3 py-1 border rounded-r"
+          onClick={() => handleUpdateQuantity(item.quantity + 1)}
+          disabled={isUpdating}
+        >
+          +
+        </button>
+      </div>
+
+      <button
+        className="ml-4 text-red-500"
+        onClick={handleRemoveItem}
+        disabled={isUpdating}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 6h18"></path>
+          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+        </svg>
+      </button>
     </div>
   )
 }
