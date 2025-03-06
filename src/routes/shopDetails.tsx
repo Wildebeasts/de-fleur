@@ -105,15 +105,15 @@ function RouteComponent() {
       image:
         'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
       name: 'Related Product 1',
-      price: '$65.00',
+      price: 65.0,
       id: '123e4567-e89b-12d3-a456-426614174001'
     },
     {
       image:
         'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
       name: 'Related Product 2',
-      price: '$75.00'
-      // id: '123e4567-e89b-12d3-a456-426614174002'
+      price: 75.0,
+      id: '123e4567-e89b-12d3-a456-426614174002'
     }
   ]
 
@@ -180,7 +180,7 @@ function RouteComponent() {
               return {
                 id: String(Math.random()),
                 customerId: '',
-                customerName: null,
+                customer: { id: '', email: '', userName: null },
                 content: feedback,
                 rating: 0
               }
@@ -188,7 +188,11 @@ function RouteComponent() {
             return {
               id: (feedback as any).id || String(Math.random()),
               customerId: (feedback as any).customerId || '',
-              customerName: (feedback as any).customerName || null,
+              customer: {
+                id: (feedback as any).customerId || '',
+                email: '',
+                userName: (feedback as any).customerName || null
+              },
               content: (feedback as any).content || null,
               rating: (feedback as any).rating || 0
             }
