@@ -1,5 +1,6 @@
 import axiosClient from '@/lib/api/axiosClient'
 import { ApiResponse } from '@/lib/types/base/Api'
+import { SkinTypeResponse } from '../types/SkinType'
 
 export interface UserDto {
   id: string
@@ -20,6 +21,8 @@ export interface UserProfile {
   firstName: string
   lastName: string
   avatarUrl: string
+  skinTypeId: string
+  skinType: SkinTypeResponse
   roles: string[]
 }
 

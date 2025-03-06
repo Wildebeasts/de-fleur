@@ -11,13 +11,22 @@ import { useQuizResult } from '@/lib/context/QuizResultContext'
 import { useGetQuiz, useSubmitQuiz } from '@/lib/hooks/useQuiz'
 import { Loader2 } from 'lucide-react'
 
+interface QuizSubmission {
+  id: string
+  data: {
+    answers: {
+      questionId: string
+      selectedOptionIds: string[]
+    }[]
+  }
+}
+
 const QuizPage: React.FC = () => {
   const navigate = useNavigate()
   const [selectedAnswers, setSelectedAnswers] = useState<{
     [key: string]: string[]
   }>({})
   const [processingResults, setProcessingResults] = useState(false)
-
   const { setQuizResults } = useQuizResult()
 
   // Use the query hook
@@ -43,6 +52,9 @@ const QuizPage: React.FC = () => {
         selectedOptionIds
       })
     )
+
+    const submission = { id: quiz.id, data: { answers } } as QuizSubmission
+    localStorage.setItem('quiz-answers', JSON.stringify(submission))
 
     // Delay the actual submission to give the loader time to render
     setTimeout(() => {

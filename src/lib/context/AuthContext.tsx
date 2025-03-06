@@ -18,6 +18,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const loginMutation = useLogin()
 
+  // useEffect(() => {
+  //   const storedUser = localStorage.getItem('user')
+  //   if (storedUser) {
+  //     setUser(JSON.parse(storedUser))
+  //     setIsAuthenticated(true) // Make sure this updates!
+  //   }
+  // }, [])
+
   const login = async (credentials: LoginRequest) => {
     try {
       const response: LoginApiResponse =
@@ -28,6 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.data) {
         localStorage.setItem('accessToken', response.data.accessToken)
         localStorage.setItem('refreshToken', response.data.refreshToken)
+        localStorage.setItem('user', JSON.stringify(response.data))
         setUser(response.data as LoginResponse)
         setIsAuthenticated(true)
       } else {
@@ -39,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Login error:', error) // Debug log
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
       setUser(null)
       setIsAuthenticated(false)
       throw error
@@ -48,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
     setUser(null)
     setIsAuthenticated(false)
   }
