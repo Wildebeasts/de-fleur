@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { CartItem as CartItemType } from '@/lib/types/Cart'
 import cartApi from '@/lib/services/cartApi'
@@ -12,6 +12,13 @@ interface CartItemProps {
 const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
   const [isUpdating, setIsUpdating] = useState(false)
   const [localQuantity, setLocalQuantity] = useState(item.quantity)
+  const [inputValue, setInputValue] = useState(item.quantity.toString())
+
+  // Update local state when item changes from parent
+  useEffect(() => {
+    setLocalQuantity(item.quantity)
+    setInputValue(item.quantity.toString())
+  }, [item.quantity])
 
   // Handle quantity update with absolute values
   const handleUpdateQuantity = async (newQuantity: number) => {
@@ -20,6 +27,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
     try {
       setIsUpdating(true)
       setLocalQuantity(newQuantity) // Update local state immediately for better UX
+      setInputValue(newQuantity.toString())
 
       // Create updated items list with the new quantity
       const updatedItems = allItems.map((cartItem) => {
@@ -41,10 +49,45 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
     } catch (error) {
       // Revert local state if API call fails
       setLocalQuantity(item.quantity)
+      setInputValue(item.quantity.toString())
       console.error('Error updating quantity:', error)
       toast.error('Không thể cập nhật số lượng')
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+
+    // Only allow numeric input
+    if (/^\d*$/.test(value)) {
+      setInputValue(value)
+    }
+  }
+
+  // Handle input blur (when user finishes editing)
+  const handleInputBlur = () => {
+    const newQuantity = parseInt(inputValue, 10)
+
+    // Validate input
+    if (isNaN(newQuantity) || newQuantity < 1) {
+      // Reset to previous valid quantity
+      setInputValue(localQuantity.toString())
+      return
+    }
+
+    // Only update if quantity changed
+    if (newQuantity !== localQuantity) {
+      handleUpdateQuantity(newQuantity)
+    }
+  }
+
+  // Handle key press (Enter key)
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.currentTarget.blur() // Trigger blur event to update
     }
   }
 
@@ -62,7 +105,7 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
   }
 
   return (
-    <div className="flex items-center justify-between border-b border-gray-200 py-4">
+    <div className="flex flex-col items-start justify-between gap-4 border-b border-gray-200 py-4 sm:flex-row sm:items-center">
       <div className="flex items-center">
         <img
           src={item.cosmeticImage}
@@ -81,44 +124,58 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
       </div>
 
       <div className="flex items-center">
+        <div className="flex items-center overflow-hidden rounded-md border">
+          <button
+            className="bg-gray-100 px-3 py-1 transition-colors hover:bg-gray-200"
+            onClick={() => handleUpdateQuantity(localQuantity - 1)}
+            disabled={isUpdating || localQuantity <= 1}
+          >
+            -
+          </button>
+
+          <input
+            type="text"
+            className="w-12 border-x py-1 text-center focus:outline-none"
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+            onKeyDown={handleKeyPress}
+            disabled={isUpdating}
+            aria-label="Quantity"
+          />
+
+          <button
+            className="bg-gray-100 px-3 py-1 transition-colors hover:bg-gray-200"
+            onClick={() => handleUpdateQuantity(localQuantity + 1)}
+            disabled={isUpdating}
+          >
+            +
+          </button>
+        </div>
+
         <button
-          className="rounded-l border px-3 py-1"
-          onClick={() => handleUpdateQuantity(localQuantity - 1)}
-          disabled={isUpdating || localQuantity <= 1}
-        >
-          -
-        </button>
-        <span className="border-y px-4 py-1">{localQuantity}</span>
-        <button
-          className="rounded-r border px-3 py-1"
-          onClick={() => handleUpdateQuantity(localQuantity + 1)}
+          className="ml-4 text-red-500 transition-colors hover:text-red-700"
+          onClick={handleRemoveItem}
           disabled={isUpdating}
+          aria-label="Remove item"
         >
-          +
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
         </button>
       </div>
-
-      <button
-        className="ml-4 text-red-500"
-        onClick={handleRemoveItem}
-        disabled={isUpdating}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 6h18"></path>
-          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-        </svg>
-      </button>
     </div>
   )
 }

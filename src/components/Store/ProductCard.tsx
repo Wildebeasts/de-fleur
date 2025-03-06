@@ -30,7 +30,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       setIsAddingToCart(true)
 
       // Call the updateCartItem API with the correct parameters
-      const response = await cartApi.updateCartItem(cosmetic.id, 1)
+      const response = await cartApi.addToCart(cosmetic.id, 1)
 
       if (response.data.isSuccess) {
         toast.success(`${cosmetic.name} added to cart!`)
