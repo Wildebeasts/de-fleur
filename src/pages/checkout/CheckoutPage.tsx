@@ -16,6 +16,10 @@ import orderApi from '@/lib/services/orderApi'
 import { useNavigate } from '@tanstack/react-router'
 import { CreateOrderRequest } from '@/lib/types/order'
 import cartApi from '@/lib/services/cartApi'
+import { useDelivery } from '@/lib/context/DeliveryContext'
+import ComboBox from '@/components/ui/combobox'
+import { CalculateShippingFeeRequest } from '@/lib/types/delivery'
+import { CartItem } from '@/lib/types/Cart'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -42,92 +46,171 @@ interface PaymentMethod {
 }
 
 interface ShippingInfo {
-  address: string
+  houseNumberStreet: string
   wardCode: string
   districtId: number
+  provinceId: number
 }
 
 interface ShippingForm {
-  firstName: string
-  lastName: string
-  address: string
+  shippingAddress: string
+  billingAddress: string
   wardCode: string
   districtId: number
-  city: string
-  postalCode: string
+  paymentMethod: string
+  couponId: string | null
 }
 
 const CheckoutPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isCartLoading, setIsCartLoading] = useState(true)
   const [cartData, setCartData] = useState<any>(null)
+  const {
+    provinces,
+    districts,
+    wards,
+    fetchDistricts,
+    fetchWards,
+    isDistrictsLoading,
+    isProvincesLoading,
+    isWardsLoading,
+    calculateShippingFee,
+    resetShippingFee
+  } = useDelivery()
   const navigate = useNavigate()
 
   // Form state
-  const [formData, setFormData] = useState<ShippingForm>({
-    firstName: '',
-    lastName: '',
-    address: '',
-    wardCode: '21009', // Default value, should be selected by user
-    districtId: 1566, // Default value, should be selected by user
-    city: '',
-    postalCode: ''
+  const [formData, setFormData] = useState<ShippingInfo>({
+    houseNumberStreet: '',
+    wardCode: '',
+    districtId: 0,
+    provinceId: 0
   })
 
   // Fetch cart data on component mount
   useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        setIsCartLoading(true)
+        const response = await cartApi.getCurrentCart()
+        if (response.data.isSuccess && response.data.data) {
+          setCartData(response.data.data)
+        } else {
+          toast.error('Giỏ hàng trống')
+          navigate({ to: '/cart' })
+        }
+      } catch (error) {
+        console.error('Error fetching cart:', error)
+        toast.error('Không thể tải thông tin giỏ hàng')
+        navigate({ to: '/cart' })
+      } finally {
+        setIsCartLoading(false)
+      }
+    }
+
     fetchCart()
   }, [])
 
-  const fetchCart = async () => {
-    try {
-      setIsCartLoading(true)
-      const response = await cartApi.getCurrentCart()
-      if (response.data.isSuccess && response.data.data) {
-        setCartData(response.data.data)
-      } else {
-        toast.error('Giỏ hàng trống')
-        navigate({ to: '/cart' })
-      }
-    } catch (error) {
-      console.error('Error fetching cart:', error)
-      toast.error('Không thể tải thông tin giỏ hàng')
-      navigate({ to: '/cart' })
-    } finally {
-      setIsCartLoading(false)
-    }
+  const handleChange = (name: string, value: any) => {
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+  useEffect(() => {
+    // Reset district and ward when province changes
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      districtId: 0, // Reset district
+      wardCode: '' // Reset ward
     }))
-  }
-
-  const validateForm = () => {
-    const { firstName, lastName, address, city, postalCode } = formData
-    if (!firstName || !lastName || !address || !city || !postalCode) {
-      toast.error('Vui lòng điền đầy đủ thông tin giao hàng')
-      return false
+    resetShippingFee() // Reset the shipping fee
+    if (formData.provinceId !== 0) {
+      fetchDistricts(formData.provinceId)
     }
-    return true
+  }, [formData.provinceId])
+
+  useEffect(() => {
+    // Reset ward when district changes
+    setFormData((prev) => ({
+      ...prev,
+      wardCode: '' // Reset ward
+    }))
+    resetShippingFee() // Reset the shipping fee
+    if (formData.districtId !== 0) {
+      fetchWards(formData.districtId)
+    }
+  }, [formData.districtId])
+
+  useEffect(() => {
+    if (
+      formData.provinceId &&
+      formData.districtId &&
+      formData.wardCode &&
+      cartData?.items.length
+    ) {
+      calculateShippingFee(buildShippingRequest())
+    }
+  }, [formData.districtId, formData.wardCode, cartData])
+
+  const buildShippingRequest = (): CalculateShippingFeeRequest => {
+    const items =
+      cartData?.items.map((item: CartItem) => ({
+        code: item.cosmeticId,
+        name: item.cosmeticName,
+        quantity: item.quantity,
+        price: item.price,
+        weight: item.weight,
+        length: item.length,
+        width: item.width,
+        height: item.height
+      })) || []
+
+    const totalWeight = items.reduce(
+      (sum: number, item: CartItem) => sum + item.weight * item.quantity,
+      0
+    )
+    const maxLength = Math.max(...items.map((item: CartItem) => item.length))
+    const maxWidth = Math.max(...items.map((item: CartItem) => item.width))
+    const maxHeight = Math.max(...items.map((item: CartItem) => item.height))
+
+    return {
+      from_district_id: 3695, // Your shop's district ID
+      from_ward_code: '90764', // Your shop's ward code
+      service_id: 0,
+      service_type_id: 2,
+      to_district_id: formData.districtId,
+      to_ward_code: formData.wardCode,
+      weight: totalWeight,
+      length: maxLength,
+      width: maxWidth,
+      height: maxHeight,
+      insurance_value: cartData?.totalPrice || 1000000,
+      cod_failed_amount: 0,
+      coupon: null,
+      items
+    }
   }
 
   const handleCheckout = async () => {
     try {
-      if (!validateForm()) return
-      setIsLoading(true)
-
       if (!cartData || !cartData.id) {
         toast.error('Không tìm thấy giỏ hàng')
         navigate({ to: '/cart' })
         return
       }
 
+      // Validation: Ensure all fields are filled
+      if (
+        !formData.houseNumberStreet.trim() ||
+        !formData.wardCode ||
+        formData.districtId === 0 ||
+        formData.provinceId === 0
+      ) {
+        toast.error('Vui lòng điền đầy đủ thông tin giao hàng')
+        return
+      }
+
       // Construct full address string
-      const fullAddress = `${formData.firstName} ${formData.lastName}, ${formData.address}, ${formData.city}, ${formData.postalCode}`
+      const fullAddress = `${formData.houseNumberStreet}, ${wards.find((w) => w.WardCode === formData.wardCode)?.WardName}, ${districts.find((d) => d.DistrictID === +formData.districtId!)?.DistrictName}, ${provinces.find((p) => p.ProvinceID === +formData.provinceId)?.ProvinceName}`
 
       const orderRequest = {
         cartId: cartData.id,
@@ -139,14 +222,16 @@ const CheckoutPage: React.FC = () => {
         districtId: formData.districtId
       }
 
-      const response = await orderApi.createOrder(orderRequest)
+      console.log(orderRequest)
 
-      if (response.data.isSuccess && response.data.data?.paymentUrl) {
-        // Redirect to payment page
-        window.location.href = response.data.data.paymentUrl
-      } else {
-        toast.error('Không thể tạo đơn hàng')
-      }
+      // const response = await orderApi.createOrder(orderRequest)
+
+      // if (response.data.isSuccess && response.data.data?.paymentUrl) {
+      //   // Redirect to payment page
+      //   window.location.href = response.data.data.paymentUrl
+      // } else {
+      //   toast.error('Không thể tạo đơn hàng')
+      // }
     } catch (error) {
       console.error('Checkout error:', error)
       toast.error('Đặt hàng thất bại. Vui lòng thử lại.')
@@ -211,55 +296,73 @@ const CheckoutPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">First Name</label>
-                      <Input
-                        name="firstName"
-                        placeholder="First Name"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Last Name</label>
-                      <Input
-                        name="lastName"
-                        placeholder="Last Name"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                  </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Address</label>
                     <Input
-                      name="address"
-                      placeholder="Address"
-                      value={formData.address}
-                      onChange={handleInputChange}
+                      className="font-medium"
+                      placeholder="Số nhà & đường"
+                      value={formData.houseNumberStreet}
+                      onChange={(e) =>
+                        handleChange('houseNumberStreet', e.target.value)
+                      }
+                      required
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">City</label>
-                      <Input
-                        name="city"
-                        placeholder="City"
-                        value={formData.city}
-                        onChange={handleInputChange}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Postal Code</label>
-                      <Input
-                        name="postalCode"
-                        placeholder="Postal Code"
-                        value={formData.postalCode}
-                        onChange={handleInputChange}
-                      />
-                    </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Province</label>
+                    <ComboBox
+                      items={provinces.map((p) => ({
+                        value: p.ProvinceID.toString(),
+                        label: p.ProvinceName
+                      }))}
+                      placeholder="Select province"
+                      value={formData.provinceId}
+                      onValueChange={(e) => {
+                        handleChange('provinceId', e.toString())
+                      }}
+                      disabled={isProvincesLoading}
+                    />
                   </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">District</label>
+                    <ComboBox
+                      items={districts.map((d) => ({
+                        value: d.DistrictID.toString(),
+                        label: d.DistrictName
+                      }))}
+                      placeholder="Select district"
+                      value={formData.districtId!}
+                      onValueChange={(e) => {
+                        handleChange('districtId', e.toString())
+                      }}
+                      disabled={isDistrictsLoading || formData.provinceId === 0}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Ward</label>
+                    <ComboBox
+                      items={wards.map((w) => ({
+                        value: w.WardCode,
+                        label: w.WardName
+                      }))}
+                      placeholder="Select ward"
+                      value={formData.wardCode || ''}
+                      onValueChange={(e) =>
+                        handleChange('wardCode', e.toString())
+                      }
+                      disabled={isWardsLoading || formData.districtId === 0}
+                    />
+                  </div>
+                  <Button
+                    disabled={isLoading}
+                    onClick={handleCheckout}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -271,7 +374,7 @@ const CheckoutPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <RadioGroup
-                    value={formData.wardCode}
+                    value={formData.wardCode!}
                     onValueChange={(value) =>
                       setFormData((prev) => ({ ...prev, wardCode: value }))
                     }

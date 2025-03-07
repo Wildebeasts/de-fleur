@@ -4,6 +4,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import cartApi from '@/lib/services/cartApi'
 import { Button } from '@/components/ui/button'
+import { useDelivery } from '@/lib/context/DeliveryContext'
 
 interface OrderSummaryProps {
   refreshTrigger?: number // Optional prop to trigger refresh
@@ -12,6 +13,7 @@ interface OrderSummaryProps {
 const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [cartData, setCartData] = useState<any>(null)
+  const { shippingFee } = useDelivery()
   const navigate = useNavigate()
 
   // Fetch cart data directly from API
@@ -49,7 +51,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
 
   // You can add shipping calculation logic here if needed
   const getShipping = () => {
-    return 0 // Free shipping or calculate based on your business logic
+    return shippingFee?.total || 0 // Free shipping or calculate based on your business logic
   }
 
   const getTotal = () => {
@@ -98,9 +100,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
         <div className="flex justify-between">
           <span className="text-gray-600">Shipping</span>
           <span>
-            {getShipping() === 0
-              ? 'Free'
-              : getShipping().toLocaleString('vi-VN') + '₫'}
+            {shippingFee
+              ? `${getShipping().toLocaleString('vi-VN')}₫`
+              : 'Calculating...'}
           </span>
         </div>
 

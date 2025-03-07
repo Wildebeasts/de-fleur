@@ -8,6 +8,7 @@ import './index.css'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
+import { DeliveryProvider } from './lib/context/DeliveryContext'
 
 // Create a new router instance
 const router = createRouter({ routeTree })
@@ -33,10 +34,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <main>
-          <RouterProvider router={router} />
-        </main>
-        <Toaster position="bottom-right" richColors />
+        <DeliveryProvider>
+          <main>
+            <RouterProvider router={router} />
+          </main>
+          <Toaster position="bottom-right" richColors />
+        </DeliveryProvider>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

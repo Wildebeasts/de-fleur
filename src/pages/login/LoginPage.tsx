@@ -123,7 +123,7 @@ export const LoginPage: React.FC = () => {
                     type="text"
                     value={formData.userName}
                     onChange={handleInputChange}
-                    placeholder="johndoe"
+                    placeholder="What's your username?"
                     className="border-rose-200 focus-visible:ring-rose-300"
                     required
                   />
@@ -145,6 +145,7 @@ export const LoginPage: React.FC = () => {
                     type="password"
                     value={formData.password}
                     onChange={handleInputChange}
+                    placeholder="Don't worry we won't tell anyone"
                     className="border-rose-200 focus-visible:ring-rose-300"
                     required
                   />
