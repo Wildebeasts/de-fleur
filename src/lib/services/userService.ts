@@ -36,11 +36,13 @@ const userApi = {
   },
 
   getUserRoles: async (): Promise<string[]> => {
-    const response = await axiosClient.get<ApiResponse<string[]>>('/user/roles')
-    if (!response.data.isSuccess || !response.data.data) {
-      throw new Error(response.data.message || 'Failed to fetch user roles')
+    try {
+      const userProfile = await userApi.getUserProfile()
+      return userProfile.roles || []
+    } catch (error) {
+      console.error('Error getting user roles:', error)
+      throw new Error('Failed to get user roles')
     }
-    return response.data.data
   },
 
   getUsers: async (page: number, pageSize: number) => {

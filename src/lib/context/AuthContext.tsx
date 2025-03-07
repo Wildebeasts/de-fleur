@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useLogin } from '../hooks/useAuth'
 import { LoginRequest, LoginResponse } from '../types/auth'
 import { LoginApiResponse } from '../types/base/Api'
@@ -6,6 +6,7 @@ import { LoginApiResponse } from '../types/base/Api'
 interface AuthContextType {
   isAuthenticated: boolean
   isLoading: boolean
+  isInitialized: boolean
   user: LoginResponse | null
   login: (credentials: LoginRequest) => Promise<LoginApiResponse>
   logout: () => void
@@ -16,15 +17,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<LoginResponse | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
   const loginMutation = useLogin()
 
-  // useEffect(() => {
-  //   const storedUser = localStorage.getItem('user')
-  //   if (storedUser) {
-  //     setUser(JSON.parse(storedUser))
-  //     setIsAuthenticated(true) // Make sure this updates!
-  //   }
-  // }, [])
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user')
+    const accessToken = localStorage.getItem('accessToken')
+    const refreshToken = localStorage.getItem('refreshToken')
+
+    if (storedUser && (accessToken || refreshToken)) {
+      setUser(JSON.parse(storedUser))
+      setIsAuthenticated(true)
+    }
+
+    setIsInitialized(true)
+  }, [])
 
   const login = async (credentials: LoginRequest) => {
     try {
@@ -68,6 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         isAuthenticated,
         isLoading: loginMutation.isPending,
+        isInitialized,
         user,
         login,
         logout

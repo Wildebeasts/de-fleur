@@ -11,6 +11,7 @@ import { QuizResultProvider } from '@/lib/context/QuizResultContext'
 import { ScrollToTop } from '../components/ScrollToTop'
 import { ThemeProvider } from 'next-themes'
 import authApi from '@/lib/services/authApi'
+import userApi from '@/lib/services/userService'
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = [
@@ -45,12 +46,18 @@ export const Route = createRootRoute({
     // Get auth status from localStorage
     const accessToken = localStorage.getItem('accessToken')
     const refreshToken = localStorage.getItem('refreshToken')
+    console.log('Tokens:', {
+      hasAccessToken: !!accessToken,
+      hasRefreshToken: !!refreshToken
+    })
 
     // Check if trying to access admin routes
     const isAdminRoute = location.pathname.startsWith('/admin')
+    console.log('Route check:', { isAdminRoute, path: location.pathname })
 
     if (isAdminRoute) {
       if (!accessToken && !refreshToken) {
+        console.log('No tokens found, redirecting to login')
         throw redirect({
           to: '/login',
           search: {
@@ -58,7 +65,37 @@ export const Route = createRootRoute({
           }
         })
       }
-      return { isAuthenticated: true }
+
+      try {
+        console.log('Fetching user profile...')
+        const userProfile = await userApi.getUserProfile()
+        console.log('User profile:', userProfile)
+
+        const hasAdminRole = userProfile.roles.some(
+          (role) => role === 'Admin' || role === 'Manager'
+        )
+        console.log('Role check:', { hasAdminRole, roles: userProfile.roles })
+
+        if (!hasAdminRole) {
+          console.log('User lacks admin privileges')
+          throw redirect({
+            to: '/',
+            search: {
+              error: 'unauthorized'
+            }
+          })
+        }
+
+        return { isAuthenticated: true }
+      } catch (error) {
+        console.error('Admin auth error:', error)
+        throw redirect({
+          to: '/login',
+          search: {
+            redirect: location.pathname
+          }
+        })
+      }
     }
 
     // Your existing protected routes logic

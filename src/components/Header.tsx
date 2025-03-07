@@ -3,7 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { NavigationLink } from './NavigationLink'
 import { SearchBar } from './SearchBar'
 import { Link, useNavigate } from '@tanstack/react-router'
-import authApi from '@/lib/services/authApi'
+import { useAuth } from '@/lib/context/AuthContext'
 
 interface NavigationItem {
   label: string
@@ -53,63 +53,7 @@ const UserIcon = () => (
 export default function Header() {
   const { scrollY } = useScroll()
   const navigate = useNavigate()
-  const [isAuthenticated, setIsAuthenticated] = React.useState(false)
-
-  // Add authentication check
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const accessToken = localStorage.getItem('accessToken')
-      const refreshToken = localStorage.getItem('refreshToken')
-
-      if (!accessToken && !refreshToken) {
-        navigate({
-          to: '/login',
-          search: {
-            redirect: location.pathname
-          }
-        })
-        return
-      }
-
-      if (!accessToken && refreshToken) {
-        try {
-          const response = await authApi.refreshToken({
-            accessToken: '',
-            refreshToken
-          })
-
-          if (response.data.isSuccess && response.data.data) {
-            localStorage.setItem('accessToken', response.data.data.accessToken)
-            localStorage.setItem(
-              'refreshToken',
-              response.data.data.refreshToken
-            )
-            setIsAuthenticated(true)
-          } else {
-            navigate({
-              to: '/login',
-              search: {
-                redirect: location.pathname
-              }
-            })
-          }
-        } catch (error) {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          navigate({
-            to: '/login',
-            search: {
-              redirect: location.pathname
-            }
-          })
-        }
-      } else {
-        setIsAuthenticated(true)
-      }
-    }
-
-    checkAuth()
-  }, [navigate])
+  const { isAuthenticated } = useAuth()
 
   // Transform values based on scroll position
   const headerHeight = useTransform(scrollY, [0, 100], ['5rem', '4rem'])
