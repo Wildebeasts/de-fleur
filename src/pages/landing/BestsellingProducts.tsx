@@ -10,48 +10,68 @@ import { CosmeticResponse } from '@/lib/types/Cosmetic'
 const fallbackProducts = [
   {
     id: 'product-1',
-    imageSrc:
+    name: 'Renewal Night Cream',
+    mainUsage: 'Rich moisturizing cream with natural extracts',
+    price: 89.0,
+    thumbnailUrl:
       'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e',
-    title: 'Renewal Night Cream',
-    description: 'Rich moisturizing cream with natural extracts',
-    price: '$89.00'
+    brand: { name: 'De Fleur' },
+    isActive: true,
+    gender: true,
+    cosmeticImages: []
   },
   {
     id: 'product-2',
-    imageSrc:
+    name: 'Vitamin C Serum',
+    mainUsage: 'Brightening formula with 20% Vitamin C',
+    price: 75.0,
+    thumbnailUrl:
       'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e',
-    title: 'Vitamin C Serum',
-    description: 'Brightening formula with 20% Vitamin C',
-    price: '$75.00'
+    brand: { name: 'De Fleur' },
+    isActive: true,
+    gender: true,
+    cosmeticImages: []
   },
   {
     id: 'product-3',
-    imageSrc:
+    name: 'Radiance Face Oil',
+    mainUsage: 'Nourishing blend of natural oils',
+    price: 65.0,
+    thumbnailUrl:
       'https://cdn.builder.io/api/v1/image/assets/TEMP/502832db11429b604680472638a3f8621487ea96a153661274824baa1ee0acf5?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e',
-    title: 'Radiance Face Oil',
-    description: 'Nourishing blend of natural oils',
-    price: '$65.00'
+    brand: { name: 'De Fleur' },
+    isActive: true,
+    gender: true,
+    cosmeticImages: []
   },
   {
     id: 'product-4',
-    imageSrc:
+    name: 'Purifying Clay Mask',
+    mainUsage: 'Deep cleansing mask with kaolin clay',
+    price: 55.0,
+    thumbnailUrl:
       'https://cdn.builder.io/api/v1/image/assets/TEMP/d3749484c9f854c8c506194af4551de113a3c9b1770f391bf91f5e0feaf6d14d?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e',
-    title: 'Purifying Clay Mask',
-    description: 'Deep cleansing mask with kaolin clay',
-    price: '$55.00'
+    brand: { name: 'De Fleur' },
+    isActive: true,
+    gender: true,
+    cosmeticImages: []
   }
-]
+] as unknown as CosmeticResponse[]
 
-export const BestsellingProducts: React.FC = () => {
-  // Fetch products from API
-  const { data: cosmetics, isLoading } = useQuery({
+const BestsellingProducts: React.FC = () => {
+  // Fetch products from API with sorting by rating
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['bestsellers'],
     queryFn: async () => {
-      const response = await cosmeticApi.getCosmetics()
-      if (response.data.isSuccess) {
-        return response.data.data
+      try {
+        // Get cosmetics sorted by rating in descending order
+        const response = await cosmeticApi.getCosmetics(1, 8, 'rating', 'desc')
+        console.log('API response:', response)
+        return response.data
+      } catch (error) {
+        console.error('Error fetching bestsellers:', error)
+        return null
       }
-      throw new Error('Failed to fetch products')
     }
   })
 
@@ -66,8 +86,11 @@ export const BestsellingProducts: React.FC = () => {
     )
   }
 
-  // Get the first 4 products or fewer if not enough
-  const bestsellingProducts = cosmetics?.slice(0, 4) || []
+  // Safely extract products from the response
+  const products =
+    data?.isSuccess && data?.data?.items
+      ? data.data.items.slice(0, 4)
+      : fallbackProducts
 
   return (
     <section
@@ -94,20 +117,14 @@ export const BestsellingProducts: React.FC = () => {
 
         <div className="mt-14 max-md:mt-10 max-md:max-w-full">
           <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
-            {bestsellingProducts.length > 0 ? (
-              bestsellingProducts.map((cosmetic: CosmeticResponse) => (
-                <div
-                  key={cosmetic.id}
-                  className="group transition-all duration-300"
-                >
-                  <ProductCard cosmetic={cosmetic} />
-                </div>
-              ))
-            ) : (
-              <div className="col-span-4 text-center text-lg text-gray-500">
-                No bestselling products available at the moment.
+            {products.map((cosmetic: CosmeticResponse) => (
+              <div
+                key={cosmetic.id}
+                className="group transition-all duration-300"
+              >
+                <ProductCard cosmetic={cosmetic} />
               </div>
-            )}
+            ))}
           </div>
         </div>
       </div>

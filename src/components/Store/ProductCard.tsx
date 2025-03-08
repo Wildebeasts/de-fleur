@@ -72,7 +72,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
         >
           <img
             loading="lazy"
-            src={cosmetic.thumbnailUrl || ''}
+            src={cosmetic.cosmeticImages[0]?.imageUrl || ''}
             alt={cosmetic.name}
             className="size-full object-cover"
           />
