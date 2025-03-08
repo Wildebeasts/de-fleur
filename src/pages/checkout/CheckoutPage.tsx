@@ -53,12 +53,15 @@ interface ShippingInfo {
 }
 
 interface ShippingForm {
+  houseNumberStreet: string
   shippingAddress: string
   billingAddress: string
   wardCode: string
   districtId: number
   paymentMethod: string
   couponId: string | null
+  currency: string
+  provinceId: number
 }
 
 const CheckoutPage: React.FC = () => {
@@ -80,10 +83,15 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate()
 
   // Form state
-  const [formData, setFormData] = useState<ShippingInfo>({
+  const [formData, setFormData] = useState<ShippingForm>({
     houseNumberStreet: '',
+    shippingAddress: '',
+    billingAddress: '',
     wardCode: '',
     districtId: 0,
+    paymentMethod: 'ONLINE',
+    couponId: '6e8f40e3-7a19-4a41-b3f8-4dff00fd8c21', // Your coupon ID
+    currency: 'VND',
     provinceId: 0
   })
 
@@ -192,49 +200,41 @@ const CheckoutPage: React.FC = () => {
 
   const handleCheckout = async () => {
     try {
-      if (!cartData || !cartData.id) {
-        toast.error('Không tìm thấy giỏ hàng')
-        navigate({ to: '/cart' })
-        return
-      }
+      setIsLoading(true)
 
-      // Validation: Ensure all fields are filled
-      if (
-        !formData.houseNumberStreet.trim() ||
-        !formData.wardCode ||
-        formData.districtId === 0 ||
-        formData.provinceId === 0
-      ) {
-        toast.error('Vui lòng điền đầy đủ thông tin giao hàng')
-        return
-      }
+      // Get the selected location names
+      const selectedProvince = provinces.find(
+        (p) => p.ProvinceID.toString() === formData.provinceId.toString()
+      )?.ProvinceName
+      const selectedDistrict = districts.find(
+        (d) => d.DistrictID.toString() === formData.districtId.toString()
+      )?.DistrictName
+      const selectedWard = wards.find(
+        (w) => w.WardCode === formData.wardCode
+      )?.WardName
 
-      // Construct full address string
-      const fullAddress = `${formData.houseNumberStreet}, ${wards.find((w) => w.WardCode === formData.wardCode)?.WardName}, ${districts.find((d) => d.DistrictID === +formData.districtId!)?.DistrictName}, ${provinces.find((p) => p.ProvinceID === +formData.provinceId)?.ProvinceName}`
+      // Construct the full address
+      const fullAddress = `${formData.houseNumberStreet}, ${selectedWard}, ${selectedDistrict}, ${selectedProvince}`
 
-      const orderRequest = {
-        cartId: cartData.id,
+      const orderRequest: CreateOrderRequest = {
+        cartId: cartData?.id,
+        couponId: formData.couponId || undefined,
         shippingAddress: fullAddress,
         billingAddress: fullAddress, // Using same address for billing
-        paymentMethod: 'ONLINE',
-        currency: 'VND',
+        paymentMethod: formData.paymentMethod,
+        currency: formData.currency,
         wardCode: formData.wardCode,
         districtId: formData.districtId
       }
 
-      console.log(orderRequest)
+      const response = await orderApi.createOrder(orderRequest)
 
-      // const response = await orderApi.createOrder(orderRequest)
-
-      // if (response.data.isSuccess && response.data.data?.paymentUrl) {
-      //   // Redirect to payment page
-      //   window.location.href = response.data.data.paymentUrl
-      // } else {
-      //   toast.error('Không thể tạo đơn hàng')
-      // }
+      if (response.data.isSuccess) {
+        // ... rest of your code
+      }
     } catch (error) {
-      console.error('Checkout error:', error)
-      toast.error('Đặt hàng thất bại. Vui lòng thử lại.')
+      toast.error('Failed to create order')
+      console.error('Error creating order:', error)
     } finally {
       setIsLoading(false)
     }
@@ -243,8 +243,8 @@ const CheckoutPage: React.FC = () => {
   // Update payment methods to only include VNPay
   const paymentMethods: PaymentMethod[] = [
     {
-      id: 'vnpay',
-      name: 'VNPay',
+      id: 'ONLINE',
+      name: 'ONLINE',
       icon: vnpayLogo,
       description: 'Thanh toán nhanh chóng và an toàn với VNPay'
     }
@@ -374,9 +374,9 @@ const CheckoutPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <RadioGroup
-                    value={formData.wardCode!}
+                    value={formData.paymentMethod}
                     onValueChange={(value) =>
-                      setFormData((prev) => ({ ...prev, wardCode: value }))
+                      setFormData((prev) => ({ ...prev, paymentMethod: value }))
                     }
                     className="space-y-4"
                   >
