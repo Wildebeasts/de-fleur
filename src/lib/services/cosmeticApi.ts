@@ -5,7 +5,7 @@ import axiosClient from '../api/axiosClient'
 
 interface ImageUploadPayload {
   cosmeticId: string
-  images: string[] // Array of base64 strings
+  images: string[] | File[] // Array of base64 strings or File objects
 }
 
 const cosmeticApi = {
@@ -40,12 +40,21 @@ const cosmeticApi = {
     axiosClient.get<ApiResponse<CosmeticResponse>>(`/cosmetics/${id}`),
   deleteCosmetic: (id: string) =>
     axiosClient.delete<ApiResponse<void>>(`/cosmetics/${id}`),
-  uploadCosmeticImages: (payload: ImageUploadPayload) =>
-    axiosClient.post<ApiResponse<void>>('/cosmetics/images', payload, {
+  uploadCosmeticImages: (payload: { cosmeticId: string; images: File[] }) => {
+    const formData = new FormData()
+    formData.append('cosmeticId', payload.cosmeticId)
+
+    // Append each file with the indexed name 'images[0]', 'images[1]', etc.
+    payload.images.forEach((file, index) => {
+      formData.append(`images[${index}]`, file)
+    })
+
+    return axiosClient.put<ApiResponse<void>>('/cosmetics/images', formData, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'multipart/form-data'
       }
     })
+  }
 }
 
 export default cosmeticApi

@@ -40,7 +40,7 @@ import { CheckboxChangeEvent } from 'antd/es/checkbox'
 import brandApi from '@/lib/services/brandApi'
 import skinTypeApi from '@/lib/services/skinTypeApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
-import { UploadFile, UploadFileStatus } from 'antd/es/upload/interface'
+import { RcFile, UploadFile, UploadFileStatus } from 'antd/es/upload/interface'
 
 interface CosmeticDto {
   id: string
@@ -189,6 +189,13 @@ const ImageUploadModal = ({
   const [fileList, setFileList] = useState<CustomUploadFile[]>([])
   const [uploading, setUploading] = useState(false)
 
+  // Reset file list when modal opens with a new cosmetic
+  useEffect(() => {
+    if (visible) {
+      setFileList([])
+    }
+  }, [visible, cosmeticId])
+
   const handleUpload = async () => {
     if (fileList.length === 0) {
       message.warning('Please select at least one image to upload')
@@ -198,48 +205,70 @@ const ImageUploadModal = ({
     setUploading(true)
 
     try {
-      const file = fileList[0].originFileObj
-      if (!file) {
-        throw new Error('No file selected')
-      }
+      // Get the File objects from the fileList
+      const files = fileList
+        .map((file) => file.originFileObj)
+        .filter((file): file is RcFile => !!file)
 
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
+      // Call the API to upload images with File objects directly
+      await cosmeticApi.uploadCosmeticImages({
+        cosmeticId,
+        images: files
+      })
 
-      reader.onload = async () => {
-        const base64String = reader.result as string
-        const base64Data = base64String.split(',')[1]
-
-        const payload = {
-          cosmeticId,
-          images: [base64Data]
-        }
-
-        const response = await cosmeticApi.uploadCosmeticImages(payload)
-        if (response.data?.isSuccess) {
-          message.success('Image uploaded successfully')
-          setFileList([])
-          onSuccess()
-          onCancel()
-        } else {
-          message.error(response.data?.message || 'Failed to upload image')
-        }
-      }
-
-      reader.onerror = () => {
-        message.error('Failed to read file')
-        setUploading(false)
-      }
+      message.success('Images uploaded successfully')
+      setFileList([])
+      onSuccess()
+      onCancel()
     } catch (error) {
-      console.error('Error uploading image:', error)
-      message.error('Failed to upload image. Please try again.')
+      console.error('Error uploading images:', error)
+      message.error('Failed to upload images')
+    } finally {
       setUploading(false)
     }
   }
 
+  const uploadProps = {
+    onRemove: (file: CustomUploadFile) => {
+      const index = fileList.indexOf(file)
+      const newFileList = fileList.slice()
+      newFileList.splice(index, 1)
+      setFileList(newFileList)
+    },
+    beforeUpload: (file: File) => {
+      // Validate file type
+      const isImage = file.type.startsWith('image/')
+      if (!isImage) {
+        message.error('You can only upload image files!')
+        return false
+      }
+
+      // Validate file size (5MB limit)
+      const isLt5M = file.size / 1024 / 1024 < 5
+      if (!isLt5M) {
+        message.error('Image must be smaller than 5MB!')
+        return false
+      }
+
+      // Add file to list
+      setFileList((prev) => [
+        ...prev,
+        {
+          uid: file.name,
+          name: file.name,
+          originFileObj: file
+        } as CustomUploadFile
+      ])
+
+      // Return false to prevent automatic upload
+      return false
+    },
+    fileList
+  }
+
   return (
     <Modal
-      title="Upload Product Image"
+      title="Upload Images"
       open={visible}
       onCancel={onCancel}
       footer={[
@@ -251,33 +280,25 @@ const ImageUploadModal = ({
           type="primary"
           loading={uploading}
           onClick={handleUpload}
-          style={{ backgroundColor: '#3b82f6' }}
+          disabled={fileList.length === 0}
         >
           {uploading ? 'Uploading' : 'Upload'}
         </Button>
       ]}
+      className="image-upload-modal"
     >
-      <Upload
-        accept="image/*"
-        maxCount={1}
-        fileList={fileList}
-        beforeUpload={(file) => {
-          setFileList([
-            {
-              uid: '1',
-              name: file.name,
-              status: 'done',
-              size: file.size,
-              type: file.type,
-              originFileObj: file
-            }
-          ])
-          return false
-        }}
-        onRemove={() => setFileList([])}
-      >
-        <Button icon={<UploadOutlined />}>Select Image</Button>
-      </Upload>
+      <Upload.Dragger {...uploadProps} listType="picture" multiple>
+        <p className="ant-upload-drag-icon">
+          <InboxOutlined />
+        </p>
+        <p className="ant-upload-text">
+          Click or drag images to this area to upload
+        </p>
+        <p className="ant-upload-hint">
+          Support for single or bulk upload. Strictly prohibited from uploading
+          company data or other banned files.
+        </p>
+      </Upload.Dragger>
     </Modal>
   )
 }
