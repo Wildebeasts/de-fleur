@@ -220,7 +220,7 @@ const CheckoutPage: React.FC = () => {
         cartId: cartData?.id,
         couponId: formData.couponId || undefined,
         shippingAddress: fullAddress,
-        billingAddress: fullAddress, // Using same address for billing
+        billingAddress: fullAddress,
         paymentMethod: formData.paymentMethod,
         currency: formData.currency,
         wardCode: formData.wardCode,
@@ -230,7 +230,10 @@ const CheckoutPage: React.FC = () => {
       const response = await orderApi.createOrder(orderRequest)
 
       if (response.data.isSuccess) {
-        // ... rest of your code
+        // Redirect to VNPay payment URL
+        window.location.href = response.data.data?.paymentUrl || ''
+      } else {
+        toast.error(response.data.message || 'Failed to create order')
       }
     } catch (error) {
       toast.error('Failed to create order')
