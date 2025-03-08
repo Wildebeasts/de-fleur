@@ -1,9 +1,11 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ProductDetails from '@/pages/store/ProductDetails'
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
 import { Loader2 } from 'lucide-react'
+import { CosmeticResponse } from '@/lib/types/Cosmetic'
 
 export const Route = createFileRoute('/shopDetails')({
   validateSearch: (search: { productId: string }) => {
@@ -35,13 +37,13 @@ function RouteComponent() {
 
   // Fetch related products based on the same cosmetic type
   const { data: relatedProducts } = useQuery({
-    queryKey: ['relatedProducts', product?.cosmeticTypeId, productId], // Add productId to force refresh
+    queryKey: ['relatedProducts', product?.cosmeticTypeId, productId],
     queryFn: async () => {
       const response = await cosmeticApi.getCosmetics()
       if (response.data.isSuccess && response.data.data) {
-        // Filter to get products of the same type but not the current product
-        const sameTypeProducts = response.data.data.filter(
-          (item) =>
+        // Access the items array from the paginated response
+        const sameTypeProducts = response.data.data.items.filter(
+          (item: CosmeticResponse) =>
             item.cosmeticTypeId === product?.cosmeticTypeId &&
             item.id !== product?.id
         )
@@ -94,47 +96,47 @@ function RouteComponent() {
     price: item.price,
     image:
       typeof item.cosmeticImages?.[0] === 'object' &&
-      item.cosmeticImages?.[0] !== null
+        item.cosmeticImages?.[0] !== null
         ? (item.cosmeticImages[0] as { imageUrl?: string }).imageUrl
         : typeof item.cosmeticImages?.[0] === 'string'
           ? item.cosmeticImages[0]
           : 'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430'
   })) || [
-    // Fallback static products if no related products are found
-    {
-      image:
-        'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
-      name: 'Related Product 1',
-      price: 65.0,
-      id: '123e4567-e89b-12d3-a456-426614174001'
-    },
-    {
-      image:
-        'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
-      name: 'Related Product 2',
-      price: 75.0,
-      id: '123e4567-e89b-12d3-a456-426614174002'
-    }
-  ]
+      // Fallback static products if no related products are found
+      {
+        image:
+          'https://cdn.builder.io/api/v1/image/assets/TEMP/7e1fed01c40f1a7f044a66aca0e153a5ed752c1bd54841cda7ad5862bd0ad430',
+        name: 'Related Product 1',
+        price: 65.0,
+        id: '123e4567-e89b-12d3-a456-426614174001'
+      },
+      {
+        image:
+          'https://cdn.builder.io/api/v1/image/assets/TEMP/93175b3ef23a838d07b312a11cd9409acb23f04c6b28613e52e00a8bcb72709c',
+        name: 'Related Product 2',
+        price: 75.0,
+        id: '123e4567-e89b-12d3-a456-426614174002'
+      }
+    ]
 
   // Fix the cosmeticImages type issue
   const processedCosmeticImages = Array.isArray(product.cosmeticImages)
     ? product.cosmeticImages.map((img) => {
-        if (typeof img === 'object' && img !== null) {
-          return {
-            id: (img as { id?: string }).id || String(Math.random()),
-            imageUrl:
-              (img as { imageUrl?: string }).imageUrl ||
-              'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
-          }
-        }
+      if (typeof img === 'object' && img !== null) {
         return {
-          id: String(Math.random()),
+          id: (img as { id?: string }).id || String(Math.random()),
           imageUrl:
-            String(img) ||
+            (img as { imageUrl?: string }).imageUrl ||
             'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
         }
-      })
+      }
+      return {
+        id: String(Math.random()),
+        imageUrl:
+          String(img) ||
+          'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
+      }
+    })
     : []
 
   return (
@@ -167,7 +169,7 @@ function RouteComponent() {
         }))}
         productImage={
           typeof product.cosmeticImages?.[0] === 'object' &&
-          product.cosmeticImages[0] !== null
+            product.cosmeticImages[0] !== null
             ? (product.cosmeticImages[0] as { imageUrl: string }).imageUrl
             : typeof product.cosmeticImages?.[0] === 'string'
               ? product.cosmeticImages[0]

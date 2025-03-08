@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import QuickViewModal from './QuickViewModal'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CosmeticResponse } from '@/lib/types/Cosmetic'
 
 interface Collection {
   id: string
@@ -53,7 +55,7 @@ const CollectionsLayout: React.FC = () => {
     null
   )
   const [cosmeticsByType, setCosmeticsByType] = useState<
-    Record<string, typeof cosmetics>
+    Record<string, CosmeticResponse[]>
   >({})
 
   // Fetch all cosmetics
@@ -86,7 +88,7 @@ const CollectionsLayout: React.FC = () => {
       const processedCollections: Collection[] = []
 
       // Group cosmetics by cosmetic type
-      const cosmeticsByTypeObj = cosmetics.reduce(
+      const cosmeticsByTypeObj = cosmetics.items.reduce(
         (acc, cosmetic) => {
           if (!acc[cosmetic.cosmeticTypeId]) {
             acc[cosmetic.cosmeticTypeId] = []
@@ -94,7 +96,7 @@ const CollectionsLayout: React.FC = () => {
           acc[cosmetic.cosmeticTypeId].push(cosmetic)
           return acc
         },
-        {} as Record<string, typeof cosmetics>
+        {} as Record<string, CosmeticResponse[]>
       )
 
       // Save to state so it's available in render
@@ -112,12 +114,12 @@ const CollectionsLayout: React.FC = () => {
             .flatMap((c) =>
               c.feedbacks
                 ? c.feedbacks.map((f) => {
-                    // Ensure f is an object with a rating property
-                    if (f && typeof f === 'object' && 'rating' in f) {
-                      return (f as { rating: number }).rating
-                    }
-                    return 0
-                  })
+                  // Ensure f is an object with a rating property
+                  if (f && typeof f === 'object' && 'rating' in f) {
+                    return (f as { rating: number }).rating
+                  }
+                  return 0
+                })
                 : []
             )
             .filter((r) => r > 0)
@@ -125,7 +127,7 @@ const CollectionsLayout: React.FC = () => {
           const avgRating =
             ratings.length > 0
               ? ratings.reduce((sum, rating) => sum + rating, 0) /
-                ratings.length
+              ratings.length
               : 4.5 // Default rating if none available
 
           // Get total review count

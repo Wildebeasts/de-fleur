@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { ApiResponse } from '@/lib/types/base/Api'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { PaginatedList } from '@/lib/types/common/PaginatedList'

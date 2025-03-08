@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useBreadcrumb } from '@/lib/context/BreadcrumbContext'
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
@@ -323,10 +324,12 @@ export default function Courses() {
     queryKey: ['cosmetics'],
     queryFn: async () => {
       const response = await cosmeticApi.getCosmetics()
-      return (response.data?.data ?? []).map((item) => ({
-        ...item,
-        key: item.id
-      }))
+      return (
+        response.data?.data?.items?.map((item) => ({
+          ...item,
+          key: item.id
+        })) ?? []
+      )
     }
   })
 
@@ -562,8 +565,8 @@ export default function Courses() {
             <span className="text-xs text-gray-500">
               {record.batches?.[0]?.expirationDate
                 ? `Expires: ${new Date(
-                    record.batches[0].expirationDate
-                  ).toLocaleDateString()}`
+                  record.batches[0].expirationDate
+                ).toLocaleDateString()}`
                 : 'No expiry date'}
             </span>
           </div>
@@ -1051,7 +1054,7 @@ export default function Courses() {
     .custom-dark-table .ant-table-row-selected > td {
       background-color: rgba(74, 222, 128, 0.08) !important;
     }
-    
+
     .custom-dark-table .ant-table-row-selected:hover > td {
       background-color: rgba(74, 222, 128, 0.12) !important;
     }
@@ -1190,16 +1193,16 @@ export default function Courses() {
     .product-image-preview .ant-image-preview-root {
       z-index: 1050;
     }
-    
+
     .product-image-preview .ant-image-preview-img {
       border-radius: 8px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     }
-    
+
     .product-image-preview .ant-image-preview-operations {
       background: rgba(0, 0, 0, 0.7);
     }
-    
+
     .product-image-preview .ant-image-preview-switch-left,
     .product-image-preview .ant-image-preview-switch-right {
       background: rgba(0, 0, 0, 0.3);
@@ -1207,7 +1210,7 @@ export default function Courses() {
       border-radius: 50%;
       padding: 8px;
     }
-    
+
     .product-image-preview .ant-image-preview-switch-left:hover,
     .product-image-preview .ant-image-preview-switch-right:hover {
       background: rgba(0, 0, 0, 0.6);
@@ -1218,45 +1221,45 @@ export default function Courses() {
       background-color: #1a1b24;
       border: 1px solid #282d35;
     }
-    
+
     .image-upload-modal .ant-modal-header {
       background-color: #1a1b24;
       border-bottom: 1px solid #282d35;
     }
-    
+
     .image-upload-modal .ant-modal-title {
       color: #e5e7eb;
     }
-    
+
     .image-upload-modal .ant-modal-close {
       color: #8b949e;
     }
-    
+
     .image-upload-modal .ant-modal-close:hover {
       color: #e5e7eb;
     }
-    
+
     .image-upload-modal .ant-upload-list {
       color: #e5e7eb;
     }
-    
+
     .image-upload-modal .ant-upload-drag {
       background-color: #141414;
       border: 1px dashed #303030;
     }
-    
+
     .image-upload-modal .ant-upload-drag:hover {
       border-color: #3b82f6;
     }
-    
+
     .image-upload-modal .ant-upload-list-item {
       border-color: #303030;
     }
-    
+
     .image-upload-modal .ant-upload-list-item-name {
       color: #e5e7eb;
     }
-    
+
     .image-upload-modal .ant-upload-list-item-card-actions .anticon {
       color: #e5e7eb;
     }

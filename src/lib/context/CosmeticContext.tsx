@@ -9,6 +9,16 @@ interface CosmeticContextType {
   totalPages: number
   currentPage: number
   onPageChange: (page: number) => void
+  selectedCategories: string[]
+  setSelectedCategories: (categories: string[]) => void
+  selectedBrands: string[]
+  setSelectedBrands: (brands: string[]) => void
+  selectedCosmeticTypes: string[]
+  setSelectedCosmeticTypes: (types: string[]) => void
+  selectedConcerns: string[]
+  setSelectedConcerns: (concerns: string[]) => void
+  priceRange: number[]
+  setPriceRange: (range: number[]) => void
 }
 
 const CosmeticContext = createContext<CosmeticContextType>({
@@ -17,7 +27,17 @@ const CosmeticContext = createContext<CosmeticContextType>({
   error: null,
   totalPages: 1,
   currentPage: 1,
-  onPageChange: () => {}
+  onPageChange: () => {},
+  selectedCategories: [],
+  setSelectedCategories: () => {},
+  selectedBrands: [],
+  setSelectedBrands: () => {},
+  selectedCosmeticTypes: [],
+  setSelectedCosmeticTypes: () => {},
+  selectedConcerns: [],
+  setSelectedConcerns: () => {},
+  priceRange: [0, 4000000],
+  setPriceRange: () => {}
 })
 
 export const CosmeticProvider: React.FC<{
