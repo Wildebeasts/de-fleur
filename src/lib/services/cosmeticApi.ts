@@ -4,9 +4,22 @@ import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { PaginatedList } from '@/lib/types/common/PaginatedList'
 import axiosClient from '../api/axiosClient'
 
-interface ImageUploadPayload {
-  cosmeticId: string
-  images: string[] | File[] // Array of base64 strings or File objects
+interface CreateCosmeticPayload {
+  brandId: string
+  skinTypeId: string
+  cosmeticTypeId: string
+  name: string
+  price: number
+  gender: boolean
+  notice?: string | null
+  ingredients: string
+  mainUsage: string
+  texture?: string | null
+  origin: string
+  instructions: string
+  size: number
+  volumeUnit: number
+  thumbnail?: File | null
 }
 
 const cosmeticApi = {
@@ -55,6 +68,39 @@ const cosmeticApi = {
         'Content-Type': 'multipart/form-data'
       }
     })
+  },
+  createCosmetic: (payload: CreateCosmeticPayload) => {
+    const formData = new FormData()
+
+    console.log('Creating FormData for cosmetic...')
+
+    // Add all text fields to the FormData
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && key !== 'thumbnail') {
+        formData.append(key, value.toString())
+        console.log(`Added ${key}:`, value)
+      }
+    })
+
+    // Add thumbnail if it exists
+    if (payload.thumbnail) {
+      formData.append('thumbnail', payload.thumbnail)
+      console.log('Added thumbnail file:', payload.thumbnail.name)
+    } else {
+      console.log('No thumbnail file provided')
+    }
+
+    console.log('Sending FormData to API...')
+
+    return axiosClient.post<ApiResponse<CosmeticResponse>>(
+      '/cosmetics',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }
+    )
   }
 }
 

@@ -943,12 +943,9 @@ export default function Courses() {
     setSelectedRowKeys(e.target.checked ? data.map((item) => item.key) : [])
   }
 
-  const handleAdd = () => {
-    navigate({
-      // @ts-expect-error -- y e s
-      to: '/admin/cosmetics/add'
-    })
-  }
+  const handleAdd = useCallback(() => {
+    navigate({ to: '/admin/cosmetics/create' })
+  }, [navigate])
 
   // Update bulk delete handler
   const handleDeleteSelected = async () => {

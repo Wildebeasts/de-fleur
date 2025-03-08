@@ -112,11 +112,29 @@ export default function BlogList() {
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
   const queryClient = useQueryClient()
 
+  // Add state for pagination
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 7,
+    total: 0
+  })
+
   // Fetch blogs using React Query
-  const { data: blogs = [], isLoading: isLoadingBlogs } = useQuery({
-    queryKey: ['blogs'],
+  const { data = [], isLoading: isLoadingBlogs } = useQuery({
+    queryKey: ['blogs', pagination.current, pagination.pageSize, searchText],
     queryFn: async () => {
-      const response = await blogApi.getBlogs()
+      const response = await blogApi.getBlogs(
+        pagination.current,
+        pagination.pageSize,
+        searchText
+      )
+
+      // Update total count for pagination
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data?.data?.totalPages * pagination.pageSize || 0
+      }))
+
       return (response.data?.data?.items ?? []).map((blog) => ({
         ...blog,
         key: blog.id
@@ -124,25 +142,16 @@ export default function BlogList() {
     }
   })
 
-  // Filter data based on search
-  const filteredData = useMemo(() => {
-    return blogs.filter((item) =>
-      Object.values(item).some(
-        (value) =>
-          value &&
-          value.toString().toLowerCase().includes(searchText.toLowerCase())
-      )
-    )
-  }, [blogs, searchText])
-
-  // Add search handler
+  // Update search handler to trigger API call
   const handleGlobalSearch = useCallback((value: string) => {
     setSearchText(value)
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
     }
     searchTimeoutRef.current = setTimeout(() => {
-      // Search is handled by filteredData memo
+      // Reset to first page when searching
+      setPagination((prev) => ({ ...prev, current: 1 }))
+      // The query will automatically refetch due to queryKey changes
     }, 300)
   }, [])
 
@@ -181,6 +190,14 @@ export default function BlogList() {
     },
     [queryClient]
   )
+
+  // Handle table pagination change
+  const handleTableChange = (newPagination) => {
+    setPagination({
+      ...pagination,
+      current: newPagination.current
+    })
+  }
 
   // Reference existing theme configuration
   const tableTheme = {
@@ -384,12 +401,17 @@ export default function BlogList() {
           >
             <Table
               columns={columns}
-              dataSource={filteredData}
+              dataSource={data}
               loading={isLoadingBlogs}
               pagination={{
-                pageSize: 7,
-                showSizeChanger: false
+                current: pagination.current,
+                pageSize: pagination.pageSize,
+                total: pagination.total,
+                showSizeChanger: false,
+                onChange: (page) =>
+                  setPagination((prev) => ({ ...prev, current: page }))
               }}
+              onChange={handleTableChange}
             />
           </motion.div>
         </MotionCard>

@@ -17,3 +17,8 @@ export interface BlogData {
   hasPreviousPage: boolean
   hasNextPage: boolean
 }
+
+export interface BlogCreateDto {
+  title: string
+  content: string
+}

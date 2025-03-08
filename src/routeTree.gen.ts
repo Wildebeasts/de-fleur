@@ -44,8 +44,10 @@ import { Route as AdminCosmeticsIndexImport } from './routes/admin/cosmetics/ind
 import { Route as AdminBlogsIndexImport } from './routes/admin/blogs/index'
 import { Route as AdminUsersCartsImport } from './routes/admin/users/carts'
 import { Route as AdminCosmeticsSkinTypeImport } from './routes/admin/cosmetics/skin-type'
+import { Route as AdminCosmeticsCreateImport } from './routes/admin/cosmetics/create'
 import { Route as AdminCosmeticsCosmetictypeImport } from './routes/admin/cosmetics/cosmetic_type'
 import { Route as AdminCosmeticsBrandlistImport } from './routes/admin/cosmetics/brand_list'
+import { Route as AdminBlogsAddImport } from './routes/admin/blogs/add'
 
 // Create/Update Routes
 
@@ -247,6 +249,12 @@ const AdminCosmeticsSkinTypeRoute = AdminCosmeticsSkinTypeImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 
+const AdminCosmeticsCreateRoute = AdminCosmeticsCreateImport.update({
+  id: '/cosmetics/create',
+  path: '/cosmetics/create',
+  getParentRoute: () => AdminRoute,
+} as any)
+
 const AdminCosmeticsCosmetictypeRoute = AdminCosmeticsCosmetictypeImport.update(
   {
     id: '/cosmetics/cosmetic_type',
@@ -258,6 +266,12 @@ const AdminCosmeticsCosmetictypeRoute = AdminCosmeticsCosmetictypeImport.update(
 const AdminCosmeticsBrandlistRoute = AdminCosmeticsBrandlistImport.update({
   id: '/cosmetics/brand_list',
   path: '/cosmetics/brand_list',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminBlogsAddRoute = AdminBlogsAddImport.update({
+  id: '/blogs/add',
+  path: '/blogs/add',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -461,6 +475,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexImport
       parentRoute: typeof AdminImport
     }
+    '/admin/blogs/add': {
+      id: '/admin/blogs/add'
+      path: '/blogs/add'
+      fullPath: '/admin/blogs/add'
+      preLoaderRoute: typeof AdminBlogsAddImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/cosmetics/brand_list': {
       id: '/admin/cosmetics/brand_list'
       path: '/cosmetics/brand_list'
@@ -473,6 +494,13 @@ declare module '@tanstack/react-router' {
       path: '/cosmetics/cosmetic_type'
       fullPath: '/admin/cosmetics/cosmetic_type'
       preLoaderRoute: typeof AdminCosmeticsCosmetictypeImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/cosmetics/create': {
+      id: '/admin/cosmetics/create'
+      path: '/cosmetics/create'
+      fullPath: '/admin/cosmetics/create'
+      preLoaderRoute: typeof AdminCosmeticsCreateImport
       parentRoute: typeof AdminImport
     }
     '/admin/cosmetics/skin-type': {
@@ -517,8 +545,10 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminBlogsAddRoute: typeof AdminBlogsAddRoute
   AdminCosmeticsBrandlistRoute: typeof AdminCosmeticsBrandlistRoute
   AdminCosmeticsCosmetictypeRoute: typeof AdminCosmeticsCosmetictypeRoute
+  AdminCosmeticsCreateRoute: typeof AdminCosmeticsCreateRoute
   AdminCosmeticsSkinTypeRoute: typeof AdminCosmeticsSkinTypeRoute
   AdminUsersCartsRoute: typeof AdminUsersCartsRoute
   AdminBlogsIndexRoute: typeof AdminBlogsIndexRoute
@@ -528,8 +558,10 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminBlogsAddRoute: AdminBlogsAddRoute,
   AdminCosmeticsBrandlistRoute: AdminCosmeticsBrandlistRoute,
   AdminCosmeticsCosmetictypeRoute: AdminCosmeticsCosmetictypeRoute,
+  AdminCosmeticsCreateRoute: AdminCosmeticsCreateRoute,
   AdminCosmeticsSkinTypeRoute: AdminCosmeticsSkinTypeRoute,
   AdminUsersCartsRoute: AdminUsersCartsRoute,
   AdminBlogsIndexRoute: AdminBlogsIndexRoute,
@@ -568,8 +600,10 @@ export interface FileRoutesByFullPath {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
+  '/admin/cosmetics/create': typeof AdminCosmeticsCreateRoute
   '/admin/cosmetics/skin-type': typeof AdminCosmeticsSkinTypeRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
   '/admin/blogs': typeof AdminBlogsIndexRoute
@@ -605,8 +639,10 @@ export interface FileRoutesByTo {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin': typeof AdminIndexRoute
+  '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
+  '/admin/cosmetics/create': typeof AdminCosmeticsCreateRoute
   '/admin/cosmetics/skin-type': typeof AdminCosmeticsSkinTypeRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
   '/admin/blogs': typeof AdminBlogsIndexRoute
@@ -644,8 +680,10 @@ export interface FileRoutesById {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
+  '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
+  '/admin/cosmetics/create': typeof AdminCosmeticsCreateRoute
   '/admin/cosmetics/skin-type': typeof AdminCosmeticsSkinTypeRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
   '/admin/blogs/': typeof AdminBlogsIndexRoute
@@ -684,8 +722,10 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin/'
+    | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
+    | '/admin/cosmetics/create'
     | '/admin/cosmetics/skin-type'
     | '/admin/users/carts'
     | '/admin/blogs'
@@ -720,8 +760,10 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin'
+    | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
+    | '/admin/cosmetics/create'
     | '/admin/cosmetics/skin-type'
     | '/admin/users/carts'
     | '/admin/blogs'
@@ -757,8 +799,10 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin/'
+    | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
+    | '/admin/cosmetics/create'
     | '/admin/cosmetics/skin-type'
     | '/admin/users/carts'
     | '/admin/blogs/'
@@ -879,8 +923,10 @@ export const routeTree = rootRoute
       "filePath": "admin.tsx",
       "children": [
         "/admin/",
+        "/admin/blogs/add",
         "/admin/cosmetics/brand_list",
         "/admin/cosmetics/cosmetic_type",
+        "/admin/cosmetics/create",
         "/admin/cosmetics/skin-type",
         "/admin/users/carts",
         "/admin/blogs/",
@@ -961,12 +1007,20 @@ export const routeTree = rootRoute
       "filePath": "admin/index.tsx",
       "parent": "/admin"
     },
+    "/admin/blogs/add": {
+      "filePath": "admin/blogs/add.tsx",
+      "parent": "/admin"
+    },
     "/admin/cosmetics/brand_list": {
       "filePath": "admin/cosmetics/brand_list.tsx",
       "parent": "/admin"
     },
     "/admin/cosmetics/cosmetic_type": {
       "filePath": "admin/cosmetics/cosmetic_type.tsx",
+      "parent": "/admin"
+    },
+    "/admin/cosmetics/create": {
+      "filePath": "admin/cosmetics/create.tsx",
       "parent": "/admin"
     },
     "/admin/cosmetics/skin-type": {
