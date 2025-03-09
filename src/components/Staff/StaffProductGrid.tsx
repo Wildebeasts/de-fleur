@@ -10,38 +10,28 @@ const ITEMS_PER_PAGE = 12
 
 interface StaffProductGridProps {
   onAddToOrder: (product: CosmeticResponse) => void
+  searchQuery: string
 }
 
 const StaffProductGrid: React.FC<StaffProductGridProps> = ({
-  onAddToOrder
+  onAddToOrder,
+  searchQuery
 }) => {
   const { filteredCosmetics, isLoading, error } = useCosmetic()
-
-  // Add this for debugging
-  console.log('ProductGrid rendering with:', {
-    filteredCosmetics,
-    count: filteredCosmetics?.length || 0,
-    isLoading,
-    error
-  })
-
   const [currentPage, setCurrentPage] = useState(1)
 
-  console.log('ProductGrid received cosmetics:', filteredCosmetics?.length)
-
-  // Calculate total pages
-  const totalPages = Math.ceil(
-    (filteredCosmetics?.length || 0) / ITEMS_PER_PAGE
-  )
-
-  // Get current page cosmetics
-  const paginatedCosmetics =
-    filteredCosmetics?.slice(
-      (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
+  // Filter products based on search query
+  const searchedCosmetics =
+    filteredCosmetics?.filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
     ) || []
 
-  console.log('Paginated cosmetics:', paginatedCosmetics.length)
+  // Paginate after search filter
+  const totalPages = Math.ceil(searchedCosmetics.length / ITEMS_PER_PAGE)
+  const paginatedCosmetics = searchedCosmetics.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  )
 
   if (isLoading) {
     return (
