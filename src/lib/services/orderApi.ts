@@ -38,7 +38,11 @@ const orderApi = {
 
   // Delete order (Admin only)
   deleteOrder: (orderId: string) =>
-    axiosClient.delete<ApiResponse<string>>(`/orders/${orderId}`)
+    axiosClient.delete<ApiResponse<string>>(`/orders/${orderId}`),
+
+  // Get order by ID
+  getOrderById: (orderId: string) =>
+    axiosClient.get<ApiResponse<OrderResponse>>(`/orders/${orderId}`)
 }
 
 export default orderApi
