@@ -9,6 +9,18 @@ export interface CreateOrderRequest {
   districtId: number
 }
 
+export interface Cosmetics {
+  [key: string]: number
+}
+
+export interface OrderWalkInRequest {
+  Cosmetics: Cosmetics
+  CustomerId: string | null
+  CustomerPhoneNumber: string
+  CouponId: string | null
+  PaymentMethod: string
+}
+
 export interface CreateOrderResponse {
   orderId: string
   status: string

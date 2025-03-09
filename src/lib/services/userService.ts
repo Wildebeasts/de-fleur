@@ -1,6 +1,7 @@
 import axiosClient from '@/lib/api/axiosClient'
 import { ApiResponse } from '@/lib/types/base/Api'
 import { SkinTypeResponse } from '../types/SkinType'
+import { CreateWalkInUserRequest } from '../types/user'
 
 export interface UserDto {
   id: string
@@ -106,6 +107,17 @@ const userApi = {
     if (!response.data.isSuccess) {
       throw new Error(response.data.message || 'Failed to update user')
     }
+  },
+
+  createWalkInUser: async (user: CreateWalkInUserRequest): Promise<UserDto> => {
+    const response = await axiosClient.post<ApiResponse<UserDto>>(
+      '/user/walkin',
+      user
+    )
+    if (!response.data.isSuccess || !response.data.data) {
+      throw new Error(response.data.message || 'Failed to create user')
+    }
+    return response.data.data
   }
 }
 

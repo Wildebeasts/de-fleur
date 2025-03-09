@@ -1,7 +1,9 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import StaffProductCard from './StaffProductCard'
 import { useCosmetic } from '@/lib/context/CosmeticContext'
-import ProductCard from './ProductCard'
+import { Loader2 } from 'lucide-react'
+import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import {
   Pagination,
   PaginationContent,
@@ -10,19 +12,16 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination'
-import { Loader2 } from 'lucide-react'
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+interface StaffProductGridProps {
+  onAddToOrder: (product: CosmeticResponse) => void
+  searchQuery: string
 }
 
-const ProductGrid: React.FC = () => {
+const StaffProductGrid: React.FC<StaffProductGridProps> = ({
+  onAddToOrder,
+  searchQuery
+}) => {
   const {
     filteredCosmetics,
     isLoading,
@@ -32,30 +31,39 @@ const ProductGrid: React.FC = () => {
     onPageChange
   } = useCosmetic()
 
+  // Add this for debugging
+  console.log('ProductGrid rendering with:', {
+    filteredCosmetics,
+    count: filteredCosmetics?.length || 0,
+    isLoading,
+    error
+  })
+
+  console.log('ProductGrid received cosmetics:', filteredCosmetics?.length)
+
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="size-12 animate-spin text-rose-300" />
+      <div className="flex h-64 w-full items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-[#3A4D39]" />
+        <span className="ml-2 text-lg text-[#3A4D39]">Loading products...</span>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex h-96 flex-col items-center justify-center">
-        <p className="text-lg font-medium text-red-500">
-          Error loading products
-        </p>
-        <p className="text-gray-500">{error.message}</p>
+      <div className="flex h-64 w-full flex-col items-center justify-center text-red-500">
+        <p className="text-lg font-medium">Error loading products</p>
+        <p className="text-sm">{error.message}</p>
       </div>
     )
   }
 
   if (!filteredCosmetics || filteredCosmetics.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <p className="text-lg font-medium text-gray-500">
-          No products found matching your criteria
+      <div className="flex h-64 w-full items-center justify-center">
+        <p className="text-lg text-[#3A4D39]">
+          No products found matching your filters.
         </p>
       </div>
     )
@@ -66,7 +74,7 @@ const ProductGrid: React.FC = () => {
     const items = []
     const maxVisiblePages = 5
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
 
     // Adjust start page if we're near the end
     if (endPage - startPage + 1 < maxVisiblePages) {
@@ -131,15 +139,21 @@ const ProductGrid: React.FC = () => {
   const hasNextPage = currentPage < totalPages
 
   return (
-    <div className="space-y-8">
+    <>
       <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="grid grid-cols-1 gap-6"
       >
-        {filteredCosmetics.map((cosmetic) => (
-          <ProductCard key={cosmetic.id} cosmetic={cosmetic} />
+        {filteredCosmetics.map((product, index) => (
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+          >
+            <StaffProductCard product={product} onAddToOrder={onAddToOrder} />
+          </motion.div>
         ))}
       </motion.div>
 
@@ -168,8 +182,8 @@ const ProductGrid: React.FC = () => {
           </PaginationContent>
         </Pagination>
       )}
-    </div>
+    </>
   )
 }
 
-export default ProductGrid
+export default StaffProductGrid

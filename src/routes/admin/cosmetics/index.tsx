@@ -6,9 +6,5 @@ export const Route = createFileRoute('/admin/cosmetics/')({
 })
 
 function RouteComponent() {
-  return (
-    <>
-      <Cosmetics />
-    </>
-  )
+  return <Cosmetics />
 }

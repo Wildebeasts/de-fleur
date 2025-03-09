@@ -3,8 +3,9 @@ import axiosClient from '../api/axiosClient'
 import { ApiResponse } from '../types/base/Api'
 import {
   CreateOrderRequest,
+  CreateOrderResponse,
   OrderResponse,
-  CreateOrderResponse
+  OrderWalkInRequest
 } from '../types/order'
 
 const orderApi = {
@@ -42,7 +43,10 @@ const orderApi = {
 
   // Get order by ID
   getOrderById: (orderId: string) =>
-    axiosClient.get<ApiResponse<OrderResponse>>(`/orders/${orderId}`)
+    axiosClient.get<ApiResponse<OrderResponse>>(`/orders/${orderId}`),
+  // Create a Walk In Order
+  createWalkInOrder: (request: OrderWalkInRequest) =>
+    axiosClient.post<ApiResponse<OrderResponse>>('/orders/walkin', request)
 }
 
 export default orderApi
