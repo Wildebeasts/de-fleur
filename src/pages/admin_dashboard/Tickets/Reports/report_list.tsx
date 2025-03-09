@@ -752,7 +752,7 @@ const ReportList: React.FC = () => {
 
   const findUserByUsername = (username: string): UserDto | undefined => {
     const user = users.find(
-      (user) => user.username.toLowerCase() === username.toLowerCase()
+      (user) => user.userName.toLowerCase() === username.toLowerCase()
     )
     console.log('Looking for username:', username) // Debug log
     console.log('Found user:', user) // Debug log
@@ -852,10 +852,11 @@ const ReportList: React.FC = () => {
                     setIsEditMode(!isEditMode)
                     setSelectedReports([])
                   }}
-                  className={`${isEditMode
-                    ? 'border-none bg-blue-500 text-white hover:bg-blue-600'
-                    : 'border-[#374151] bg-[#282d35] text-gray-400 hover:bg-[#353a44] hover:text-white'
-                    }`}
+                  className={`${
+                    isEditMode
+                      ? 'border-none bg-blue-500 text-white hover:bg-blue-600'
+                      : 'border-[#374151] bg-[#282d35] text-gray-400 hover:bg-[#353a44] hover:text-white'
+                  }`}
                 >
                   {isEditMode ? 'Done' : 'Edit'}
                 </Button>
@@ -897,12 +898,13 @@ const ReportList: React.FC = () => {
                         className={`
                           group h-full overflow-hidden rounded-xl border border-gray-100/10 bg-[#1a1b24]
                           bg-opacity-60 bg-clip-padding backdrop-blur-lg hover:border-gray-100/20 ${getStatusGlow(
-                          report.reportStatus
-                        )}
+                            report.reportStatus
+                          )}
                           cursor-pointer transition-all duration-300
-                          ${selectedReports.includes(report.reportId)
-                            ? 'ring-2 ring-blue-500'
-                            : ''
+                          ${
+                            selectedReports.includes(report.reportId)
+                              ? 'ring-2 ring-blue-500'
+                              : ''
                           }
                         `}
                         onClick={(e: React.MouseEvent) => {
@@ -921,9 +923,10 @@ const ReportList: React.FC = () => {
                             {isEditMode ? (
                               <div
                                 className={`flex size-6 items-center justify-center rounded-full border-2
-                                  ${selectedReports.includes(report.reportId)
-                                    ? 'border-blue-500 bg-blue-500'
-                                    : 'border-gray-400'
+                                  ${
+                                    selectedReports.includes(report.reportId)
+                                      ? 'border-blue-500 bg-blue-500'
+                                      : 'border-gray-400'
                                   }`}
                               >
                                 {selectedReports.includes(report.reportId) && (
@@ -1002,7 +1005,7 @@ const ReportList: React.FC = () => {
                                   {user?.avatarUrl ? (
                                     <img
                                       src={user.avatarUrl}
-                                      alt={user.username}
+                                      alt={user.userName}
                                       className="size-6 rounded-full object-cover"
                                       onError={(e) => {
                                         console.error(
@@ -1016,7 +1019,7 @@ const ReportList: React.FC = () => {
                                   ) : (
                                     <div className="flex size-6 items-center justify-center rounded-full bg-blue-500/20">
                                       <span className="text-xs text-blue-400">
-                                        {user?.username
+                                        {user?.userName
                                           .charAt(0)
                                           .toUpperCase() ||
                                           report.createdBy
@@ -1026,7 +1029,7 @@ const ReportList: React.FC = () => {
                                     </div>
                                   )}
                                   <span className="text-xs text-gray-400">
-                                    {user?.username || report.createdBy}
+                                    {user?.userName || report.createdBy}
                                   </span>
                                 </>
                               )
@@ -1182,13 +1185,13 @@ const ReportList: React.FC = () => {
                         {user?.avatarUrl ? (
                           <img
                             src={user.avatarUrl}
-                            alt={user.username}
+                            alt={user.userName}
                             className="size-8 rounded-full object-cover"
                           />
                         ) : (
                           <div className="flex size-8 items-center justify-center rounded-full bg-blue-500/20">
                             <span className="text-sm text-blue-400">
-                              {user?.username.charAt(0).toUpperCase() ||
+                              {user?.userName.charAt(0).toUpperCase() ||
                                 selectedReport.createdBy
                                   .charAt(0)
                                   .toUpperCase()}
@@ -1197,7 +1200,7 @@ const ReportList: React.FC = () => {
                         )}
                         <div>
                           <div className="text-sm text-white">
-                            {user?.username || selectedReport.createdBy}
+                            {user?.userName || selectedReport.createdBy}
                           </div>
                           <div className="text-xs text-gray-400">Author</div>
                         </div>

@@ -1,8 +1,11 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { Cosmetics, OrderWalkInRequest } from '@/lib/types/order'
 import { Minus, Plus, Trash2 } from 'lucide-react'
+import userApi, { UserDto } from '@/lib/services/userService'
+import { toast } from 'sonner'
+import ComboBox from '../ui/combobox'
 
 interface OrderSummaryProps {
   selectedProducts: CosmeticResponse[]
@@ -17,6 +20,18 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   onDecreaseQuantity,
   onRemoveProduct
 }) => {
+  const [users, setUsers] = useState<UserDto[]>([])
+  const [loading, setLoading] = useState(false)
+
+  // Form state
+  const [formData, setFormData] = useState<OrderWalkInRequest>({
+    Cosmetics: {},
+    CustomerId: null, // or pass actual customer ID if available
+    CustomerPhoneNumber: '0', // Replace with actual input value
+    CouponId: null, // or actual coupon ID if applied
+    PaymentMethod: 'CASH' // or 'Credit Card' based on selection
+  })
+
   const handleSubmitOrder = () => {
     const cosmeticsPayload: Cosmetics = selectedProducts.reduce(
       (acc, product) => {
@@ -28,14 +43,41 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
     const orderRequest: OrderWalkInRequest = {
       Cosmetics: cosmeticsPayload,
-      CustomerId: null, // or pass actual customer ID if available
-      CustomerPhoneNumber: '0123456789', // Replace with actual input value
-      CouponId: null, // or actual coupon ID if applied
-      PaymentMethod: 'Cash' // or 'Credit Card' based on selection
+      CustomerId: formData.CustomerId, // or pass actual customer ID if available
+      CustomerPhoneNumber: formData.CustomerPhoneNumber, // Replace with actual input value
+      CouponId: formData.CouponId, // or actual coupon ID if applied
+      PaymentMethod: formData.PaymentMethod // or 'Credit Card' based on selection
     }
 
     console.log(orderRequest) // For debugging before sending
     // Call API to place order
+  }
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true)
+        const response = await userApi.getUsers(1, 10)
+        console.log(response)
+
+        if (response.isSuccess) {
+          setUsers(response.data)
+        } else {
+          toast.error('no users available')
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error)
+        toast.error('Error fetching users')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  const handleChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const total = selectedProducts.reduce(
@@ -109,6 +151,23 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
       {selectedProducts.length > 0 && (
         <div className="mt-4 border-t pt-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Customers</label>
+            <ComboBox
+              items={users.map((d) => ({
+                value: d.phoneNumber,
+                label: d.userName + '-' + d.phoneNumber
+              }))}
+              placeholder="Select a customer"
+              value={formData.CustomerPhoneNumber}
+              onValueChange={(e) => {
+                handleChange('CustomerPhoneNumber', e.toString())
+              }}
+              disabled={loading}
+              filterBy="value"
+            />
+          </div>
+
           <div className="flex justify-between text-sm font-semibold">
             <span>Total:</span>
             <span className="font-bold text-[#3A4D39]">
