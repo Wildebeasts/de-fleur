@@ -132,7 +132,7 @@ export default function BlogList() {
       // Update total count for pagination
       setPagination((prev) => ({
         ...prev,
-        total: response.data?.data?.totalPages * pagination.pageSize || 0
+        total: response.data.data!.totalPages * pagination.pageSize || 0
       }))
 
       return (response.data?.data?.items ?? []).map((blog) => ({
@@ -192,7 +192,8 @@ export default function BlogList() {
   )
 
   // Handle table pagination change
-  const handleTableChange = (newPagination) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleTableChange = (newPagination: any) => {
     setPagination({
       ...pagination,
       current: newPagination.current
@@ -384,7 +385,6 @@ export default function BlogList() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    // @ts-expect-error -- blogs is not defined in the params
                     onClick={() => navigate({ to: '/admin/blogs/add' })}
                   >
                     Add New
