@@ -12,7 +12,6 @@
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as TestimonialsImport } from './routes/testimonials'
-import { Route as TestpaginationImport } from './routes/test_pagination'
 import { Route as SocialaccountImport } from './routes/social_account'
 import { Route as ShopDetailsImport } from './routes/shopDetails'
 import { Route as ShopImport } from './routes/shop'
@@ -56,12 +55,6 @@ import { Route as AdminBlogsAddImport } from './routes/admin/blogs/add'
 const TestimonialsRoute = TestimonialsImport.update({
   id: '/testimonials',
   path: '/testimonials',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const TestpaginationRoute = TestpaginationImport.update({
-  id: '/test_pagination',
-  path: '/test_pagination',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -475,13 +468,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SocialaccountImport
       parentRoute: typeof rootRoute
     }
-    '/test_pagination': {
-      id: '/test_pagination'
-      path: '/test_pagination'
-      fullPath: '/test_pagination'
-      preLoaderRoute: typeof TestpaginationImport
-      parentRoute: typeof rootRoute
-    }
     '/testimonials': {
       id: '/testimonials'
       path: '/testimonials'
@@ -626,7 +612,6 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
-  '/test_pagination': typeof TestpaginationRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
   '/staff': typeof StaffIndexRoute
@@ -667,7 +652,6 @@ export interface FileRoutesByTo {
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
-  '/test_pagination': typeof TestpaginationRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin': typeof AdminIndexRoute
   '/staff': typeof StaffIndexRoute
@@ -710,7 +694,6 @@ export interface FileRoutesById {
   '/shop': typeof ShopRoute
   '/shopDetails': typeof ShopDetailsRoute
   '/social_account': typeof SocialaccountRoute
-  '/test_pagination': typeof TestpaginationRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
   '/staff/': typeof StaffIndexRoute
@@ -754,7 +737,6 @@ export interface FileRouteTypes {
     | '/shop'
     | '/shopDetails'
     | '/social_account'
-    | '/test_pagination'
     | '/testimonials'
     | '/admin/'
     | '/staff'
@@ -794,7 +776,6 @@ export interface FileRouteTypes {
     | '/shop'
     | '/shopDetails'
     | '/social_account'
-    | '/test_pagination'
     | '/testimonials'
     | '/admin'
     | '/staff'
@@ -835,7 +816,6 @@ export interface FileRouteTypes {
     | '/shop'
     | '/shopDetails'
     | '/social_account'
-    | '/test_pagination'
     | '/testimonials'
     | '/admin/'
     | '/staff/'
@@ -878,7 +858,6 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   ShopDetailsRoute: typeof ShopDetailsRoute
   SocialaccountRoute: typeof SocialaccountRoute
-  TestpaginationRoute: typeof TestpaginationRoute
   TestimonialsRoute: typeof TestimonialsRoute
   StaffIndexRoute: typeof StaffIndexRoute
 }
@@ -910,7 +889,6 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   ShopDetailsRoute: ShopDetailsRoute,
   SocialaccountRoute: SocialaccountRoute,
-  TestpaginationRoute: TestpaginationRoute,
   TestimonialsRoute: TestimonialsRoute,
   StaffIndexRoute: StaffIndexRoute,
 }
@@ -951,7 +929,6 @@ export const routeTree = rootRoute
         "/shop",
         "/shopDetails",
         "/social_account",
-        "/test_pagination",
         "/testimonials",
         "/staff/"
       ]
@@ -1045,9 +1022,6 @@ export const routeTree = rootRoute
     },
     "/social_account": {
       "filePath": "social_account.tsx"
-    },
-    "/test_pagination": {
-      "filePath": "test_pagination.tsx"
     },
     "/testimonials": {
       "filePath": "testimonials.tsx"
