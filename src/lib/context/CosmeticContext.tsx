@@ -1,6 +1,8 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { createContext, useContext } from 'react'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
+import { CosmeticFilter } from '@/lib/types/CosmeticFilter'
 
 interface CosmeticContextType {
   filteredCosmetics: CosmeticResponse[]
@@ -9,6 +11,8 @@ interface CosmeticContextType {
   totalPages: number
   currentPage: number
   onPageChange: (page: number) => void
+  filters: CosmeticFilter
+  setFilters: (filters: CosmeticFilter) => void
   selectedCategories: string[]
   setSelectedCategories: (categories: string[]) => void
   selectedBrands: string[]
@@ -27,17 +31,19 @@ const CosmeticContext = createContext<CosmeticContextType>({
   error: null,
   totalPages: 1,
   currentPage: 1,
-  onPageChange: () => {},
+  onPageChange: () => { },
+  filters: {},
+  setFilters: () => { },
   selectedCategories: [],
-  setSelectedCategories: () => {},
+  setSelectedCategories: () => { },
   selectedBrands: [],
-  setSelectedBrands: () => {},
+  setSelectedBrands: () => { },
   selectedCosmeticTypes: [],
-  setSelectedCosmeticTypes: () => {},
+  setSelectedCosmeticTypes: () => { },
   selectedConcerns: [],
-  setSelectedConcerns: () => {},
+  setSelectedConcerns: () => { },
   priceRange: [0, 4000000],
-  setPriceRange: () => {}
+  setPriceRange: () => { }
 })
 
 export const CosmeticProvider: React.FC<{

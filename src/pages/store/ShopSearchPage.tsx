@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect, useCallback } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import ProductGrid from '@/components/Store/ProductGrid'
 import FilterSidebar from '@/components/Store/FilterSidebar'
 import cosmeticApi from '@/lib/services/cosmeticApi'
@@ -10,7 +11,9 @@ import Breadcrumb from '@/components/Store/Breadcrumb'
 const ITEMS_PER_PAGE = 12
 
 const ShopSearchPage: React.FC = () => {
+  const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE)
   const [sortColumn, setSortColumn] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
   const [filters, setFilters] = useState<CosmeticFilter>({})
@@ -22,13 +25,58 @@ const ShopSearchPage: React.FC = () => {
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<number[]>([0, 4000000])
 
-  // Fetch cosmetics with pagination from the API
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['cosmetics', currentPage, sortColumn, sortOrder, filters],
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [
+    filters,
+    selectedBrands,
+    selectedCategories,
+    selectedCosmeticTypes,
+    selectedConcerns,
+    priceRange,
+    sortColumn,
+    sortOrder
+  ])
+
+  // Build complete filter object from all filter states
+  useEffect(() => {
+    const updatedFilters: CosmeticFilter = {
+      brandId: selectedBrands.length > 0 ? selectedBrands.join(',') : undefined,
+      skinTypeId:
+        selectedCategories.length > 0
+          ? selectedCategories.join(',')
+          : undefined,
+      cosmeticTypeId:
+        selectedCosmeticTypes.length > 0
+          ? selectedCosmeticTypes.join(',')
+          : undefined,
+      minPrice: priceRange[0] > 0 ? priceRange[0] : undefined,
+      maxPrice: priceRange[1] < 4000000 ? priceRange[1] : undefined
+    }
+
+    setFilters(updatedFilters)
+  }, [
+    selectedBrands,
+    selectedCategories,
+    selectedCosmeticTypes,
+    selectedConcerns,
+    priceRange
+  ])
+
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: [
+      'cosmetics',
+      currentPage,
+      pageSize,
+      sortColumn,
+      sortOrder,
+      filters
+    ],
     queryFn: async () => {
       const response = await cosmeticApi.getCosmetics(
         currentPage,
-        ITEMS_PER_PAGE,
+        pageSize,
         sortColumn,
         sortOrder,
         filters.name,
@@ -39,7 +87,6 @@ const ShopSearchPage: React.FC = () => {
         filters.minPrice,
         filters.maxPrice
       )
-
       if (response.data.isSuccess) {
         return response.data.data
       }
@@ -47,32 +94,15 @@ const ShopSearchPage: React.FC = () => {
     }
   })
 
-  // Handle sort change
-  const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value
-    if (value === 'price-asc') {
-      setSortColumn('price')
-      setSortOrder('asc')
-    } else if (value === 'price-desc') {
-      setSortColumn('price')
-      setSortOrder('desc')
-    } else if (value === 'name-asc') {
-      setSortColumn('name')
-      setSortOrder('asc')
-    } else if (value === 'name-desc') {
-      setSortColumn('name')
-      setSortOrder('desc')
-    } else if (value === 'rating-desc') {
-      setSortColumn('rating')
-      setSortOrder('desc')
-    }
-  }
+  // Handle page change with API refresh
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page)
+  }, [])
 
-  // Handle filter change
-  const handleFilterChange = (newFilters: CosmeticFilter) => {
-    setFilters(newFilters)
-    setCurrentPage(1) // Reset to first page when filters change
-  }
+  // Function to refresh cosmetics data
+  const refreshCosmetics = useCallback(() => {
+    refetch()
+  }, [refetch])
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -83,7 +113,11 @@ const ShopSearchPage: React.FC = () => {
           <select
             id="sort"
             className="rounded-md border border-[#D1E2C4] bg-white px-3 py-2 text-sm text-[#3A4D39] focus:border-[#3A4D39] focus:outline-none"
-            onChange={handleSortChange}
+            onChange={(e) => {
+              const [column, order] = e.target.value.split('-')
+              setSortColumn(column)
+              setSortOrder(order)
+            }}
             defaultValue="name-asc"
           >
             <option value="name-asc">Name (A-Z)</option>
@@ -96,7 +130,7 @@ const ShopSearchPage: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div className="lg:col-span-1">
-            <FilterSidebar onFilterChange={handleFilterChange} />
+            <FilterSidebar onFilterChange={setFilters} />
           </div>
 
           <div className="lg:col-span-3">
@@ -105,9 +139,15 @@ const ShopSearchPage: React.FC = () => {
                 filteredCosmetics: data?.items || [],
                 isLoading,
                 error: error as Error,
+
+                // Pagination
                 totalPages: data?.totalPages || 1,
                 currentPage,
-                onPageChange: setCurrentPage,
+                onPageChange: handlePageChange,
+
+                // Filters
+                filters,
+                setFilters,
                 selectedCategories,
                 setSelectedCategories,
                 selectedBrands,
