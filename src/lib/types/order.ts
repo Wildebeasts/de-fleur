@@ -15,7 +15,8 @@ export interface Cosmetics {
 
 export interface OrderWalkInRequest {
   Cosmetics: Cosmetics
-  CustomerId: string | null
+  FirstName: string
+  LastName: string
   CustomerPhoneNumber: string
   CouponId: string | null
   PaymentMethod: string
