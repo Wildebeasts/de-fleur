@@ -31,6 +31,11 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
     onPageChange
   } = useCosmetic()
 
+  const searchedCosmetics =
+    filteredCosmetics?.filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || []
+
   // Add this for debugging
   console.log('ProductGrid rendering with:', {
     filteredCosmetics,
@@ -145,7 +150,7 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
         animate={{ opacity: 1 }}
         className="grid grid-cols-1 gap-6"
       >
-        {filteredCosmetics.map((product, index) => (
+        {searchedCosmetics.map((product, index) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, y: 20 }}
