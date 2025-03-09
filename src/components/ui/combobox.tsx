@@ -31,6 +31,7 @@ interface SearchableDropdownProps {
   value: number | string
   onValueChange: (value: number | string) => void
   disabled?: boolean
+  filterBy?: 'value' | 'label' // New prop to specify filter criteria
 }
 
 const ComboBox = ({
@@ -38,14 +39,17 @@ const ComboBox = ({
   placeholder,
   value,
   onValueChange,
-  disabled = false
+  disabled = false,
+  filterBy = 'label' // Default to filtering by label
 }: SearchableDropdownProps) => {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
 
-  // Filter items based on the label (not value)
+  // Filter items based on the selected filter criteria
   const filteredItems = items.filter((item) =>
-    normalizeText(item.label).includes(normalizeText(search))
+    normalizeText(
+      filterBy === 'label' ? item.label : item.value.toString()
+    ).includes(normalizeText(search))
   )
 
   const selectedItem = items.find(

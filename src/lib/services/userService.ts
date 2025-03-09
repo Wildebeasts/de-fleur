@@ -5,11 +5,12 @@ import { CreateWalkInUserRequest } from '../types/user'
 
 export interface UserDto {
   id: string
-  username: string
+  userName: string
   email: string
   firstName: string
   lastName: string
   avatarUrl: string
+  phoneNumber: string
   emailConfirmed: boolean
   createdDate: string
   roles: string[]
