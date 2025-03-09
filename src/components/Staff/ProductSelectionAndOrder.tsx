@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useState } from 'react'
 import StaffProductGrid from './StaffProductGrid'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
@@ -136,6 +137,8 @@ const ProductSelectionAndOrder = () => {
             totalPages: data?.totalPages || 1,
             currentPage,
             onPageChange: setCurrentPage,
+            filters,
+            setFilters: () => { }, // Add empty function since we're not using it
             selectedCategories,
             setSelectedCategories,
             selectedBrands,
