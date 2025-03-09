@@ -15,10 +15,12 @@ import {
 
 interface StaffProductGridProps {
   onAddToOrder: (product: CosmeticResponse) => void
+  searchQuery: string
 }
 
 const StaffProductGrid: React.FC<StaffProductGridProps> = ({
-  onAddToOrder
+  onAddToOrder,
+  searchQuery
 }) => {
   const {
     filteredCosmetics,
