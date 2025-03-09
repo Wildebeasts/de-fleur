@@ -47,7 +47,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl bg-white p-6 shadow-md"
+      className="sticky top-20 rounded-2xl bg-white p-6 shadow-md"
     >
       <h2 className="mb-4 text-xl font-bold text-[#3A4D39]">Order Summary</h2>
 

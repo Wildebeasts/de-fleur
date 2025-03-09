@@ -41,6 +41,9 @@ const orderApi = {
   deleteOrder: (orderId: string) =>
     axiosClient.delete<ApiResponse<string>>(`/orders/${orderId}`),
 
+  // Get order by ID
+  getOrderById: (orderId: string) =>
+    axiosClient.get<ApiResponse<OrderResponse>>(`/orders/${orderId}`),
   // Create a Walk In Order
   createWalkInOrder: (request: OrderWalkInRequest) =>
     axiosClient.post<ApiResponse<OrderResponse>>('/orders/walkin', request)

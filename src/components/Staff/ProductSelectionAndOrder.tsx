@@ -8,6 +8,7 @@ import { CosmeticFilter } from '@/lib/types/CosmeticFilter'
 import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
 import Breadcrumb from '../Store/Breadcrumb'
+import CosmeticSearch from './CosmeticSearch'
 
 const ITEMS_PER_PAGE = 12
 
@@ -29,6 +30,7 @@ const ProductSelectionAndOrder = () => {
   )
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<number[]>([0, 4000000])
+  const [searchQuery, setSearchQuery] = useState('')
 
   // Fetch cosmetics with pagination from the API
   const { data, isLoading, error } = useQuery({
@@ -153,7 +155,11 @@ const ProductSelectionAndOrder = () => {
         >
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
             <div className="lg:col-span-2">
-              <StaffProductGrid onAddToOrder={handleAddToOrder} />
+              <CosmeticSearch onSearch={setSearchQuery} />
+              <StaffProductGrid
+                onAddToOrder={handleAddToOrder}
+                searchQuery={searchQuery}
+              />
             </div>
             <div className="lg:col-span-2">
               <OrderSummary

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import {
@@ -8,7 +8,13 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Loader2, Package, ShoppingBag } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
+import { toast } from 'sonner'
+import orderApi from '@/lib/services/orderApi'
+import { format } from 'date-fns'
+import cosmeticApi from '@/lib/services/cosmeticApi'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,92 +33,199 @@ const itemVariants = {
 }
 
 interface OrderItem {
-  id: string
-  name: string
+  cosmeticId: string
   quantity: number
-  price: string
+  sellingPrice: number
+  subTotal: number
 }
 
 interface Order {
   id: string
-  date: string
-  status: 'Delivered' | 'Processing' | 'Shipped' | 'Cancelled'
-  total: string
-  items: OrderItem[]
+  orderDate: string
+  status: string
+  totalPrice: number
+  orderItems: OrderItem[]
+  trackingNumber: string
+  shippingAddress: string
+  deliveryDate: string
 }
 
-const OrderCard = ({ order }: { order: Order }) => (
-  <motion.div variants={itemVariants}>
-    <Card className="overflow-hidden border-rose-200/50">
-      <CardHeader className="bg-orange-50/50">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg text-[#3A4D39]">
-              Order #{order.id}
-            </CardTitle>
-            <CardDescription>{order.date}</CardDescription>
-          </div>
-          <span
-            className={`rounded-full px-3 py-1 text-sm font-medium ${
-              order.status === 'Delivered'
-                ? 'bg-[#D1E2C4] text-[#3A4D39]'
-                : order.status === 'Processing'
-                  ? 'bg-yellow-100 text-yellow-700'
-                  : order.status === 'Shipped'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-red-100 text-red-700'
-            }`}
-          >
-            {order.status}
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="mb-4 space-y-2">
-          {order.items.map((item) => (
-            <div
-              key={item.id}
-              className="flex items-center justify-between text-sm"
-            >
-              <span className="text-[#3A4D39]">
-                {item.quantity}x {item.name}
-              </span>
-              <span className="font-medium text-[#3A4D39]">{item.price}</span>
+// Helper function to format status for display
+const formatStatus = (status: string) => {
+  return status
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (l) => l.toUpperCase())
+}
+
+// Helper function to get status color
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'bg-[#D1E2C4] text-[#3A4D39]'
+    case 'PENDING_PAYMENT':
+      return 'bg-yellow-100 text-yellow-700'
+    case 'SHIPPED':
+      return 'bg-blue-100 text-blue-700'
+    case 'DELIVERED':
+      return 'bg-green-100 text-green-700'
+    case 'CANCELLED':
+      return 'bg-red-100 text-red-700'
+    default:
+      return 'bg-gray-100 text-gray-700'
+  }
+}
+
+// Format date helper
+const formatDate = (dateString: string) => {
+  try {
+    return format(new Date(dateString), 'MMMM dd, yyyy')
+  } catch (error) {
+    return 'Invalid date'
+  }
+}
+
+const OrderCard = ({ order }: { order: Order }) => {
+  const navigate = useNavigate()
+  const [cosmeticNames, setCosmeticNames] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    const fetchCosmeticNames = async () => {
+      const namesMap: Record<string, string> = {}
+      for (const item of order.orderItems) {
+        try {
+          const response = await cosmeticApi.getCosmeticById(item.cosmeticId)
+          if (response.data.isSuccess) {
+            namesMap[item.cosmeticId] = response.data.data.name
+          }
+        } catch (error) {
+          console.error('Error fetching cosmetic name:', error)
+        }
+      }
+      setCosmeticNames(namesMap)
+    }
+
+    fetchCosmeticNames()
+  }, [order.orderItems])
+
+  const handleViewDetails = () => {
+    navigate({ to: '/order_track', search: { orderId: order.id } })
+  }
+
+  return (
+    <motion.div
+      variants={itemVariants}
+      whileHover={{ y: -5 }}
+      transition={{ type: 'spring', stiffness: 300 }}
+    >
+      <Card className="overflow-hidden border-rose-200/50">
+        <CardHeader className="bg-orange-50/50">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg text-[#3A4D39]">
+                Order #{order.id.substring(0, 8)}...
+              </CardTitle>
+              <CardDescription>{formatDate(order.orderDate)}</CardDescription>
             </div>
-          ))}
-        </div>
-        <div className="flex items-center justify-between border-t pt-4">
-          <span className="font-medium text-[#3A4D39]">
-            Total: {order.total}
-          </span>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button
-              variant="ghost"
-              className="text-[#3A4D39] hover:bg-[#D1E2C4]/10"
+            <span
+              className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(
+                order.status
+              )}`}
             >
-              View Details <ArrowRight className="ml-2 size-4" />
-            </Button>
-          </motion.div>
-        </div>
-      </CardContent>
-    </Card>
-  </motion.div>
-)
+              {formatStatus(order.status)}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="mb-4 space-y-2">
+            {order.orderItems.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between text-sm"
+              >
+                <span className="text-[#3A4D39]">
+                  {item.quantity}x{' '}
+                  {cosmeticNames[item.cosmeticId] || `Product ${index + 1}`}
+                </span>
+                <span className="font-medium text-[#3A4D39]">
+                  {new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(item.sellingPrice)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center justify-between border-t pt-4">
+            <span className="font-medium text-[#3A4D39]">
+              Total:{' '}
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              }).format(order.totalPrice)}
+            </span>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="ghost"
+                className="text-[#3A4D39] hover:bg-[#D1E2C4]/10"
+                onClick={handleViewDetails}
+              >
+                View Details <ArrowRight className="ml-2 size-4" />
+              </Button>
+            </motion.div>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+}
 
 const OrderHistoryPage: React.FC = () => {
-  const orders: Order[] = [
-    {
-      id: '1234',
-      date: 'March 15, 2024',
-      status: 'Delivered',
-      total: '$129.99',
-      items: [
-        { id: '1', name: 'Vitamin C Serum', quantity: 1, price: '$49.99' },
-        { id: '2', name: 'Hydrating Cream', quantity: 2, price: '$79.99' }
-      ]
+  // Fetch orders using the API
+  const {
+    data: ordersData,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['myOrders'],
+    queryFn: async () => {
+      const response = await orderApi.getMyOrders()
+      if (response.data.isSuccess) {
+        return response.data.data
+      }
+      throw new Error(response.data.message || 'Failed to fetch orders')
     }
-    // Add more orders as needed
-  ]
+  })
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="mr-2 size-8 animate-spin text-[#3A4D39]" />
+        <span className="text-lg text-[#3A4D39]">Loading your orders...</span>
+      </div>
+    )
+  }
+
+  if (error) {
+    toast.error('Failed to load orders')
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center">
+        <div className="mb-4 rounded-full bg-red-100 p-3">
+          <Package className="size-8 text-red-500" />
+        </div>
+        <h2 className="mb-2 text-xl font-semibold text-[#3A4D39]">
+          Error Loading Orders
+        </h2>
+        <p className="text-[#3A4D39]/70">
+          {error instanceof Error ? error.message : 'An unknown error occurred'}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <motion.div
@@ -121,7 +234,7 @@ const OrderHistoryPage: React.FC = () => {
       variants={containerVariants}
       className="min-h-screen bg-gradient-to-b from-orange-50/80 to-white px-4 py-16"
     >
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-6xl">
         <motion.section variants={itemVariants} className="mb-16 text-center">
           <span className="mb-4 inline-block rounded-full bg-rose-100 px-4 py-2 text-sm text-rose-500">
             Order History
@@ -134,11 +247,35 @@ const OrderHistoryPage: React.FC = () => {
           </p>
         </motion.section>
 
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
-        </div>
+        {ordersData && ordersData.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {ordersData.map((order: Order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
+        ) : (
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-col items-center justify-center rounded-lg border border-rose-200/50 bg-white p-12 text-center shadow-sm"
+          >
+            <div className="mb-4 rounded-full bg-orange-50 p-6">
+              <ShoppingBag className="size-12 text-[#3A4D39]/40" />
+            </div>
+            <h2 className="mb-2 text-xl font-semibold text-[#3A4D39]">
+              No Orders Yet
+            </h2>
+            <p className="mb-6 text-[#3A4D39]/70">
+              You haven't placed any orders yet. Start shopping to see your
+              orders here.
+            </p>
+            <Button
+              className="bg-[#3A4D39] hover:bg-[#4A5D49]"
+              onClick={() => (window.location.href = '/shop')}
+            >
+              Browse Products
+            </Button>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   )
