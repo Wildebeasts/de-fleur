@@ -1,12 +1,17 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import StaffProductCard from './StaffProductCard'
 import { useCosmetic } from '@/lib/context/CosmeticContext'
 import { Loader2 } from 'lucide-react'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
-import Pagination from '../Store/Pagination'
-
-const ITEMS_PER_PAGE = 12
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination'
 
 interface StaffProductGridProps {
   onAddToOrder: (product: CosmeticResponse) => void
@@ -15,7 +20,14 @@ interface StaffProductGridProps {
 const StaffProductGrid: React.FC<StaffProductGridProps> = ({
   onAddToOrder
 }) => {
-  const { filteredCosmetics, isLoading, error } = useCosmetic()
+  const {
+    filteredCosmetics,
+    isLoading,
+    error,
+    currentPage,
+    totalPages,
+    onPageChange
+  } = useCosmetic()
 
   // Add this for debugging
   console.log('ProductGrid rendering with:', {
@@ -25,23 +37,7 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
     error
   })
 
-  const [currentPage, setCurrentPage] = useState(1)
-
   console.log('ProductGrid received cosmetics:', filteredCosmetics?.length)
-
-  // Calculate total pages
-  const totalPages = Math.ceil(
-    (filteredCosmetics?.length || 0) / ITEMS_PER_PAGE
-  )
-
-  // Get current page cosmetics
-  const paginatedCosmetics =
-    filteredCosmetics?.slice(
-      (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
-    ) || []
-
-  console.log('Paginated cosmetics:', paginatedCosmetics.length)
 
   if (isLoading) {
     return (
@@ -61,7 +57,7 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
     )
   }
 
-  if (!filteredCosmetics || paginatedCosmetics.length === 0) {
+  if (!filteredCosmetics || filteredCosmetics.length === 0) {
     return (
       <div className="flex h-64 w-full items-center justify-center">
         <p className="text-lg text-[#3A4D39]">
@@ -71,6 +67,75 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
     )
   }
 
+  // Generate pagination items
+  const renderPaginationItems = () => {
+    const items = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+    // Adjust start page if we're near the end
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    // First page
+    if (startPage > 1) {
+      items.push(
+        <PaginationItem key="first">
+          <PaginationLink onClick={() => onPageChange(1)}>1</PaginationLink>
+        </PaginationItem>
+      )
+
+      if (startPage > 2) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <span className="px-4 py-2">...</span>
+          </PaginationItem>
+        )
+      }
+    }
+
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            isActive={currentPage === i}
+            onClick={() => onPageChange(i)}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    // Last page
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <span className="px-4 py-2">...</span>
+          </PaginationItem>
+        )
+      }
+
+      items.push(
+        <PaginationItem key="last">
+          <PaginationLink onClick={() => onPageChange(totalPages)}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      )
+    }
+
+    return items
+  }
+
+  // Calculate if we have previous/next pages
+  const hasPreviousPage = currentPage > 1
+  const hasNextPage = currentPage < totalPages
+
   return (
     <>
       <motion.div
@@ -78,7 +143,7 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
         animate={{ opacity: 1 }}
         className="grid grid-cols-1 gap-6"
       >
-        {paginatedCosmetics.map((product, index) => (
+        {filteredCosmetics.map((product, index) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, y: 20 }}
@@ -91,13 +156,29 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
       </motion.div>
 
       {totalPages > 1 && (
-        <div className="mt-8 flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+        <Pagination className="mt-8">
+          <PaginationContent>
+            {hasPreviousPage && (
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => onPageChange(currentPage - 1)}
+                  className="cursor-pointer"
+                />
+              </PaginationItem>
+            )}
+
+            {renderPaginationItems()}
+
+            {hasNextPage && (
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => onPageChange(currentPage + 1)}
+                  className="cursor-pointer"
+                />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
       )}
     </>
   )
