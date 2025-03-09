@@ -38,6 +38,7 @@ import { Route as AdminImport } from './routes/admin'
 import { Route as AccountmanageImport } from './routes/account_manage'
 import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
+import { Route as StaffIndexImport } from './routes/staff/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
 import { Route as AdminCosmeticsIndexImport } from './routes/admin/cosmetics/index'
@@ -210,6 +211,12 @@ const AboutRoute = AboutImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const StaffIndexRoute = StaffIndexImport.update({
+  id: '/staff/',
+  path: '/staff/',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -475,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexImport
       parentRoute: typeof AdminImport
     }
+    '/staff/': {
+      id: '/staff/'
+      path: '/staff'
+      fullPath: '/staff'
+      preLoaderRoute: typeof StaffIndexImport
+      parentRoute: typeof rootRoute
+    }
     '/admin/blogs/add': {
       id: '/admin/blogs/add'
       path: '/blogs/add'
@@ -600,6 +614,7 @@ export interface FileRoutesByFullPath {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
+  '/staff': typeof StaffIndexRoute
   '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
@@ -639,6 +654,7 @@ export interface FileRoutesByTo {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin': typeof AdminIndexRoute
+  '/staff': typeof StaffIndexRoute
   '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
@@ -680,6 +696,7 @@ export interface FileRoutesById {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
+  '/staff/': typeof StaffIndexRoute
   '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
@@ -722,6 +739,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin/'
+    | '/staff'
     | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
@@ -760,6 +778,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin'
+    | '/staff'
     | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
@@ -799,6 +818,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/admin/'
+    | '/staff/'
     | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
@@ -839,6 +859,7 @@ export interface RootRouteChildren {
   ShopDetailsRoute: typeof ShopDetailsRoute
   SocialaccountRoute: typeof SocialaccountRoute
   TestimonialsRoute: typeof TestimonialsRoute
+  StaffIndexRoute: typeof StaffIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -869,6 +890,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopDetailsRoute: ShopDetailsRoute,
   SocialaccountRoute: SocialaccountRoute,
   TestimonialsRoute: TestimonialsRoute,
+  StaffIndexRoute: StaffIndexRoute,
 }
 
 export const routeTree = rootRoute
@@ -907,7 +929,8 @@ export const routeTree = rootRoute
         "/shop",
         "/shopDetails",
         "/social_account",
-        "/testimonials"
+        "/testimonials",
+        "/staff/"
       ]
     },
     "/": {
@@ -1006,6 +1029,9 @@ export const routeTree = rootRoute
     "/admin/": {
       "filePath": "admin/index.tsx",
       "parent": "/admin"
+    },
+    "/staff/": {
+      "filePath": "staff/index.tsx"
     },
     "/admin/blogs/add": {
       "filePath": "admin/blogs/add.tsx",
