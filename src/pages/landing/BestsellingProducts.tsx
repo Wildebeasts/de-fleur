@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react'
+import { motion } from 'framer-motion'
 import ProductCard from '@/components/Store/ProductCard'
 import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
@@ -59,74 +60,137 @@ const fallbackProducts = [
 ] as unknown as CosmeticResponse[]
 
 const BestsellingProducts: React.FC = () => {
-  // Fetch products from API with sorting by rating
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['bestsellers'],
+  const {
+    data: products,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['bestselling-products'],
     queryFn: async () => {
-      try {
-        // Get cosmetics sorted by rating in descending order
-        const response = await cosmeticApi.getCosmetics(1, 8, 'rating', 'desc')
-        console.log('API response:', response)
-        return response.data
-      } catch (error) {
-        console.error('Error fetching bestsellers:', error)
-        return null
+      const response = await cosmeticApi.getCosmetics()
+      if (response.data.isSuccess && response.data.data) {
+        // Get the items array from the paginated response
+        const items = response.data.data.items || []
+
+        // Sort by sales or another metric if available
+        // For now, just return the first 4 items
+        return items.slice(0, 4)
       }
+      return []
     }
   })
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  }
+
   if (isLoading) {
     return (
-      <section className="flex h-96 items-center justify-center bg-gradient-to-b from-white to-[#F9F5F0] px-20 py-16 max-md:px-5">
-        <Loader2 className="size-8 animate-spin text-[#3A4D39]" />
-        <span className="ml-2 text-lg text-[#3A4D39]">
-          Loading bestsellers...
-        </span>
+      <section className="bg-[#F9F6F0] py-16">
+        <div className="container mx-auto px-4">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 font-inter text-3xl font-bold text-[#3A4D39] md:text-4xl">
+              Best Selling Products
+            </h2>
+            <p className="mx-auto max-w-2xl text-[#3A4D39]/70">
+              Discover our most popular skincare solutions loved by customers
+            </p>
+          </div>
+          <div className="flex h-64 w-full items-center justify-center">
+            <Loader2 className="size-8 animate-spin text-[#3A4D39]" />
+            <span className="ml-2 text-lg text-[#3A4D39]">
+              Loading products...
+            </span>
+          </div>
+        </div>
       </section>
     )
   }
 
-  // Safely extract products from the response
-  const products =
-    data?.isSuccess && data?.data?.items
-      ? data.data.items.slice(0, 4)
-      : fallbackProducts
-
-  return (
-    <section
-      className="relative overflow-hidden bg-gradient-to-b from-white to-[#F9F5F0] px-20 py-32 max-md:px-5"
-      aria-labelledby="bestselling-title"
-    >
-      {/* Decorative elements */}
-      <div className="absolute left-0 top-0 size-96 -translate-x-1/2 rounded-full bg-[#D1E2C4]/20 blur-3xl" />
-      <div className="absolute bottom-0 right-0 size-96 translate-x-1/2 rounded-full bg-[#A7C4BC]/20 blur-3xl" />
-
-      <div className="relative flex w-full flex-col px-4 max-md:max-w-full">
-        <div className="mb-16 text-center">
-          <h2
-            id="bestselling-title"
-            className="mb-6 text-6xl font-semibold text-[#3A4D39]"
-          >
-            Bestselling Products
-          </h2>
-          <p className="mx-auto max-w-2xl text-xl text-[#3A4D39]/80">
-            Discover our most loved natural skincare products, carefully crafted
-            for your beauty routine.
-          </p>
-        </div>
-
-        <div className="mt-14 max-md:mt-10 max-md:max-w-full">
-          <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
-            {products.map((cosmetic: CosmeticResponse) => (
+  if (error || !products || products.length === 0) {
+    console.error('Error loading bestselling products:', error)
+    // Return a simplified version with placeholder data instead of showing an error
+    return (
+      <section className="bg-[#F9F6F0] py-16">
+        <div className="container mx-auto px-4">
+          <div className="mb-12 text-center">
+            <h2 className="mb-4 font-inter text-3xl font-bold text-[#3A4D39] md:text-4xl">
+              Best Selling Products
+            </h2>
+            <p className="mx-auto max-w-2xl text-[#3A4D39]/70">
+              Discover our most popular skincare solutions loved by customers
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
               <div
-                key={cosmetic.id}
-                className="group transition-all duration-300"
+                key={i}
+                className="flex h-[400px] flex-col items-center justify-center rounded-lg bg-white p-4 shadow-md"
               >
-                <ProductCard cosmetic={cosmetic} />
+                <div className="size-40 rounded-lg bg-gray-200"></div>
+                <div className="mt-4 h-6 w-3/4 rounded bg-gray-200"></div>
+                <div className="mt-2 h-4 w-1/2 rounded bg-gray-200"></div>
+                <div className="mt-auto flex w-full justify-between">
+                  <div className="h-6 w-1/4 rounded bg-gray-200"></div>
+                  <div className="h-8 w-1/3 rounded-full bg-gray-200"></div>
+                </div>
               </div>
             ))}
           </div>
         </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="bg-[#F9F6F0] py-16">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-100px' }}
+          variants={containerVariants}
+          className="mb-12 text-center"
+        >
+          <motion.h2
+            variants={itemVariants}
+            className="mb-4 font-inter text-3xl font-bold text-[#3A4D39] md:text-4xl"
+          >
+            Best Selling Products
+          </motion.h2>
+          <motion.p
+            variants={itemVariants}
+            className="mx-auto max-w-2xl text-[#3A4D39]/70"
+          >
+            Discover our most popular skincare solutions loved by customers
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {products.map((product) => (
+            <motion.div key={product.id} variants={itemVariants}>
+              <ProductCard cosmetic={product} />
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )
