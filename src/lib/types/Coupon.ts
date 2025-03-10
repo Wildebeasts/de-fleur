@@ -1,7 +1,7 @@
 export interface CouponResponse {
   id: string
-  code: string
+  code: string | null
   discount: number
-  expiryDate: Date
+  expiryDate: string
   usageLimit: number
 }

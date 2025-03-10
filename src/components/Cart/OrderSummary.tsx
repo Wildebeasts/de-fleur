@@ -43,10 +43,19 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
   // Calculate cart totals
   const getSubtotal = () => {
     if (!cartData || !cartData.items || !cartData.items.length) return 0
-    return cartData.items.reduce(
-      (total: number, item: any) => total + item.price * item.quantity,
-      0
+    return (
+      cartData.originalTotalPrice ||
+      cartData.items.reduce(
+        (total: number, item: any) => total + item.price * item.quantity,
+        0
+      )
     )
+  }
+
+  // Get discount amount
+  const getDiscount = () => {
+    if (!cartData || !cartData.eventDiscountTotal) return 0
+    return cartData.eventDiscountTotal
   }
 
   // You can add shipping calculation logic here if needed
@@ -55,6 +64,11 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
   }
 
   const getTotal = () => {
+    // If we have the new totalPrice that includes discounts, use it
+    if (cartData && cartData.totalPrice) {
+      return cartData.totalPrice + getShipping()
+    }
+    // Otherwise fall back to the old calculation
     return getSubtotal() + getShipping()
   }
 
@@ -97,6 +111,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
           <span>{getSubtotal().toLocaleString('vi-VN')}₫</span>
         </div>
 
+        {/* Add discount section if there is a discount */}
+        {getDiscount() > 0 && (
+          <div className="flex justify-between text-red-600">
+            <span>Event Discount</span>
+            <span>-{getDiscount().toLocaleString('vi-VN')}₫</span>
+          </div>
+        )}
+
         <div className="flex justify-between">
           <span className="text-gray-600">Shipping</span>
           <span>
@@ -105,8 +127,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ refreshTrigger = 0 }) => {
               : 'Calculating...'}
           </span>
         </div>
-
-        {/* You can add tax, discounts, etc. here */}
 
         <div className="border-t pt-3">
           <div className="flex justify-between font-semibold">

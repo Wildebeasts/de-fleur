@@ -21,6 +21,9 @@ import { useDelivery } from '@/lib/context/DeliveryContext'
 import ComboBox from '@/components/ui/combobox'
 import { CalculateShippingFeeRequest } from '@/lib/types/delivery'
 import { CartItem } from '@/lib/types/Cart'
+import CouponInput from '@/components/Checkout/CouponInput'
+import { CouponResponse } from '@/lib/types/Coupon'
+import couponApi from '@/lib/services/couponApi'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -82,6 +85,8 @@ const CheckoutPage: React.FC = () => {
     resetShippingFee
   } = useDelivery()
   const navigate = useNavigate()
+  const [couponCode, setCouponCode] = useState('')
+  const [discount, setDiscount] = useState(0)
 
   // Form state
   const [formData, setFormData] = useState<ShippingForm>({
@@ -199,9 +204,26 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  const handleCheckout = async () => {
+  const handleCouponApplied = (couponResponse: CouponResponse) => {
+    setCouponCode(couponResponse.code || '')
+    setDiscount(couponResponse.discount)
+  }
+
+  const handleCreateOrder = async () => {
     try {
       setIsLoading(true)
+
+      let couponId = null
+
+      // If coupon code is entered, validate it first
+      if (couponCode.trim()) {
+        const couponResponse = await couponApi.getCouponByCode(couponCode)
+        if (!couponResponse.data.isSuccess || !couponResponse.data.data) {
+          toast.error('Invalid coupon code')
+          return
+        }
+        couponId = couponResponse.data.data.id
+      }
 
       // Get the selected location names
       const selectedProvince = provinces.find(
@@ -219,7 +241,7 @@ const CheckoutPage: React.FC = () => {
 
       const orderRequest: CreateOrderRequest = {
         cartId: cartData?.id,
-        couponId: formData.couponId || undefined,
+        couponId: couponId || undefined,
         shippingAddress: fullAddress,
         billingAddress: fullAddress,
         paymentMethod: formData.paymentMethod,
@@ -360,9 +382,21 @@ const CheckoutPage: React.FC = () => {
                       disabled={isWardsLoading || formData.districtId === 0}
                     />
                   </div>
+                  <div className="space-y-4">
+                    <CouponInput
+                      couponCode={couponCode}
+                      onCouponCodeChange={setCouponCode}
+                    />
+                    {discount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span>Discount</span>
+                        <span>-{discount.toLocaleString('vi-VN')} VND</span>
+                      </div>
+                    )}
+                  </div>
                   <Button
                     disabled={isLoading}
-                    onClick={handleCheckout}
+                    onClick={handleCreateOrder}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
                     {isLoading ? 'Đang xử lý...' : 'Thanh toán'}

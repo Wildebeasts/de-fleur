@@ -116,9 +116,25 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
           <h3 className="text-lg font-medium text-gray-800">
             {item.cosmeticName}
           </h3>
-          <p className="text-gray-600">{item.price.toLocaleString('vi-VN')}₫</p>
+          {item.discountPercentage > 0 ? (
+            <div>
+              <p className="text-gray-400 line-through">
+                {item.price.toLocaleString('vi-VN')}₫
+              </p>
+              <p className="text-red-600">
+                {item.discountedPrice.toLocaleString('vi-VN')}₫
+                <span className="ml-2 text-sm">
+                  (-{item.discountPercentage.toFixed(0)}%)
+                </span>
+              </p>
+            </div>
+          ) : (
+            <p className="text-gray-600">
+              {item.price.toLocaleString('vi-VN')}₫
+            </p>
+          )}
           <p className="text-sm text-gray-500">
-            Subtotal: {item.subtotal.toLocaleString('vi-VN')}₫
+            Tổng: {item.discountedSubtotal.toLocaleString('vi-VN')}₫
           </p>
         </div>
       </div>
