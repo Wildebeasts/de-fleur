@@ -174,16 +174,20 @@ const EventCreation: React.FC = () => {
         </form>
 
         {/* Event List (Right Side) */}
-        <div className="flex-1">
-          <h2 className="mb-4 text-2xl font-bold text-gray-800">All Events</h2>
-          <EventList
-            events={events}
-            activeEvent={activeEvent}
-            setActiveEvent={setActiveEvent} // Pass the setter function
-            error={error}
-            loading={loading}
-          />
-        </div>
+        <Card className="flex-1 rounded-2xl bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle>All Events</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <EventList
+              events={events}
+              activeEvent={activeEvent}
+              setActiveEvent={setActiveEvent} // Pass the setter function
+              error={error}
+              loading={loading}
+            />
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

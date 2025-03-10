@@ -50,7 +50,7 @@ const EventList: React.FC<EventListProps> = ({
       {events.map((event) => (
         <Card
           key={event.name}
-          className={`cursor-pointer transition-shadow hover:shadow-lg ${
+          className={`cursor-pointer shadow-md transition-shadow hover:shadow-lg ${
             activeEvent === event.name
               ? 'border-2 border-blue-500 bg-blue-100'
               : ''
