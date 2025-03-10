@@ -115,24 +115,12 @@ const data = {
     //   ],
     // },
     {
-      title: 'Payments',
+      title: 'Coupons',
       icon: CreditCard,
       items: [
         {
-          title: 'Invoices',
-          path: '/admin/payments/invoices'
-        },
-        {
-          title: 'Transactions',
-          path: '/admin/payments/transactions'
-        },
-        {
-          title: 'Wallets',
-          path: '/admin/payments/wallets'
-        },
-        {
-          title: 'System Accounts',
-          path: '/admin/payments/system'
+          title: 'All Coupons',
+          path: '/admin/coupons'
         }
       ]
     },
@@ -142,7 +130,7 @@ const data = {
       items: [
         {
           title: 'Reports',
-          path: '/admin/issue-tickets/reports'
+          path: '/admin/issue-tickets/create'
         }
       ]
     }

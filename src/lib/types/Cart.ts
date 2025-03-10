@@ -5,13 +5,17 @@ export interface CartCustomer {
   email: string
 }
 
+// de-fleur/src/lib/types/Cart.ts
 export interface CartItem {
   cosmeticId: string
   cosmeticName: string
   cosmeticImage: string
-  price: number
+  price: number // Original price
+  discountedPrice: number // Price after event discount
+  discountPercentage: number // Event discount percentage
   quantity: number
-  subtotal: number
+  subtotal: number // Original subtotal (price * quantity)
+  discountedSubtotal: number // Discounted subtotal (discountedPrice * quantity)
   weight: number
   length: number
   width: number
@@ -20,7 +24,9 @@ export interface CartItem {
 
 export interface CartResponse {
   id: string
-  totalPrice: number
+  totalPrice: number // Final price after discounts
+  originalTotalPrice: number // Total before discounts
+  eventDiscountTotal: number // Total discount amount
   customer: {
     id: string
     userName: string
@@ -28,7 +34,6 @@ export interface CartResponse {
   }
   items: CartItem[]
 }
-
 export interface AddProductRequest {
   cosmeticId: string
   quantity: number

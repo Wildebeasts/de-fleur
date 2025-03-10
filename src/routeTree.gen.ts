@@ -41,14 +41,18 @@ import { Route as IndexImport } from './routes/index'
 import { Route as StaffIndexImport } from './routes/staff/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
+import { Route as AdminCouponsIndexImport } from './routes/admin/coupons/index'
 import { Route as AdminCosmeticsIndexImport } from './routes/admin/cosmetics/index'
 import { Route as AdminBlogsIndexImport } from './routes/admin/blogs/index'
 import { Route as AdminUsersCartsImport } from './routes/admin/users/carts'
+import { Route as AdminIssueTicketsCreateImport } from './routes/admin/issue-tickets/create'
+import { Route as AdminCouponsCreateImport } from './routes/admin/coupons/create'
 import { Route as AdminCosmeticsSkinTypeImport } from './routes/admin/cosmetics/skin-type'
 import { Route as AdminCosmeticsCreateImport } from './routes/admin/cosmetics/create'
 import { Route as AdminCosmeticsCosmetictypeImport } from './routes/admin/cosmetics/cosmetic_type'
 import { Route as AdminCosmeticsBrandlistImport } from './routes/admin/cosmetics/brand_list'
 import { Route as AdminBlogsAddImport } from './routes/admin/blogs/add'
+import { Route as AdminCouponsEditIdImport } from './routes/admin/coupons/edit/$id'
 
 // Create/Update Routes
 
@@ -232,6 +236,12 @@ const AdminUsersIndexRoute = AdminUsersIndexImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 
+const AdminCouponsIndexRoute = AdminCouponsIndexImport.update({
+  id: '/coupons/',
+  path: '/coupons/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
 const AdminCosmeticsIndexRoute = AdminCosmeticsIndexImport.update({
   id: '/cosmetics/',
   path: '/cosmetics/',
@@ -247,6 +257,18 @@ const AdminBlogsIndexRoute = AdminBlogsIndexImport.update({
 const AdminUsersCartsRoute = AdminUsersCartsImport.update({
   id: '/users/carts',
   path: '/users/carts',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminIssueTicketsCreateRoute = AdminIssueTicketsCreateImport.update({
+  id: '/issue-tickets/create',
+  path: '/issue-tickets/create',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminCouponsCreateRoute = AdminCouponsCreateImport.update({
+  id: '/coupons/create',
+  path: '/coupons/create',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -279,6 +301,12 @@ const AdminCosmeticsBrandlistRoute = AdminCosmeticsBrandlistImport.update({
 const AdminBlogsAddRoute = AdminBlogsAddImport.update({
   id: '/blogs/add',
   path: '/blogs/add',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminCouponsEditIdRoute = AdminCouponsEditIdImport.update({
+  id: '/coupons/edit/$id',
+  path: '/coupons/edit/$id',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -524,6 +552,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCosmeticsSkinTypeImport
       parentRoute: typeof AdminImport
     }
+    '/admin/coupons/create': {
+      id: '/admin/coupons/create'
+      path: '/coupons/create'
+      fullPath: '/admin/coupons/create'
+      preLoaderRoute: typeof AdminCouponsCreateImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/issue-tickets/create': {
+      id: '/admin/issue-tickets/create'
+      path: '/issue-tickets/create'
+      fullPath: '/admin/issue-tickets/create'
+      preLoaderRoute: typeof AdminIssueTicketsCreateImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/users/carts': {
       id: '/admin/users/carts'
       path: '/users/carts'
@@ -545,11 +587,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCosmeticsIndexImport
       parentRoute: typeof AdminImport
     }
+    '/admin/coupons/': {
+      id: '/admin/coupons/'
+      path: '/coupons'
+      fullPath: '/admin/coupons'
+      preLoaderRoute: typeof AdminCouponsIndexImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/users/': {
       id: '/admin/users/'
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersIndexImport
+      parentRoute: typeof AdminImport
+    }
+    '/admin/coupons/edit/$id': {
+      id: '/admin/coupons/edit/$id'
+      path: '/coupons/edit/$id'
+      fullPath: '/admin/coupons/edit/$id'
+      preLoaderRoute: typeof AdminCouponsEditIdImport
       parentRoute: typeof AdminImport
     }
   }
@@ -564,10 +620,14 @@ interface AdminRouteChildren {
   AdminCosmeticsCosmetictypeRoute: typeof AdminCosmeticsCosmetictypeRoute
   AdminCosmeticsCreateRoute: typeof AdminCosmeticsCreateRoute
   AdminCosmeticsSkinTypeRoute: typeof AdminCosmeticsSkinTypeRoute
+  AdminCouponsCreateRoute: typeof AdminCouponsCreateRoute
+  AdminIssueTicketsCreateRoute: typeof AdminIssueTicketsCreateRoute
   AdminUsersCartsRoute: typeof AdminUsersCartsRoute
   AdminBlogsIndexRoute: typeof AdminBlogsIndexRoute
   AdminCosmeticsIndexRoute: typeof AdminCosmeticsIndexRoute
+  AdminCouponsIndexRoute: typeof AdminCouponsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
+  AdminCouponsEditIdRoute: typeof AdminCouponsEditIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -577,10 +637,14 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCosmeticsCosmetictypeRoute: AdminCosmeticsCosmetictypeRoute,
   AdminCosmeticsCreateRoute: AdminCosmeticsCreateRoute,
   AdminCosmeticsSkinTypeRoute: AdminCosmeticsSkinTypeRoute,
+  AdminCouponsCreateRoute: AdminCouponsCreateRoute,
+  AdminIssueTicketsCreateRoute: AdminIssueTicketsCreateRoute,
   AdminUsersCartsRoute: AdminUsersCartsRoute,
   AdminBlogsIndexRoute: AdminBlogsIndexRoute,
   AdminCosmeticsIndexRoute: AdminCosmeticsIndexRoute,
+  AdminCouponsIndexRoute: AdminCouponsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
+  AdminCouponsEditIdRoute: AdminCouponsEditIdRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
@@ -620,10 +684,14 @@ export interface FileRoutesByFullPath {
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
   '/admin/cosmetics/create': typeof AdminCosmeticsCreateRoute
   '/admin/cosmetics/skin-type': typeof AdminCosmeticsSkinTypeRoute
+  '/admin/coupons/create': typeof AdminCouponsCreateRoute
+  '/admin/issue-tickets/create': typeof AdminIssueTicketsCreateRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
   '/admin/blogs': typeof AdminBlogsIndexRoute
   '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
+  '/admin/coupons': typeof AdminCouponsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -660,10 +728,14 @@ export interface FileRoutesByTo {
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
   '/admin/cosmetics/create': typeof AdminCosmeticsCreateRoute
   '/admin/cosmetics/skin-type': typeof AdminCosmeticsSkinTypeRoute
+  '/admin/coupons/create': typeof AdminCouponsCreateRoute
+  '/admin/issue-tickets/create': typeof AdminIssueTicketsCreateRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
   '/admin/blogs': typeof AdminBlogsIndexRoute
   '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
+  '/admin/coupons': typeof AdminCouponsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
 }
 
 export interface FileRoutesById {
@@ -702,10 +774,14 @@ export interface FileRoutesById {
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
   '/admin/cosmetics/create': typeof AdminCosmeticsCreateRoute
   '/admin/cosmetics/skin-type': typeof AdminCosmeticsSkinTypeRoute
+  '/admin/coupons/create': typeof AdminCouponsCreateRoute
+  '/admin/issue-tickets/create': typeof AdminIssueTicketsCreateRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
   '/admin/blogs/': typeof AdminBlogsIndexRoute
   '/admin/cosmetics/': typeof AdminCosmeticsIndexRoute
+  '/admin/coupons/': typeof AdminCouponsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
 }
 
 export interface FileRouteTypes {
@@ -745,10 +821,14 @@ export interface FileRouteTypes {
     | '/admin/cosmetics/cosmetic_type'
     | '/admin/cosmetics/create'
     | '/admin/cosmetics/skin-type'
+    | '/admin/coupons/create'
+    | '/admin/issue-tickets/create'
     | '/admin/users/carts'
     | '/admin/blogs'
     | '/admin/cosmetics'
+    | '/admin/coupons'
     | '/admin/users'
+    | '/admin/coupons/edit/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -784,10 +864,14 @@ export interface FileRouteTypes {
     | '/admin/cosmetics/cosmetic_type'
     | '/admin/cosmetics/create'
     | '/admin/cosmetics/skin-type'
+    | '/admin/coupons/create'
+    | '/admin/issue-tickets/create'
     | '/admin/users/carts'
     | '/admin/blogs'
     | '/admin/cosmetics'
+    | '/admin/coupons'
     | '/admin/users'
+    | '/admin/coupons/edit/$id'
   id:
     | '__root__'
     | '/'
@@ -824,10 +908,14 @@ export interface FileRouteTypes {
     | '/admin/cosmetics/cosmetic_type'
     | '/admin/cosmetics/create'
     | '/admin/cosmetics/skin-type'
+    | '/admin/coupons/create'
+    | '/admin/issue-tickets/create'
     | '/admin/users/carts'
     | '/admin/blogs/'
     | '/admin/cosmetics/'
+    | '/admin/coupons/'
     | '/admin/users/'
+    | '/admin/coupons/edit/$id'
   fileRoutesById: FileRoutesById
 }
 
@@ -951,10 +1039,14 @@ export const routeTree = rootRoute
         "/admin/cosmetics/cosmetic_type",
         "/admin/cosmetics/create",
         "/admin/cosmetics/skin-type",
+        "/admin/coupons/create",
+        "/admin/issue-tickets/create",
         "/admin/users/carts",
         "/admin/blogs/",
         "/admin/cosmetics/",
-        "/admin/users/"
+        "/admin/coupons/",
+        "/admin/users/",
+        "/admin/coupons/edit/$id"
       ]
     },
     "/blog": {
@@ -1053,6 +1145,14 @@ export const routeTree = rootRoute
       "filePath": "admin/cosmetics/skin-type.tsx",
       "parent": "/admin"
     },
+    "/admin/coupons/create": {
+      "filePath": "admin/coupons/create.tsx",
+      "parent": "/admin"
+    },
+    "/admin/issue-tickets/create": {
+      "filePath": "admin/issue-tickets/create.tsx",
+      "parent": "/admin"
+    },
     "/admin/users/carts": {
       "filePath": "admin/users/carts.tsx",
       "parent": "/admin"
@@ -1065,8 +1165,16 @@ export const routeTree = rootRoute
       "filePath": "admin/cosmetics/index.tsx",
       "parent": "/admin"
     },
+    "/admin/coupons/": {
+      "filePath": "admin/coupons/index.tsx",
+      "parent": "/admin"
+    },
     "/admin/users/": {
       "filePath": "admin/users/index.tsx",
+      "parent": "/admin"
+    },
+    "/admin/coupons/edit/$id": {
+      "filePath": "admin/coupons/edit/$id.tsx",
       "parent": "/admin"
     }
   }

@@ -21,6 +21,8 @@ import { useDelivery } from '@/lib/context/DeliveryContext'
 import ComboBox from '@/components/ui/combobox'
 import { CalculateShippingFeeRequest } from '@/lib/types/delivery'
 import { CartItem } from '@/lib/types/Cart'
+import { CouponResponse } from '@/lib/types/Coupon'
+import couponApi from '@/lib/services/couponApi'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -82,6 +84,8 @@ const CheckoutPage: React.FC = () => {
     resetShippingFee
   } = useDelivery()
   const navigate = useNavigate()
+  const [couponId, setCouponId] = useState<string | null>(null)
+  const [couponDiscount, setCouponDiscount] = useState(0)
 
   // Form state
   const [formData, setFormData] = useState<ShippingForm>({
@@ -199,7 +203,18 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  const handleCheckout = async () => {
+  const handleCouponApplied = (id: string, discount: number) => {
+    setCouponId(id || null)
+    setCouponDiscount(discount)
+
+    // Update form data with coupon ID
+    setFormData((prev) => ({
+      ...prev,
+      couponId: id || null
+    }))
+  }
+
+  const handleCreateOrder = async () => {
     try {
       setIsLoading(true)
 
@@ -219,7 +234,7 @@ const CheckoutPage: React.FC = () => {
 
       const orderRequest: CreateOrderRequest = {
         cartId: cartData?.id,
-        couponId: formData.couponId || undefined,
+        couponId: couponId || undefined,
         shippingAddress: fullAddress,
         billingAddress: fullAddress,
         paymentMethod: formData.paymentMethod,
@@ -228,9 +243,14 @@ const CheckoutPage: React.FC = () => {
         districtId: formData.districtId
       }
 
+      console.log('Creating order with request:', orderRequest) // For debugging
+
       const response = await orderApi.createOrder(orderRequest)
 
       if (response.data.isSuccess) {
+        // Clear the coupon from localStorage when order is created
+        localStorage.removeItem('cartCoupon')
+
         // Redirect to VNPay payment URL
         window.location.href = response.data.data?.paymentUrl || ''
       } else {
@@ -360,9 +380,10 @@ const CheckoutPage: React.FC = () => {
                       disabled={isWardsLoading || formData.districtId === 0}
                     />
                   </div>
+
                   <Button
                     disabled={isLoading}
-                    onClick={handleCheckout}
+                    onClick={handleCreateOrder}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
                     {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
@@ -414,7 +435,10 @@ const CheckoutPage: React.FC = () => {
             </motion.div>
 
             <motion.div variants={itemVariants} className="w-1/3 max-md:w-full">
-              <OrderSummary />
+              <OrderSummary
+                isCheckoutPage={true}
+                onCouponApplied={handleCouponApplied}
+              />
             </motion.div>
           </div>
         </motion.div>

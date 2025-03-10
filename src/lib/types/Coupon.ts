@@ -20,6 +20,6 @@ export interface CouponUpdateRequest {
   id: string
   code: string
   discount: number
-  expiryDate: Date
+  expiryDate: string
   usageLimit: number
 }
