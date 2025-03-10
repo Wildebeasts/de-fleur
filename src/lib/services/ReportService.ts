@@ -76,6 +76,25 @@ const reportApi = {
       `/report/${reportId}`
     )
     return response.data
+  },
+
+  createReport: async (reportData: {
+    fromDate: string
+    toDate: string
+    format?: string
+    type?: string
+  }) => {
+    const params = new URLSearchParams()
+
+    if (reportData.fromDate) params.append('fromDate', reportData.fromDate)
+    if (reportData.toDate) params.append('toDate', reportData.toDate)
+    if (reportData.format) params.append('format', reportData.format)
+    if (reportData.type) params.append('type', reportData.type)
+
+    const response = await axiosClient.get<ApiResponse<void>>(
+      `/api/reports?${params.toString()}`
+    )
+    return response.data
   }
 }
 
