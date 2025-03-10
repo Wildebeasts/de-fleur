@@ -21,7 +21,6 @@ import { useDelivery } from '@/lib/context/DeliveryContext'
 import ComboBox from '@/components/ui/combobox'
 import { CalculateShippingFeeRequest } from '@/lib/types/delivery'
 import { CartItem } from '@/lib/types/Cart'
-import CouponInput from '@/components/Checkout/CouponInput'
 import { CouponResponse } from '@/lib/types/Coupon'
 import couponApi from '@/lib/services/couponApi'
 
@@ -85,8 +84,8 @@ const CheckoutPage: React.FC = () => {
     resetShippingFee
   } = useDelivery()
   const navigate = useNavigate()
-  const [couponCode, setCouponCode] = useState('')
-  const [discount, setDiscount] = useState(0)
+  const [couponId, setCouponId] = useState<string | null>(null)
+  const [couponDiscount, setCouponDiscount] = useState(0)
 
   // Form state
   const [formData, setFormData] = useState<ShippingForm>({
@@ -204,26 +203,20 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  const handleCouponApplied = (couponResponse: CouponResponse) => {
-    setCouponCode(couponResponse.code || '')
-    setDiscount(couponResponse.discount)
+  const handleCouponApplied = (id: string, discount: number) => {
+    setCouponId(id || null)
+    setCouponDiscount(discount)
+
+    // Update form data with coupon ID
+    setFormData((prev) => ({
+      ...prev,
+      couponId: id || null
+    }))
   }
 
   const handleCreateOrder = async () => {
     try {
       setIsLoading(true)
-
-      let couponId = null
-
-      // If coupon code is entered, validate it first
-      if (couponCode.trim()) {
-        const couponResponse = await couponApi.getCouponByCode(couponCode)
-        if (!couponResponse.data.isSuccess || !couponResponse.data.data) {
-          toast.error('Invalid coupon code')
-          return
-        }
-        couponId = couponResponse.data.data.id
-      }
 
       // Get the selected location names
       const selectedProvince = provinces.find(
@@ -250,9 +243,14 @@ const CheckoutPage: React.FC = () => {
         districtId: formData.districtId
       }
 
+      console.log('Creating order with request:', orderRequest) // For debugging
+
       const response = await orderApi.createOrder(orderRequest)
 
       if (response.data.isSuccess) {
+        // Clear the coupon from localStorage when order is created
+        localStorage.removeItem('cartCoupon')
+
         // Redirect to VNPay payment URL
         window.location.href = response.data.data?.paymentUrl || ''
       } else {
@@ -382,18 +380,7 @@ const CheckoutPage: React.FC = () => {
                       disabled={isWardsLoading || formData.districtId === 0}
                     />
                   </div>
-                  <div className="space-y-4">
-                    <CouponInput
-                      couponCode={couponCode}
-                      onCouponCodeChange={setCouponCode}
-                    />
-                    {discount > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Discount</span>
-                        <span>-{discount.toLocaleString('vi-VN')} VND</span>
-                      </div>
-                    )}
-                  </div>
+
                   <Button
                     disabled={isLoading}
                     onClick={handleCreateOrder}
@@ -448,7 +435,10 @@ const CheckoutPage: React.FC = () => {
             </motion.div>
 
             <motion.div variants={itemVariants} className="w-1/3 max-md:w-full">
-              <OrderSummary />
+              <OrderSummary
+                isCheckoutPage={true}
+                onCouponApplied={handleCouponApplied}
+              />
             </motion.div>
           </div>
         </motion.div>
