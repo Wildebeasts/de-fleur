@@ -130,7 +130,7 @@ const data = {
       items: [
         {
           title: 'Reports',
-          path: '/admin/issue-tickets/reports'
+          path: '/admin/issue-tickets/create'
         }
       ]
     }

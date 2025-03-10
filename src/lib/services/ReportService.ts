@@ -91,10 +91,43 @@ const reportApi = {
     if (reportData.format) params.append('format', reportData.format)
     if (reportData.type) params.append('type', reportData.type)
 
-    const response = await axiosClient.get<ApiResponse<void>>(
-      `/api/reports?${params.toString()}`
+    const response = await axiosClient.get<Blob>(
+      `/reports?${params.toString()}`,
+      {
+        responseType: 'blob',
+        headers: {
+          Accept: '*/*'
+        }
+      }
     )
-    return response.data
+
+    const fileExtension = reportData.format?.toLowerCase() || 'pdf'
+
+    const fileName = `report_${reportData.fromDate.substring(0, 10)}_to_${reportData.toDate.substring(
+      0,
+      10
+    )}.${fileExtension}`
+
+    const blob = new Blob([response.data], {
+      type:
+        fileExtension === 'pdf'
+          ? 'application/pdf'
+          : fileExtension === 'csv'
+            ? 'text/csv'
+            : 'application/octet-stream'
+    })
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', fileName)
+    document.body.appendChild(link)
+    link.click()
+
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(link)
+
+    return { isSuccess: true }
   }
 }
 
