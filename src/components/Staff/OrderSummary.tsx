@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { Cosmetics, OrderWalkInRequest } from '@/lib/types/order'
 import { Minus, Plus, Trash2 } from 'lucide-react'
-import userApi, { UserDto } from '@/lib/services/userService'
 import { toast } from 'sonner'
-import ComboBox from '../ui/combobox'
+import couponApi from '@/lib/services/couponApi'
+import orderApi from '@/lib/services/orderApi'
 
 interface OrderSummaryProps {
   selectedProducts: CosmeticResponse[]
@@ -20,19 +20,51 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   onDecreaseQuantity,
   onRemoveProduct
 }) => {
-  const [users, setUsers] = useState<UserDto[]>([])
-  const [loading, setLoading] = useState(false)
-
+  const [couponCode, setCouponCode] = useState('') // State for coupon code input
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false) // Loading state for coupon validation
   // Form state
   const [formData, setFormData] = useState<OrderWalkInRequest>({
     Cosmetics: {},
-    CustomerId: null, // or pass actual customer ID if available
-    CustomerPhoneNumber: '0', // Replace with actual input value
+    FirstName: '',
+    LastName: '',
+    CustomerPhoneNumber: '', // Replace with actual input value
     CouponId: null, // or actual coupon ID if applied
     PaymentMethod: 'CASH' // or 'Credit Card' based on selection
   })
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
+    // Validate form data
+    const validationErrors: { [key: string]: string } = {}
+
+    // Validate CustomerPhoneNumber
+    if (!formData.CustomerPhoneNumber) {
+      validationErrors.CustomerPhoneNumber = 'Phone number is required'
+    } else if (!/^\+?[0-9]{10,15}$/.test(formData.CustomerPhoneNumber)) {
+      validationErrors.CustomerPhoneNumber = 'Invalid phone number'
+    }
+
+    // Validate FirstName
+    if (!formData.FirstName) {
+      validationErrors.FirstName = 'First name is required'
+    } else if (formData.FirstName.length > 50) {
+      validationErrors.FirstName = 'First name cannot exceed 50 characters'
+    }
+
+    // Validate LastName
+    if (!formData.LastName) {
+      validationErrors.LastName = 'Last name is required'
+    } else if (formData.LastName.length > 50) {
+      validationErrors.LastName = 'Last name cannot exceed 50 characters'
+    }
+
+    // If there are validation errors, display them and stop submission
+    if (Object.keys(validationErrors).length > 0) {
+      Object.entries(validationErrors).forEach(([field, message]) => {
+        toast.error(`${field}: ${message}`)
+      })
+      return
+    }
+
     const cosmeticsPayload: Cosmetics = selectedProducts.reduce(
       (acc, product) => {
         acc[product.id] = product.quantity
@@ -43,38 +75,84 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 
     const orderRequest: OrderWalkInRequest = {
       Cosmetics: cosmeticsPayload,
-      CustomerId: formData.CustomerId, // or pass actual customer ID if available
+      FirstName: formData.FirstName,
+      LastName: formData.LastName,
       CustomerPhoneNumber: formData.CustomerPhoneNumber, // Replace with actual input value
       CouponId: formData.CouponId, // or actual coupon ID if applied
       PaymentMethod: formData.PaymentMethod // or 'Credit Card' based on selection
     }
 
     console.log(orderRequest) // For debugging before sending
-    // Call API to place order
+
+    try {
+      // Call the API to create a walk-in order
+      const response = await orderApi.createWalkInOrder(orderRequest)
+
+      if (response.data.isSuccess) {
+        // Handle successful order creation
+        toast.success('Order created successfully!')
+        console.log('Order created:', response.data.data)
+      } else {
+        // Handle API error
+        toast.error(response.data.message || 'Failed to create order')
+      }
+    } catch (error) {
+      // Handle network or server errors
+      console.error('Error creating order:', error)
+      toast.error('An error occurred while creating the order')
+    }
   }
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true)
-        const response = await userApi.getUsers(1, 10)
-        console.log(response)
-
-        if (response.isSuccess) {
-          setUsers(response.data)
-        } else {
-          toast.error('no users available')
-        }
-      } catch (error) {
-        console.error('Error fetching users:', error)
-        toast.error('Error fetching users')
-      } finally {
-        setLoading(false)
-      }
+  const validateCoupon = async () => {
+    if (!couponCode) {
+      toast.error('Please enter a coupon code')
+      return
     }
 
-    fetchUser()
-  }, [])
+    setIsValidatingCoupon(true)
+
+    try {
+      // Call your API to validate the coupon code
+      const response = await couponApi.getCouponByCode(couponCode)
+      console.log(response)
+
+      if (response.data.isSuccess) {
+        // If the coupon is valid, set the CouponId in formData
+        if (
+          response.data.data!.usageLimit == 0 ||
+          new Date(response.data.data!.expiryDate) < new Date()
+        ) {
+          toast.error('Coupon is not available')
+          setFormData((prev) => ({
+            ...prev,
+            CouponId: null
+          }))
+        } else {
+          setFormData((prev) => ({
+            ...prev,
+            CouponId: response.data.data!.id
+          }))
+          toast.success('Coupon applied successfully!')
+        }
+      } else {
+        // If the coupon is invalid, display an error message
+        toast.error(response.data.message || 'Invalid coupon code')
+        setFormData((prev) => ({
+          ...prev,
+          CouponId: null
+        }))
+      }
+    } catch (error) {
+      console.error('Error validating coupon:', error)
+      toast.error('Failed to validate coupon')
+      setFormData((prev) => ({
+        ...prev,
+        CouponId: null
+      }))
+    } finally {
+      setIsValidatingCoupon(false)
+    }
+  }
 
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -150,25 +228,68 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       )}
 
       {selectedProducts.length > 0 && (
-        <div className="mt-4 border-t pt-4">
+        <div className="mt-4">
+          {/* Customer Phone Number Input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Customers</label>
-            <ComboBox
-              items={users.map((d) => ({
-                value: d.phoneNumber,
-                label: d.userName + '-' + d.phoneNumber
-              }))}
-              placeholder="Select a customer"
+            <label className="text-sm font-medium">Phone Number</label>
+            <input
+              type="tel"
+              placeholder="Enter phone number"
               value={formData.CustomerPhoneNumber}
-              onValueChange={(e) => {
-                handleChange('CustomerPhoneNumber', e.toString())
-              }}
-              disabled={loading}
-              filterBy="value"
+              onChange={(e) =>
+                handleChange('CustomerPhoneNumber', e.target.value)
+              }
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#c183de] focus:outline-none"
             />
           </div>
 
-          <div className="flex justify-between text-sm font-semibold">
+          {/* First Name Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">First Name</label>
+            <input
+              type="text"
+              placeholder="Enter first name"
+              value={formData.FirstName}
+              onChange={(e) => handleChange('FirstName', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#c183de] focus:outline-none"
+            />
+          </div>
+
+          {/* Last Name Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Last Name</label>
+            <input
+              type="text"
+              placeholder="Enter last name"
+              value={formData.LastName}
+              onChange={(e) => handleChange('LastName', e.target.value)}
+              className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#c183de] focus:outline-none"
+            />
+          </div>
+
+          {/* Coupon Code Input */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Coupon Code</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter coupon code"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#c183de] focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={validateCoupon}
+                disabled={isValidatingCoupon}
+                className="rounded-lg bg-[#c183de] px-4 py-2 text-sm font-medium text-white hover:bg-[#482daa] disabled:opacity-50"
+              >
+                {isValidatingCoupon ? 'Validating...' : 'Apply'}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-between pt-4 text-sm font-semibold">
             <span>Total:</span>
             <span className="font-bold text-[#3A4D39]">
               {new Intl.NumberFormat('vi-VN', {
