@@ -8,8 +8,7 @@ import {
   message,
   Card,
   Input,
-  Tag,
-  Tooltip
+  Tag
 } from 'antd'
 import {
   SearchOutlined,
@@ -102,9 +101,9 @@ export default function CouponList() {
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ['coupons'],
     queryFn: async () => {
-      const response = await couponApi.getAllCoupons()
-      if (!response.isSuccess || !response.data) {
-        throw new Error(response.message || 'Failed to fetch coupons')
+      const response = await couponApi.getCoupons()
+      if (!response.data.isSuccess || !response.data) {
+        throw new Error(response.data.message || 'Failed to fetch coupons')
       }
       return response.data
     }
@@ -160,7 +159,7 @@ export default function CouponList() {
   // Get coupon status
   const getCouponStatus = useCallback(
     (coupon: DataType) => {
-      if (isExpired(coupon.expiryDate)) {
+      if (isExpired(coupon.expiryDate.toISOString())) {
         return { status: 'Expired', color: 'error' }
       }
 

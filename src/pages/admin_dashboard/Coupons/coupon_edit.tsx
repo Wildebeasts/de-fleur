@@ -17,9 +17,9 @@ import { useNavigate, useParams } from '@tanstack/react-router'
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import couponApi from '@/lib/services/couponApi'
-import { Percent, Calendar, ShieldCheck, AlertCircle } from 'lucide-react'
+import { Percent, ShieldCheck, AlertCircle } from 'lucide-react'
 import dayjs from 'dayjs'
-import { CouponResponse } from '@/lib/types/Coupon'
+import { CouponResponse, CouponUpdateRequest } from '@/lib/types/Coupon'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -59,11 +59,11 @@ export default function EditCoupon() {
 
       // If not found in cache, you might need a getCouponById endpoint
       // This is a fallback in case the coupon isn't in the cache
-      const response = await couponApi.getAllCoupons()
-      if (!response.isSuccess || !response.data) {
-        throw new Error(response.message || 'Failed to fetch coupon')
+      const response = await couponApi.getCoupons()
+      if (!response.data.isSuccess || !response.data) {
+        throw new Error(response.data.message || 'Failed to fetch coupon')
       }
-      return response.data.find((coupon) => coupon.id === id)
+      return response.data.data!.find((coupon) => coupon.id === id)
     },
     enabled: !!id
   })
@@ -85,12 +85,15 @@ export default function EditCoupon() {
     mutationFn: (values: any) => {
       console.log('Updating coupon data:', values) // Debug log
 
-      return couponApi.updateCoupon(id, {
+      const couponUpdate: CouponUpdateRequest = {
+        id: id,
         code: values.code,
         discount: values.discount,
         expiryDate: values.expiryDate.toISOString(),
         usageLimit: values.usageLimit
-      })
+      }
+
+      return couponApi.updateCoupon(couponUpdate)
     },
     onSuccess: () => {
       message.success('Coupon updated successfully')

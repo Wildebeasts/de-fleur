@@ -16,8 +16,9 @@ import { useNavigate } from '@tanstack/react-router'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import couponApi from '@/lib/services/couponApi'
-import { Percent, Calendar, ShieldCheck } from 'lucide-react'
+import { Percent, ShieldCheck } from 'lucide-react'
 import dayjs from 'dayjs'
+import { CouponCreateRequest } from '@/lib/types/Coupon'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -47,13 +48,16 @@ export default function CreateCoupon() {
     mutationFn: (values: any) => {
       console.log('Submitting coupon data:', values) // Debug log
 
-      // Ensure correct data format for API
-      return couponApi.createCoupon({
+      const couponCreate: CouponCreateRequest = {
+        name: '',
         code: values.code,
         discount: values.discount,
         expiryDate: values.expiryDate.toISOString(),
         usageLimit: values.usageLimit
-      })
+      }
+
+      // Ensure correct data format for API
+      return couponApi.createCoupon(couponCreate)
     },
     onSuccess: (data) => {
       console.log('Coupon created successfully:', data) // Debug log

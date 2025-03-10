@@ -26,7 +26,7 @@ const couponApi = {
   deleteCoupon: (id: string) =>
     axiosClient.delete<ApiResponse<CouponResponse>>(
       `/coupon/delete-coupon/${id}`
-  }
+    )
 }
 
 export default couponApi
