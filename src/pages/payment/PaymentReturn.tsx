@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -84,8 +85,15 @@ const PaymentReturn: React.FC = () => {
         const responseCode = paymentParams.vnp_ResponseCode || ''
         setResponseCode(responseCode)
 
+        // Check if payment was successful (00 is success code)
+        if (responseCode !== '00') {
+          setIsSuccess(false)
+          setErrorMessage(getErrorMessageByCode(responseCode))
+          setIsProcessing(false)
+          return // Exit early if payment failed
+        }
+
         // Extract orderId from vnp_OrderInfo or vnp_TxnRef
-        // The format depends on how you structured it when creating the payment
         const orderIdMatch =
           paymentParams.vnp_OrderInfo?.match(/OrderId:([a-f0-9-]+)/i)
         const orderId = orderIdMatch
@@ -103,7 +111,7 @@ const PaymentReturn: React.FC = () => {
           responseCode: responseCode
         }
 
-        // Call API to complete the order
+        // Call API to complete the order only if payment was successful
         const response = await orderApi.completeOrder(
           orderId,
           responseCode,
@@ -116,8 +124,7 @@ const PaymentReturn: React.FC = () => {
           setIsSuccess(false)
           setErrorMessage(
             response.data.message ||
-              getErrorMessageByCode(responseCode) ||
-              'Payment verification failed. Please contact support.'
+            'Payment verification failed. Please contact support.'
           )
         }
       } catch (error) {
