@@ -16,12 +16,10 @@ import {
 
 interface StaffProductGridProps {
   onAddToOrder: (product: CosmeticResponse) => void
-  searchQuery: string
 }
 
 const StaffProductGrid: React.FC<StaffProductGridProps> = ({
-  onAddToOrder,
-  searchQuery
+  onAddToOrder
 }) => {
   const {
     filteredCosmetics,
@@ -31,11 +29,6 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
     totalPages,
     onPageChange
   } = useCosmetic()
-
-  const searchedCosmetics =
-    filteredCosmetics?.filter((product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || []
 
   // Add this for debugging
   console.log('ProductGrid rendering with:', {
@@ -151,7 +144,7 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
         animate={{ opacity: 1 }}
         className="grid grid-cols-1 gap-6"
       >
-        {searchedCosmetics.map((product, index) => (
+        {filteredCosmetics.map((product, index) => (
           <motion.div
             key={product.id}
             initial={{ opacity: 0, y: 20 }}
