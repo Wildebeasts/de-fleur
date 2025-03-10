@@ -414,21 +414,6 @@ const CheckoutPage: React.FC = () => {
 
             <motion.div variants={itemVariants} className="w-1/3 max-md:w-full">
               <OrderSummary />
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="mt-6"
-              >
-                <Button
-                  className="w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
-                  onClick={handleCheckout}
-                  disabled={isLoading}
-                >
-                  {isLoading
-                    ? 'Đang xử lý...'
-                    : `Thanh toán ${cartTotal.toLocaleString('vi-VN')}₫`}
-                </Button>
-              </motion.div>
             </motion.div>
           </div>
         </motion.div>
