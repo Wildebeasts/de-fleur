@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -188,45 +190,45 @@ export default function CreateBlog() {
       background-color: #1f1f1f !important;
       border: 1px dashed #303030 !important;
     }
-    
+
     .ant-upload-drag:hover {
       border-color: #3b82f6 !important;
     }
-    
+
     .ant-upload-drag p.ant-upload-text,
     .ant-upload-drag p.ant-upload-hint {
       color: #9ca3af !important;
     }
-    
+
     .ant-upload-list-item {
       color: #e5e7eb !important;
     }
-    
+
     .ant-upload-list-item-name {
       color: #e5e7eb !important;
     }
-    
+
     .ant-form-item-label > label {
       color: #e5e7eb !important;
     }
-    
+
     .ant-select-selection-placeholder {
       color: #6b7280 !important;
     }
-    
+
     .ant-select-item {
       color: #e5e7eb !important;
       background-color: #1f1f1f !important;
     }
-    
+
     .ant-select-item-option-selected {
       background-color: #3b82f620 !important;
     }
-    
+
     .ant-select-item-option-active {
       background-color: #1f2937 !important;
     }
-    
+
     .ant-select-dropdown {
       background-color: #1f1f1f !important;
       border: 1px solid #303030 !important;

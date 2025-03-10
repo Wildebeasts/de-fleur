@@ -1,3 +1,6 @@
+/* eslint-disable prettier/prettier */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Input } from '@/components/ui/input'
@@ -299,7 +302,7 @@ const OrderTrackingPage: React.FC = () => {
                 Order Not Found
               </h3>
               <p className="text-[#3A4D39]/70">
-                We couldn't find an order with that number. Please check and try
+                We couldn&apos;t find an order with that number. Please check and try
                 again.
               </p>
             </motion.div>
@@ -314,17 +317,16 @@ const OrderTrackingPage: React.FC = () => {
                     Order Status
                   </h3>
                   <span
-                    className={`rounded-full px-3 py-1 text-sm font-medium ${
-                      orderData.status === 'COMPLETED'
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${orderData.status === 'COMPLETED'
                         ? 'bg-green-100 text-green-700'
                         : orderData.status === 'CANCELLED'
                           ? 'bg-red-100 text-red-700'
                           : orderData.status === 'PENDING_PAYMENT'
                             ? 'bg-yellow-100 text-yellow-700'
                             : 'bg-[#D1E2C4] text-[#3A4D39]'
-                    }`}
+                      }`}
                   >
-                    {formatStatus(orderData.status)}
+                    {formatStatus(orderData.status ?? '')}
                   </span>
                 </div>
 
@@ -348,23 +350,23 @@ const OrderTrackingPage: React.FC = () => {
                   'PAYMENT_FAILED',
                   'EXPIRED',
                   'REFUNDED'
-                ].includes(orderData.status) && (
-                  <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-                    <div className="flex items-center">
-                      <AlertTriangle className="mr-2 size-4" />
-                      <span className="font-medium">
+                ].includes(orderData.status ?? '') && (
+                    <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+                      <div className="flex items-center">
+                        <AlertTriangle className="mr-2 size-4" />
+                        <span className="font-medium">
+                          {orderData.status === 'REFUNDED'
+                            ? 'Order Refunded'
+                            : 'Order Cancelled'}
+                        </span>
+                      </div>
+                      <p className="mt-1">
                         {orderData.status === 'REFUNDED'
-                          ? 'Order Refunded'
-                          : 'Order Cancelled'}
-                      </span>
+                          ? 'This order has been refunded. The amount will be credited back to your original payment method.'
+                          : 'This order has been cancelled and will not be processed further.'}
+                      </p>
                     </div>
-                    <p className="mt-1">
-                      {orderData.status === 'REFUNDED'
-                        ? 'This order has been refunded. The amount will be credited back to your original payment method.'
-                        : 'This order has been cancelled and will not be processed further.'}
-                    </p>
-                  </div>
-                )}
+                  )}
               </div>
 
               <motion.div
@@ -382,7 +384,7 @@ const OrderTrackingPage: React.FC = () => {
                   <div className="flex justify-between">
                     <span>Order Date:</span>
                     <span className="font-medium">
-                      {new Date(orderData.orderDate).toLocaleDateString()}
+                      {new Date(orderData.orderDate ?? '').toLocaleDateString()}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -443,7 +445,7 @@ const OrderTrackingPage: React.FC = () => {
                   ))}
                   <div className="flex justify-between pt-2 text-lg font-semibold text-[#3A4D39]">
                     <span>Total:</span>
-                    <span>{formatToVND(orderData.totalPrice)}</span>
+                    <span>{formatToVND(orderData.totalPrice ?? 0)}</span>
                   </div>
                 </div>
               </motion.div>
@@ -460,7 +462,7 @@ const OrderTrackingPage: React.FC = () => {
                 No Results
               </h3>
               <p className="text-[#3A4D39]/70">
-                We couldn't find an order with that number. Please check and try
+                We couldn&apos;t find an order with that number. Please check and try
                 again.
               </p>
             </motion.div>

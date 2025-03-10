@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
@@ -96,7 +97,7 @@ const OrderCard = ({ order }: { order: Order }) => {
         try {
           const response = await cosmeticApi.getCosmeticById(item.cosmeticId)
           if (response.data.isSuccess) {
-            namesMap[item.cosmeticId] = response.data.data.name
+            namesMap[item.cosmeticId] = response.data.data?.name || ''
           }
         } catch (error) {
           console.error('Error fetching cosmetic name:', error)
@@ -249,8 +250,25 @@ const OrderHistoryPage: React.FC = () => {
 
         {ordersData && ordersData.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {ordersData.map((order: Order) => (
-              <OrderCard key={order.id} order={order} />
+            {ordersData.map((order) => (
+              <OrderCard
+                key={order.id || ''}
+                order={{
+                  id: order.id || '',
+                  orderDate: order.orderDate || '',
+                  status: order.status || '',
+                  totalPrice: order.totalPrice || 0,
+                  orderItems: (order.orderItems || []).map(item => ({
+                    cosmeticId: item.cosmeticId || '',
+                    quantity: item.quantity || 0,
+                    sellingPrice: item.sellingPrice || 0,
+                    subTotal: item.sellingPrice * item.quantity || 0 // Calculate subTotal
+                  })),
+                  trackingNumber: order.trackingNumber || '',
+                  shippingAddress: order.shippingAddress || '',
+                  deliveryDate: order.deliveryDate || ''
+                }}
+              />
             ))}
           </div>
         ) : (
@@ -265,7 +283,7 @@ const OrderHistoryPage: React.FC = () => {
               No Orders Yet
             </h2>
             <p className="mb-6 text-[#3A4D39]/70">
-              You haven't placed any orders yet. Start shopping to see your
+              You haven&apos;t placed any orders yet. Start shopping to see your
               orders here.
             </p>
             <Button

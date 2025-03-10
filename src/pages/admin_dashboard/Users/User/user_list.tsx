@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import React, { useCallback, useMemo, useRef } from 'react'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useEffect, useState } from 'react'

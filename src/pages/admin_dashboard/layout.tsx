@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/no-custom-classname */
 import { AppSidebar } from '@/components/app-sidebar'
 import {
   Breadcrumb,

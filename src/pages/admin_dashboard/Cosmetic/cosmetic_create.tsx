@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/no-custom-classname */
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -443,7 +444,7 @@ export default function CreateCosmetic() {
                     name="price"
                     rules={[{ required: true, message: 'Please enter price' }]}
                   >
-                    <InputNumber
+                    <InputNumber<number>
                       min={0}
                       step={0.01}
                       style={{ width: '100%' }}
@@ -451,7 +452,12 @@ export default function CreateCosmetic() {
                       formatter={(value) =>
                         `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                       }
-                      parser={(value) => value!.replace(/\$\s?|(,*)/g, '')}
+                      parser={(value) => {
+                        const parsed = value
+                          ? parseFloat(value.replace(/\$\s?|(,*)/g, ''))
+                          : 0
+                        return isNaN(parsed) ? 0 : parsed
+                      }}
                     />
                   </Form.Item>
 

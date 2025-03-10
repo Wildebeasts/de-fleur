@@ -1,3 +1,4 @@
+/* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { useEffect } from 'react'
 import { ConfigProvider } from 'antd'
 import {

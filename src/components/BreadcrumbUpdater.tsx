@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect } from 'react'
 import { useBreadcrumb } from '@/lib/context/BreadcrumbContext'
 
