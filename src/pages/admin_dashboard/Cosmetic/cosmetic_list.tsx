@@ -318,20 +318,35 @@ export default function Courses() {
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
   const [uploadModalVisible, setUploadModalVisible] = useState(false)
   const [selectedCosmeticId, setSelectedCosmeticId] = useState<string>('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize] = useState(12)
+  const [sortColumn, setSortColumn] = useState('name')
+  const [sortOrder, setSortOrder] = useState('asc')
 
   const queryClient = useQueryClient()
 
   // Add these queries at the top of your component
-  const { data: cosmetics = [], isLoading: isLoadingCosmetics } = useQuery({
-    queryKey: ['cosmetics'],
+  const { data: cosmeticsData, isLoading: isLoadingCosmetics } = useQuery({
+    queryKey: ['cosmetics', currentPage, pageSize, sortColumn, sortOrder, searchText],
     queryFn: async () => {
-      const response = await cosmeticApi.getCosmetics()
-      return (
-        response.data?.data?.items?.map((item) => ({
-          ...item,
-          key: item.id
-        })) ?? []
+      const response = await cosmeticApi.getCosmetics(
+        currentPage,
+        pageSize,
+        sortColumn,
+        sortOrder,
+        searchText
       )
+      if (response.data.isSuccess) {
+        return {
+          items: response.data.data.items.map(item => ({
+            ...item,
+            key: item.id
+          })),
+          totalCount: response.data.data.totalCount || (response.data.data.totalPages * pageSize),
+          totalPages: response.data.data.totalPages
+        }
+      }
+      throw new Error('Failed to fetch cosmetics')
     }
   })
 
@@ -362,28 +377,30 @@ export default function Courses() {
 
   // Filter data based on search
   const filteredData = useMemo(() => {
-    return cosmetics.filter((item) =>
+    return cosmeticsData?.items.filter((item) =>
       Object.values(item).some(
         (value) =>
           value &&
           value.toString().toLowerCase().includes(searchText.toLowerCase())
       )
-    )
-  }, [cosmetics, searchText])
+    ) ?? []
+  }, [cosmeticsData, searchText])
 
   // Add search handler
-  const handleGlobalSearch = useCallback((value: string) => {
+  const handleGlobalSearch = (value: string) => {
     setSearchText(value)
-
+    setCurrentPage(1) // Reset to first page when searching
+    
+    // Clear any existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
     }
 
+    // Set a new timeout to debounce the search
     searchTimeoutRef.current = setTimeout(() => {
-      // The search is now handled by the filteredData memo
-      // so we don't need additional logic here
-    }, 300)
-  }, [])
+      queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
+    }, 500)
+  }
 
   // Add cleanup effect
   useEffect(() => {
@@ -900,7 +917,7 @@ export default function Courses() {
   const tableConfig = useMemo(
     () => ({
       columns,
-      dataSource: filteredData,
+      dataSource: cosmeticsData?.items || [],
       loading: isLoading,
       rowSelection: {
         type: 'checkbox' as const,
@@ -912,33 +929,41 @@ export default function Courses() {
       },
       expandable: expandableConfig,
       pagination: {
-        pageSize: 12,
-        showSizeChanger: false,
-        showTotal: (total: number) => (
-          <span className="mr-4 text-sm text-gray-400">
-            Total {total} products
-          </span>
-        ),
-        className: 'custom-pagination',
-        itemRender: (
-          _page: number,
-          type: 'page' | 'prev' | 'next' | 'jump-prev' | 'jump-next',
-          originalElement: React.ReactNode
-        ) => {
-          if (type === 'prev') {
-            return <span className="text-sm text-gray-400">Previous</span>
-          }
-          if (type === 'next') {
-            return <span className="text-sm text-gray-400">Next</span>
-          }
-          return originalElement
+        current: currentPage,
+        total: cosmeticsData?.totalPages 
+          ? cosmeticsData.totalPages * pageSize 
+          : cosmeticsData?.items?.length || 0,
+        pageSize: pageSize,
+        onChange: (page: number) => {
+          setCurrentPage(page)
+        },
+        showTotal: (total: number) => `Total ${total} items`,
+        showSizeChanger: true,
+        pageSizeOptions: ['12', '24', '36', '48'],
+        onShowSizeChange: (current: number, size: number) => {
+          setPageSize(size)
+          setCurrentPage(1) // Reset to first page when changing page size
         }
       },
       scroll: { y: 800 },
       size: 'middle' as const,
-      className: 'custom-dark-table'
+      className: 'custom-dark-table',
+      onChange: (pagination: any, filters: any, sorter: any) => {
+        if (sorter.field && sorter.order) {
+          setSortColumn(sorter.field)
+          setSortOrder(sorter.order === 'ascend' ? 'asc' : 'desc')
+        }
+      }
     }),
-    [columns, filteredData, isLoading, selectedRowKeys, expandableConfig]
+    [
+      columns,
+      cosmeticsData,
+      isLoading,
+      selectedRowKeys,
+      expandableConfig,
+      currentPage,
+      pageSize
+    ]
   )
 
   const handleMasterCheckboxChange = (e: CheckboxChangeEvent) => {
@@ -962,7 +987,7 @@ export default function Courses() {
           await Promise.all(
             selectedRowKeys.map((key) =>
               cosmeticApi.deleteCosmetic(key.toString())
-            )
+            ),
           )
           message.success('Products deleted successfully')
           setSelectedRowKeys([])
@@ -1351,10 +1376,10 @@ export default function Courses() {
               <span className="text-[0.95rem] leading-relaxed text-[#d0dbea]">
                 Want to{' '}
                 <span className="font-semibold text-[#3b82f6]">view</span>{' '}
-                payment transactions?
+                coupons?
               </span>
               <span className="text-[0.85rem] text-[#8b949e]">
-                Go to Payments page to review and manage transactions
+                Go to Coupons page to manage coupons
               </span>
             </motion.div>
           </div>
@@ -1370,7 +1395,7 @@ export default function Courses() {
             <Button
               type="primary"
               // @ts-expect-error -- payments is not defined in the params
-              onClick={() => navigate({ to: '/admin/payments' })}
+              onClick={() => navigate({ to: '/admin/coupons' })}
               style={{
                 backgroundColor: '#1e1f2a',
                 color: '#3b82f6',
@@ -1382,7 +1407,7 @@ export default function Courses() {
               }}
               className="transition-all duration-300 hover:!border-[#3b82f660] hover:!bg-[#3b82f620] hover:shadow-[0_0_15px_rgba(59,130,246,0.2)]"
             >
-              View Payments
+              View Coupons
             </Button>
           </motion.div>
         </motion.div>

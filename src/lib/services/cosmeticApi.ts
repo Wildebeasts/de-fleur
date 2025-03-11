@@ -101,6 +101,21 @@ const cosmeticApi = {
         }
       }
     )
+  },
+  updateCosmetic: (
+    id: string,
+    payload: { price?: number; mainUsage?: string; instructions?: string }
+  ) => {
+    // The API only accepts these three fields for updates
+    return axiosClient.put<ApiResponse<CosmeticResponse>>(
+      `/cosmetics/${id}`,
+      payload,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    )
   }
 }
 

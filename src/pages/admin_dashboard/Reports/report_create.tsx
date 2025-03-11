@@ -22,18 +22,12 @@ import dayjs from 'dayjs'
 const { Option } = Select
 
 // Format options
-const formatOptions = [
-  { value: 'pdf', label: 'PDF' },
-  { value: 'csv', label: 'CSV' },
-  { value: 'excel', label: 'Excel' }
-]
+const formatOptions = [{ value: 'pdf', label: 'PDF' }]
 
 // Report type options
 const typeOptions = [
   { value: 'revenue', label: 'Revenue Report' },
-  { value: 'user', label: 'User Activity Report' },
-  { value: 'product', label: 'Product Performance' },
-  { value: 'sales', label: 'Sales Summary' }
+  { value: 'productPerformance', label: 'Product Performance' }
 ]
 
 const containerVariants = {

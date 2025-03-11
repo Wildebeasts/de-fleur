@@ -105,7 +105,7 @@ export default function CouponList() {
       if (!response.data.isSuccess || !response.data) {
         throw new Error(response.data.message || 'Failed to fetch coupons')
       }
-      return response.data
+      return response.data.data
     }
   })
 
@@ -159,7 +159,15 @@ export default function CouponList() {
   // Get coupon status
   const getCouponStatus = useCallback(
     (coupon: DataType) => {
-      if (isExpired(coupon.expiryDate.toISOString())) {
+      // Check if expiryDate is already a string or needs conversion
+      const expiryDateString =
+        typeof coupon.expiryDate === 'string'
+          ? coupon.expiryDate
+          : coupon.expiryDate instanceof Date
+            ? coupon.expiryDate.toISOString()
+            : String(coupon.expiryDate)
+
+      if (isExpired(expiryDateString)) {
         return { status: 'Expired', color: 'error' }
       }
 

@@ -19,6 +19,7 @@ import userApi, { UserDto } from '@/lib/services/userService'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { CartResponse } from '@/lib/types/Cart'
+import cosmeticApi from '@/lib/services/cosmeticApi'
 
 const CartList: React.FC = () => {
   const [selectedCart, setSelectedCart] = useState<CartResponse | null>(null)
@@ -87,6 +88,37 @@ const CartList: React.FC = () => {
     }
   })
 
+  // Add this query to fetch cosmetic details when a cart is selected
+  const { data: cosmeticDetails } = useQuery({
+    queryKey: ['cosmeticDetails', selectedCart?.id],
+    enabled: !!selectedCart,
+    queryFn: async () => {
+      try {
+        if (!selectedCart) return {}
+        
+        const cosmeticIds = selectedCart.items
+          .map(item => item.cosmeticId)
+          .filter(id => id !== null && id !== undefined)
+        
+        if (cosmeticIds.length === 0) return {}
+        
+        const details = await Promise.all(
+          cosmeticIds.map(id => cosmeticApi.getCosmeticById(id))
+        )
+        
+        return details.reduce((acc, cosmetic) => {
+          if (cosmetic && cosmetic.data && cosmetic.data.isSuccess && cosmetic.data.data) {
+            acc[cosmetic.data.data.id] = cosmetic.data.data
+          }
+          return acc
+        }, {} as Record<string, any>)
+      } catch (error) {
+        console.error('Error fetching cosmetic details:', error)
+        return {}
+      }
+    }
+  })
+
   const getStatusConfig = (itemCount: number) => {
     if (itemCount === 0) {
       return {
@@ -118,6 +150,20 @@ const CartList: React.FC = () => {
     const endIndex = startIndex + pagination.pageSize
     return cartsData.slice(startIndex, endIndex)
   }
+
+  // Add this function to calculate the subtotal
+  const calculateSubtotal = (items: any[]) => {
+    return items.reduce((sum, item) => {
+      // For each item, multiply its price by quantity
+      return sum + (item.price * item.quantity);
+    }, 0);
+  };
+
+  // Add this function to calculate shipping
+  const calculateShipping = () => {
+    // Standard shipping fee
+    return 70000;
+  };
 
   return (
     <ConfigProvider
@@ -216,7 +262,9 @@ const CartList: React.FC = () => {
                         Total
                       </div>
                       <div className="flex items-center gap-1 text-2xl font-bold text-white">
-                        {cart.totalPrice.toLocaleString()}
+                        {cart.totalPrice > 0 
+                          ? cart.totalPrice.toLocaleString() 
+                          : "0"}
                         <span className="text-xl">đ</span>
                       </div>
                     </div>
@@ -238,7 +286,7 @@ const CartList: React.FC = () => {
         open={selectedCart !== null}
         onCancel={() => setSelectedCart(null)}
         footer={null}
-        width={600}
+        width={700}
         className="dark-modal"
         closeIcon={
           <X className="size-5 text-gray-400 transition-colors hover:text-white" />
@@ -246,36 +294,77 @@ const CartList: React.FC = () => {
       >
         {selectedCart && (
           <div className="p-6">
-            <h2 className="mb-6 text-xl font-semibold text-white">
+            <h2 className="mb-6 flex items-center text-2xl font-semibold text-white">
+              <ShoppingCart className="mr-3 size-5 text-blue-400" />
               Cart Details
             </h2>
-            <div className="space-y-4">
-              <div>
-                <div className="text-sm text-gray-400">Customer</div>
-                <div className="text-white">
-                  {selectedCart.customer?.userName || 'Guest'}
+            
+            <div className="space-y-6">
+              {/* Customer Info */}
+              <div className="rounded-lg bg-gray-800/40 p-4">
+                <div className="text-sm font-medium text-blue-400">Customer</div>
+                <div className="mt-1 text-lg text-white">
+                  {selectedCart.customer?.userName || 'Guest User'}
+                </div>
+                <div className="mt-1 text-sm text-gray-400">
+                  {selectedCart.customer?.email || 'No email provided'}
                 </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-400">Items</div>
-                <div className="mt-2 space-y-2">
+              
+              {/* Items */}
+              <div className="rounded-lg bg-gray-800/40 p-4">
+                <div className="mb-3 text-sm font-medium text-blue-400">Items</div>
+                <div className="mt-2 space-y-3">
                   {selectedCart.items.map((item) => (
                     <div
                       key={item.cosmeticId}
-                      className="flex justify-between text-white"
+                      className="flex items-center justify-between rounded-md bg-gray-700/30 p-3 text-white"
                     >
-                      <span>
-                        Product {item.cosmeticId.slice(-8)} x {item.quantity}
-                      </span>
-                      <span>{item.price.toLocaleString()}đ</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex size-10 items-center justify-center rounded-md bg-blue-500/20">
+                          <ShoppingCart className="size-5 text-blue-400" />
+                        </div>
+                        <div>
+                          <span className="font-medium">
+                            {cosmeticDetails?.[item.cosmeticId]?.name || `Product ${item.cosmeticId.slice(-8)}`}
+                          </span>
+                          <span className="ml-2 text-sm text-gray-400">× {item.quantity}</span>
+                        </div>
+                      </div>
+                      <span className="font-medium">{item.price.toLocaleString()}đ</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-400">Total Price</div>
-                <div className="text-xl text-white">
-                  {selectedCart.totalPrice.toLocaleString()}đ
+              
+              {/* Summary */}
+              <div className="rounded-lg bg-gray-800/40 p-4">
+                <div className="flex items-center justify-between border-b border-gray-700 pb-3">
+                  <span className="text-sm text-gray-400">Subtotal</span>
+                  <span className="text-white">
+                    {calculateSubtotal(selectedCart.items).toLocaleString()}đ
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between border-b border-gray-700 py-3">
+                  <span className="text-sm text-gray-400">Shipping</span>
+                  <span className="text-white">
+                    {calculateShipping().toLocaleString()}đ
+                  </span>
+                </div>
+                
+                {selectedCart.eventDiscountTotal > 0 && (
+                  <div className="flex items-center justify-between border-b border-gray-700 py-3">
+                    <span className="text-sm text-gray-400">Discount</span>
+                    <span className="text-green-400">-{selectedCart.eventDiscountTotal.toLocaleString()}đ</span>
+                  </div>
+                )}
+                
+                <div className="flex items-center justify-between pt-3">
+                  <span className="text-sm font-medium text-blue-400">Total</span>
+                  <span className="text-xl font-bold text-white">
+                    {(calculateSubtotal(selectedCart.items) + calculateShipping()).toLocaleString()}đ
+                  </span>
                 </div>
               </div>
             </div>
