@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable prettier/prettier */
@@ -319,7 +320,7 @@ export default function Courses() {
   const [uploadModalVisible, setUploadModalVisible] = useState(false)
   const [selectedCosmeticId, setSelectedCosmeticId] = useState<string>('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(12)
+  const [pageSize, setPageSize] = useState(12)
   const [sortColumn, setSortColumn] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
 
@@ -338,12 +339,12 @@ export default function Courses() {
       )
       if (response.data.isSuccess) {
         return {
-          items: response.data.data.items.map(item => ({
+          items: response.data.data?.items.map(item => ({
             ...item,
             key: item.id
           })),
-          totalCount: response.data.data.totalCount || (response.data.data.totalPages * pageSize),
-          totalPages: response.data.data.totalPages
+          totalCount: response.data.data?.totalCount || (response.data.data?.totalPages || 0) * pageSize,
+          totalPages: response.data.data?.totalPages || 0
         }
       }
       throw new Error('Failed to fetch cosmetics')
@@ -377,7 +378,7 @@ export default function Courses() {
 
   // Filter data based on search
   const filteredData = useMemo(() => {
-    return cosmeticsData?.items.filter((item) =>
+    return cosmeticsData?.items?.filter((item) =>
       Object.values(item).some(
         (value) =>
           value &&
@@ -390,7 +391,7 @@ export default function Courses() {
   const handleGlobalSearch = (value: string) => {
     setSearchText(value)
     setCurrentPage(1) // Reset to first page when searching
-    
+
     // Clear any existing timeout
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current)
@@ -415,10 +416,7 @@ export default function Courses() {
   const handleEdit = useCallback(
     (record: DataType) => {
       navigate({
-        // @ts-expect-error -- cosmeticId is not defined in the params
-        to: '/admin/cosmetics/$cosmeticId/edit',
-        // @ts-expect-error -- cosmeticId is not defined in the params
-        params: { cosmeticId: record.id }
+        to: `/admin/cosmetics/${record.id}/edit`,
       })
     },
     [navigate]
@@ -930,9 +928,7 @@ export default function Courses() {
       expandable: expandableConfig,
       pagination: {
         current: currentPage,
-        total: cosmeticsData?.totalPages 
-          ? cosmeticsData.totalPages * pageSize 
-          : cosmeticsData?.items?.length || 0,
+        total: cosmeticsData?.totalCount ?? 0,
         pageSize: pageSize,
         onChange: (page: number) => {
           setCurrentPage(page)
@@ -1394,7 +1390,7 @@ export default function Courses() {
           >
             <Button
               type="primary"
-              // @ts-expect-error -- payments is not defined in the params
+
               onClick={() => navigate({ to: '/admin/coupons' })}
               style={{
                 backgroundColor: '#1e1f2a',

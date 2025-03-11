@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   Form,
-  Input,
   InputNumber,
   Select,
-  Switch,
   Button,
   Card,
   ConfigProvider,
@@ -24,7 +24,6 @@ import skinTypeApi from '@/lib/services/skinTypeApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
 import { RcFile, UploadFile } from 'antd/es/upload/interface'
 import TextArea from 'antd/es/input/TextArea'
-import { CreateCosmeticPayload } from '@/lib/services/cosmeticApi'
 
 const { Dragger } = Upload
 const { Option } = Select
@@ -373,7 +372,7 @@ export default function EditCosmetic() {
                     }
                     parser={(value) => {
                       const parsed = value
-                        ? parseFloat(value.replace(/\₫\s?|(,*)/g, ''))
+                        ? parseFloat(value.replace(/\s?|(,*)/g, ''))
                         : 0
                       return isNaN(parsed) ? 0 : parsed
                     }}

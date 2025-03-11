@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import {
   Table,
@@ -235,7 +237,7 @@ export default function CouponList() {
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record: DataType) => (
+      render: (_: any, record: DataType) => (
         <Dropdown
           menu={{
             items: [

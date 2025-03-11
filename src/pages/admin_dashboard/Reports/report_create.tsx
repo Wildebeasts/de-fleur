@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   Form,
-  Input,
   Select,
   Button,
   Card,
@@ -73,7 +73,7 @@ export default function CreateReport() {
     },
     onSuccess: () => {
       message.success('Report created successfully')
-      navigate({ to: '/admin/issue-tickets/reports' })
+      navigate({ to: '/admin/reports' })
     },
     onError: (error) => {
       console.error('Error creating report:', error)
@@ -257,9 +257,7 @@ export default function CreateReport() {
                 <Button
                   icon={<ArrowLeftOutlined />}
                   type="text"
-                  onClick={() =>
-                    navigate({ to: '/admin/issue-tickets/reports' })
-                  }
+                  onClick={() => navigate({ to: '/admin/reports' })}
                 />
                 <span className="text-lg font-semibold">Create New Report</span>
               </div>
@@ -368,9 +366,7 @@ export default function CreateReport() {
                 <Button
                   type="default"
                   className="mr-4"
-                  onClick={() =>
-                    navigate({ to: '/admin/issue-tickets/reports' })
-                  }
+                  onClick={() => navigate({ to: '/admin/reports' })}
                 >
                   Cancel
                 </Button>
