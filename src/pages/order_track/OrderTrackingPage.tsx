@@ -91,9 +91,16 @@ const statusDescriptions = {
   EXPIRED: 'Your order has expired'
 }
 
+// Helper function to normalize status case
+const normalizeStatus = (status: string): string => {
+  if (!status) return '';
+  return status.toUpperCase();
+}
+
 // Format status for display
 const formatStatus = (status: string) => {
   return status
+    .toUpperCase() // Normalize to uppercase first
     .replace(/_/g, ' ')
     .toLowerCase()
     .replace(/\b\w/g, (l) => l.toUpperCase())
@@ -138,6 +145,28 @@ const formatToVND = (amount: number) => {
     style: 'currency',
     currency: 'VND'
   }).format(amount)
+}
+
+const getStatusColor = (status: string) => {
+  const normalizedStatus = normalizeStatus(status);
+  
+  switch (normalizedStatus) {
+    case 'CONFIRMED':
+      return 'bg-[#D1E2C4] text-[#3A4D39]';
+    case 'PENDING_PAYMENT':
+      return 'bg-yellow-100 text-yellow-700';
+    case 'SHIPPED':
+      return 'bg-blue-100 text-blue-700';
+    case 'DELIVERED':
+    case 'COMPLETED':
+      return 'bg-green-100 text-green-700';
+    case 'CANCELLED':
+    case 'PAYMENT_FAILED':
+    case 'EXPIRED':
+      return 'bg-red-100 text-red-700';
+    default:
+      return 'bg-gray-100 text-gray-700';
+  }
 }
 
 const OrderTrackingPage: React.FC = () => {
@@ -194,13 +223,15 @@ const OrderTrackingPage: React.FC = () => {
   const getCurrentStep = () => {
     if (!orderData) return 0
 
-    const statusString = orderData.status
+    const statusString = normalizeStatus(orderData.status)
     return orderStatusSteps[statusString as keyof typeof orderStatusSteps] ?? 0
   }
 
   // Get status type for Ant Design Steps
   const getStepStatus = (status: string) => {
-    switch (status) {
+    const normalizedStatus = normalizeStatus(status);
+    
+    switch (normalizedStatus) {
       case 'COMPLETED':
         return 'finish'
       case 'CANCELLED':
@@ -317,14 +348,9 @@ const OrderTrackingPage: React.FC = () => {
                     Order Status
                   </h3>
                   <span
-                    className={`rounded-full px-3 py-1 text-sm font-medium ${orderData.status === 'COMPLETED'
-                        ? 'bg-green-100 text-green-700'
-                        : orderData.status === 'CANCELLED'
-                          ? 'bg-red-100 text-red-700'
-                          : orderData.status === 'PENDING_PAYMENT'
-                            ? 'bg-yellow-100 text-yellow-700'
-                            : 'bg-[#D1E2C4] text-[#3A4D39]'
-                      }`}
+                    className={`rounded-full px-3 py-1 text-sm font-medium ${
+                      getStatusColor(orderData.status)
+                    }`}
                   >
                     {formatStatus(orderData.status ?? '')}
                   </span>
@@ -332,11 +358,17 @@ const OrderTrackingPage: React.FC = () => {
 
                 <Steps
                   current={getCurrentStep()}
+                  status={
+                    getStepStatus(orderData.status)
+                  }
                   items={stepItems.map((item, index) => ({
                     ...item,
                     status:
                       index === getCurrentStep()
-                        ? 'process'
+                        ? normalizeStatus(orderData.status) === 'COMPLETED' || 
+                          normalizeStatus(orderData.status) === 'DELIVERED'
+                          ? 'finish'
+                          : 'process'
                         : index < getCurrentStep()
                           ? 'finish'
                           : 'wait'

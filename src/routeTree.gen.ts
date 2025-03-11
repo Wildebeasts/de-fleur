@@ -41,6 +41,7 @@ import { Route as IndexImport } from './routes/index'
 import { Route as StaffIndexImport } from './routes/staff/index'
 import { Route as AdminIndexImport } from './routes/admin/index'
 import { Route as AdminUsersIndexImport } from './routes/admin/users/index'
+import { Route as AdminOrdersIndexImport } from './routes/admin/orders/index'
 import { Route as AdminCouponsIndexImport } from './routes/admin/coupons/index'
 import { Route as AdminCosmeticsIndexImport } from './routes/admin/cosmetics/index'
 import { Route as AdminBlogsIndexImport } from './routes/admin/blogs/index'
@@ -234,6 +235,12 @@ const AdminIndexRoute = AdminIndexImport.update({
 const AdminUsersIndexRoute = AdminUsersIndexImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminOrdersIndexRoute = AdminOrdersIndexImport.update({
+  id: '/orders/',
+  path: '/orders/',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -602,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCouponsIndexImport
       parentRoute: typeof AdminImport
     }
+    '/admin/orders/': {
+      id: '/admin/orders/'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersIndexImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/users/': {
       id: '/admin/users/'
       path: '/users'
@@ -641,6 +655,7 @@ interface AdminRouteChildren {
   AdminBlogsIndexRoute: typeof AdminBlogsIndexRoute
   AdminCosmeticsIndexRoute: typeof AdminCosmeticsIndexRoute
   AdminCouponsIndexRoute: typeof AdminCouponsIndexRoute
+  AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
   AdminCosmeticsCosmeticIdEditRoute: typeof AdminCosmeticsCosmeticIdEditRoute
   AdminCouponsEditIdRoute: typeof AdminCouponsEditIdRoute
@@ -659,6 +674,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBlogsIndexRoute: AdminBlogsIndexRoute,
   AdminCosmeticsIndexRoute: AdminCosmeticsIndexRoute,
   AdminCouponsIndexRoute: AdminCouponsIndexRoute,
+  AdminOrdersIndexRoute: AdminOrdersIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
   AdminCosmeticsCosmeticIdEditRoute: AdminCosmeticsCosmeticIdEditRoute,
   AdminCouponsEditIdRoute: AdminCouponsEditIdRoute,
@@ -707,6 +723,7 @@ export interface FileRoutesByFullPath {
   '/admin/blogs': typeof AdminBlogsIndexRoute
   '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
   '/admin/coupons': typeof AdminCouponsIndexRoute
+  '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/admin/cosmetics/$cosmeticId/edit': typeof AdminCosmeticsCosmeticIdEditRoute
   '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
@@ -752,6 +769,7 @@ export interface FileRoutesByTo {
   '/admin/blogs': typeof AdminBlogsIndexRoute
   '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
   '/admin/coupons': typeof AdminCouponsIndexRoute
+  '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
   '/admin/cosmetics/$cosmeticId/edit': typeof AdminCosmeticsCosmeticIdEditRoute
   '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
@@ -799,6 +817,7 @@ export interface FileRoutesById {
   '/admin/blogs/': typeof AdminBlogsIndexRoute
   '/admin/cosmetics/': typeof AdminCosmeticsIndexRoute
   '/admin/coupons/': typeof AdminCouponsIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
   '/admin/cosmetics/$cosmeticId/edit': typeof AdminCosmeticsCosmeticIdEditRoute
   '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
@@ -847,6 +866,7 @@ export interface FileRouteTypes {
     | '/admin/blogs'
     | '/admin/cosmetics'
     | '/admin/coupons'
+    | '/admin/orders'
     | '/admin/users'
     | '/admin/cosmetics/$cosmeticId/edit'
     | '/admin/coupons/edit/$id'
@@ -891,6 +911,7 @@ export interface FileRouteTypes {
     | '/admin/blogs'
     | '/admin/cosmetics'
     | '/admin/coupons'
+    | '/admin/orders'
     | '/admin/users'
     | '/admin/cosmetics/$cosmeticId/edit'
     | '/admin/coupons/edit/$id'
@@ -936,6 +957,7 @@ export interface FileRouteTypes {
     | '/admin/blogs/'
     | '/admin/cosmetics/'
     | '/admin/coupons/'
+    | '/admin/orders/'
     | '/admin/users/'
     | '/admin/cosmetics/$cosmeticId/edit'
     | '/admin/coupons/edit/$id'
@@ -1068,6 +1090,7 @@ export const routeTree = rootRoute
         "/admin/blogs/",
         "/admin/cosmetics/",
         "/admin/coupons/",
+        "/admin/orders/",
         "/admin/users/",
         "/admin/cosmetics/$cosmeticId/edit",
         "/admin/coupons/edit/$id"
@@ -1191,6 +1214,10 @@ export const routeTree = rootRoute
     },
     "/admin/coupons/": {
       "filePath": "admin/coupons/index.tsx",
+      "parent": "/admin"
+    },
+    "/admin/orders/": {
+      "filePath": "admin/orders/index.tsx",
       "parent": "/admin"
     },
     "/admin/users/": {

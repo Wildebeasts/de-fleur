@@ -133,7 +133,18 @@ const data = {
           path: '/admin/issue-tickets/create'
         }
       ]
+    },
+    {
+      title: 'Orders',
+      icon: ShoppingBag,
+      items: [
+        {
+          title: 'All Orders',
+          path: '/admin/orders'
+        }
+      ]
     }
+
     // {
     //   title: "Settings",
     //   icon: Settings2,
