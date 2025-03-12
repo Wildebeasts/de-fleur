@@ -142,7 +142,7 @@ const StaffProductGrid: React.FC<StaffProductGridProps> = ({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="grid grid-cols-1 gap-6"
+        className="grid grid-cols-2 gap-6"
       >
         {filteredCosmetics.map((product, index) => (
           <motion.div

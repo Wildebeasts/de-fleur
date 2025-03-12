@@ -19,6 +19,10 @@ import {
 } from '../ui/select'
 import { Button } from '../ui/button'
 import { cn } from '@/lib/utils'
+import { Input } from '../ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { Loader2 } from 'lucide-react'
+import { Card } from '../ui/card'
 
 const getStatusStyles = (status: string) => {
   switch (status) {
@@ -62,6 +66,8 @@ const OrderTracking = () => {
   const [orders, setOrders] = useState<OrderResponse[]>([])
   const [loading, setLoading] = useState(false)
   const [updating, setUpdating] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState('ALL')
 
   useEffect(() => {
     fetchOrders()
@@ -94,127 +100,182 @@ const OrderTracking = () => {
     }
   }
 
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch =
+      order.id!.includes(search) ||
+      order.customerUserName?.toLowerCase().includes(search.toLowerCase()) ||
+      order.trackingNumber?.includes(search)
+
+    const matchesStatus =
+      filterStatus === 'ALL' || order.status === filterStatus
+    return matchesSearch && matchesStatus
+  })
+
   return (
     <div>
       <h2 className="mb-4 text-xl font-semibold">Order Tracking</h2>
-      {loading ? (
-        <p>Loading orders...</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Order ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Coupon</TableHead>
-              <TableHead>Subtotal</TableHead>
-              <TableHead>Total Price</TableHead>
-              <TableHead>Order Date</TableHead>
-              <TableHead>Shipping Address</TableHead>
-              <TableHead>Billing Address</TableHead>
-              <TableHead>Tracking Number</TableHead>
-              <TableHead>Delivery Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.id}</TableCell>
-                <TableCell>
-                  <div>
-                    <span>{order.customerUserName || 'Walk-in'}</span>
-                    {order.customerEmail && (
-                      <p className="text-xs text-gray-500">
-                        {order.customerEmail}
-                      </p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div>
-                    <span>{order.couponName || 'N/A'}</span>
-                    {order.couponId && (
-                      <p className="text-xs text-gray-500">{order.couponId}</p>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(order.subTotal!)}
-                </TableCell>
-                <TableCell>
-                  {new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(order.totalPrice!)}
-                </TableCell>
-                <TableCell>{formatDateVN(order.orderDate!) || 'N/A'}</TableCell>
-                <TableCell>{order.shippingAddress || 'N/A'}</TableCell>
-                <TableCell>{order.billingAddress || 'N/A'}</TableCell>
-                <TableCell>{order.trackingNumber || 'N/A'}</TableCell>
-                <TableCell>
-                  {formatDateVN(order.deliveryDate!) || 'N/A'}
-                </TableCell>
-                <TableCell>
-                  <div
-                    className={cn(
-                      'rounded-md px-2 py-1 text-sm font-medium',
-                      getStatusStyles(order.status!)
-                    )}
-                  >
-                    {order.status?.replace(/_/g, ' ') || 'Unknown'}
-                  </div>
-                  <Select
-                    defaultValue={order.status}
-                    onValueChange={(value) =>
-                      handleStatusChange(order.id!, value)
-                    }
-                    disabled={updating === order.id}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="PENDING_PAYMENT">Pending</SelectItem>
-                      <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                      <SelectItem value="PROCESSING">Processing</SelectItem>
-                      <SelectItem value="DELIVERY">Delivery</SelectItem>
-                      <SelectItem value="COMPLETED">Completed</SelectItem>
-                      <SelectItem value="REFUNDED" disabled>
-                        Refunded
-                      </SelectItem>
-                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                      <SelectItem value="PAYMENT_FAILED" disabled>
-                        Failed
-                      </SelectItem>
-                      <SelectItem value="EXPIRED" disabled>
-                        Expired
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <Button
-                    onClick={() => handleStatusChange(order.id!, 'COMPLETED')}
-                    disabled={
-                      updating === order.id || order.status === 'COMPLETED'
-                    }
-                  >
-                    Mark as Completed
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      <Input
+        placeholder="Search by Order ID, Customer, Tracking Number"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="mb-4"
+      />
+      <Tabs defaultValue="ALL" onValueChange={setFilterStatus}>
+        <TabsList>
+          <TabsTrigger value="ALL">All</TabsTrigger>
+          <TabsTrigger value="PENDING_PAYMENT">Pending</TabsTrigger>
+          <TabsTrigger value="CONFIRMED">Confirmed</TabsTrigger>
+          <TabsTrigger value="PROCESSING">Processing</TabsTrigger>
+          <TabsTrigger value="DELIVERY">Delivery</TabsTrigger>
+          <TabsTrigger value="COMPLETED">Completed</TabsTrigger>
+          <TabsTrigger value="REFUNDED">Refunded</TabsTrigger>
+          <TabsTrigger value="CANCELLED">Cancelled</TabsTrigger>
+          <TabsTrigger value="PAYMENT_FAILED">Failed</TabsTrigger>
+          <TabsTrigger value="EXPIRED">Expired</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={filterStatus}>
+          {loading ? (
+            <div className="flex h-40 items-center justify-center">
+              <Loader2 className="size-8 animate-spin text-gray-500" />
+            </div>
+          ) : filteredOrders.length === 0 ? (
+            <div className="flex h-60 items-center justify-center">
+              <Card className="p-6 text-center shadow-md">
+                <h3 className="text-lg font-semibold">No orders found</h3>
+                <p className="mt-2 text-gray-500">
+                  Try adjusting your filters.
+                </p>
+              </Card>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Coupon</TableHead>
+                  <TableHead>Subtotal</TableHead>
+                  <TableHead>Total Price</TableHead>
+                  <TableHead>Order Date</TableHead>
+                  <TableHead>Shipping Address</TableHead>
+                  <TableHead>Billing Address</TableHead>
+                  <TableHead>Tracking Number</TableHead>
+                  <TableHead>ETA</TableHead>
+                  <TableHead>Delivery Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell>{order.id}</TableCell>
+                    <TableCell>
+                      <div>
+                        <span>{order.customerUserName || 'Walk-in'}</span>
+                        {order.customerEmail && (
+                          <p className="text-xs text-gray-500">
+                            {order.customerEmail}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <span>{order.couponName || 'N/A'}</span>
+                        {order.couponId && (
+                          <p className="text-xs text-gray-500">
+                            {order.couponId}
+                          </p>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      }).format(order.subTotal!)}
+                    </TableCell>
+                    <TableCell>
+                      {new Intl.NumberFormat('vi-VN', {
+                        style: 'currency',
+                        currency: 'VND',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0
+                      }).format(order.totalPrice!)}
+                    </TableCell>
+                    <TableCell>
+                      {formatDateVN(order.orderDate!) || 'N/A'}
+                    </TableCell>
+                    <TableCell>{order.shippingAddress || 'N/A'}</TableCell>
+                    <TableCell>{order.billingAddress || 'N/A'}</TableCell>
+                    <TableCell>{order.trackingNumber || 'N/A'}</TableCell>
+                    <TableCell>{formatDateVN(order.ETA!) || 'N/A'}</TableCell>
+                    <TableCell>
+                      {formatDateVN(order.deliveryDate!) || 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <div
+                        className={cn(
+                          'rounded-md px-2 py-1 text-sm font-medium',
+                          getStatusStyles(order.status!)
+                        )}
+                      >
+                        {order.status?.replace(/_/g, ' ') || 'Unknown'}
+                      </div>
+                      <Select
+                        defaultValue={order.status}
+                        onValueChange={(value) =>
+                          handleStatusChange(order.id!, value)
+                        }
+                        disabled={updating === order.id}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PENDING_PAYMENT">
+                            Pending
+                          </SelectItem>
+                          <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                          <SelectItem value="PROCESSING">Processing</SelectItem>
+                          <SelectItem value="DELIVERY">Delivery</SelectItem>
+                          <SelectItem value="COMPLETED">Completed</SelectItem>
+                          <SelectItem value="REFUNDED" disabled>
+                            Refunded
+                          </SelectItem>
+                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                          <SelectItem value="PAYMENT_FAILED" disabled>
+                            Failed
+                          </SelectItem>
+                          <SelectItem value="EXPIRED" disabled>
+                            Expired
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() =>
+                          handleStatusChange(order.id!, 'COMPLETED')
+                        }
+                        disabled={
+                          updating === order.id || order.status === 'COMPLETED'
+                        }
+                      >
+                        Mark as Completed
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

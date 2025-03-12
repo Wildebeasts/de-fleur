@@ -9,6 +9,9 @@ import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
 import Breadcrumb from '../Store/Breadcrumb'
 import CosmeticSearch from './CosmeticSearch'
+import CustomerScreen from './CustomerScreen'
+import { CouponResponse } from '@/lib/types/Coupon'
+import { motion } from 'framer-motion'
 
 const ITEMS_PER_PAGE = 12
 
@@ -16,6 +19,17 @@ const ITEMS_PER_PAGE = 12
 type SelectedProduct = CosmeticResponse & { quantity: number }
 
 const ProductSelectionAndOrder = () => {
+  const [customerViewOpen, setCustomerViewOpen] = useState(false)
+  const handleOpenCustomerScreen = () => {
+    setCustomerViewOpen(true)
+  }
+  const handleCloseCustomerScreen = () => {
+    setCustomerViewOpen(false) // Allow reopening the window
+  }
+  const [coupon, setCoupon] = useState<CouponResponse | null>(null)
+  const [customerName, setCustomerName] = useState<string>('')
+  const [customerPhoneNumber, setPhoneNumber] = useState<string>('')
+
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     []
   )
@@ -34,7 +48,14 @@ const ProductSelectionAndOrder = () => {
 
   // Fetch cosmetics with pagination from the API
   const { data, isLoading, error } = useQuery({
-    queryKey: ['cosmetics', currentPage, sortColumn, sortOrder, filters, searchQuery],
+    queryKey: [
+      'cosmetics',
+      currentPage,
+      sortColumn,
+      sortOrder,
+      filters,
+      searchQuery
+    ],
     queryFn: async () => {
       const response = await cosmeticApi.getCosmetics(
         currentPage,
@@ -117,6 +138,14 @@ const ProductSelectionAndOrder = () => {
         <Breadcrumb />
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-[#3A4D39]">All Products</h1>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="rounded-full bg-green-700 px-5 py-2 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-green-800 disabled:opacity-50"
+            onClick={handleOpenCustomerScreen}
+          >
+            Open Customer Screen
+          </motion.button>
           <select
             id="sort"
             className="rounded-md border border-[#D1E2C4] bg-white px-3 py-2 text-sm text-[#3A4D39] focus:border-[#3A4D39] focus:outline-none"
@@ -130,7 +159,6 @@ const ProductSelectionAndOrder = () => {
             <option value="rating-desc">Best Rated</option>
           </select>
         </div>
-
         <CosmeticProvider
           value={{
             filteredCosmetics: data?.items || [],
@@ -164,9 +192,23 @@ const ProductSelectionAndOrder = () => {
                 onIncreaseQuantity={handleAddToOrder}
                 onDecreaseQuantity={handleDecreaseQuantity}
                 onRemoveProduct={handleRemoveFromOrder}
+                coupon={coupon}
+                setCoupon={setCoupon}
+                setCustomerName={setCustomerName}
+                setCustomerPhoneNumber={setPhoneNumber}
               />
             </div>
           </div>
+
+          {customerViewOpen && (
+            <CustomerScreen
+              coupon={coupon}
+              customerName={customerName}
+              phoneNumber={customerPhoneNumber}
+              selectedProducts={selectedProducts}
+              onClose={handleCloseCustomerScreen}
+            />
+          )}
         </CosmeticProvider>
       </div>
     </div>

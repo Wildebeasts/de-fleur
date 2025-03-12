@@ -48,6 +48,7 @@ export interface OrderResponse {
   shippingAddress?: string
   billingAddress?: string
   trackingNumber?: string
+  ETA?: string
   deliveryDate?: string
   status?: string
   paymentUrl?: string
