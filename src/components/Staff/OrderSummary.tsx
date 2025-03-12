@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { Cosmetics, OrderWalkInRequest } from '@/lib/types/order'
@@ -6,19 +6,28 @@ import { Minus, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import couponApi from '@/lib/services/couponApi'
 import orderApi from '@/lib/services/orderApi'
+import { CouponResponse } from '@/lib/types/Coupon'
 
 interface OrderSummaryProps {
   selectedProducts: CosmeticResponse[]
   onIncreaseQuantity: (product: CosmeticResponse) => void
   onDecreaseQuantity: (productId: string) => void
   onRemoveProduct: (productId: string) => void
+  coupon: CouponResponse | null
+  setCoupon: (coupon: CouponResponse | null) => void
+  setCustomerName: (customerName: string) => void
+  setCustomerPhoneNumber: (customerPhoneNumber: string) => void
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   selectedProducts,
   onIncreaseQuantity,
   onDecreaseQuantity,
-  onRemoveProduct
+  onRemoveProduct,
+  coupon,
+  setCoupon,
+  setCustomerName,
+  setCustomerPhoneNumber
 }) => {
   const [couponCode, setCouponCode] = useState('') // State for coupon code input
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false) // Loading state for coupon validation
@@ -31,6 +40,15 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     CouponId: null, // or actual coupon ID if applied
     PaymentMethod: 'CASH' // or 'Credit Card' based on selection
   })
+
+  useEffect(() => {
+    const fullName = `${formData.FirstName} ${formData.LastName}`.trim()
+    setCustomerName(fullName)
+  }, [formData.FirstName, formData.LastName, setCustomerName])
+
+  useEffect(() => {
+    setCustomerPhoneNumber(formData.CustomerPhoneNumber)
+  }, [formData.CustomerPhoneNumber, setCustomerPhoneNumber])
 
   const handleSubmitOrder = async () => {
     // Validate form data
@@ -114,7 +132,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     try {
       // Call your API to validate the coupon code
       const response = await couponApi.getCouponByCode(couponCode)
-      console.log(response)
 
       if (response.data.isSuccess) {
         // If the coupon is valid, set the CouponId in formData
@@ -132,10 +149,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             ...prev,
             CouponId: response.data.data!.id
           }))
+          setCoupon(response.data.data!)
           toast.success('Coupon applied successfully!')
         }
       } else {
         // If the coupon is invalid, display an error message
+        setCoupon(null)
         toast.error(response.data.message || 'Invalid coupon code')
         setFormData((prev) => ({
           ...prev,
@@ -289,15 +308,49 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             </div>
           </div>
 
-          <div className="flex justify-between pt-4 text-sm font-semibold">
-            <span>Total:</span>
-            <span className="font-bold text-[#3A4D39]">
+          <div className="flex justify-between pt-4 text-sm font-semibold text-gray-500">
+            <span>Sub Total:</span>
+            <span className="font-bold text-gray-500">
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
                 currency: 'VND',
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
               }).format(total)}
+            </span>
+          </div>
+
+          <div className="flex justify-between pt-2 text-sm font-semibold text-red-500">
+            <span>Discount:</span>
+            <span className="font-bold text-red-500">
+              -{' '}
+              {coupon
+                ? new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(total * (coupon!.discount / 100))
+                : '0 ₫'}
+            </span>
+          </div>
+
+          <div className="mt-4 flex justify-between border-t pt-2 text-sm font-semibold text-black">
+            <span>Total:</span>
+            <span className="font-bold text-black">
+              {coupon
+                ? new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(total - total * (coupon!.discount / 100))
+                : new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                  }).format(total)}
             </span>
           </div>
 
