@@ -51,9 +51,16 @@ interface Order {
   deliveryDate: string
 }
 
+// Helper function to normalize status case
+const normalizeStatus = (status: string): string => {
+  if (!status) return '';
+  return status.toUpperCase();
+}
+
 // Helper function to format status for display
 const formatStatus = (status: string) => {
   return status
+    .toUpperCase() // Normalize to uppercase first
     .replace(/_/g, ' ')
     .toLowerCase()
     .replace(/\b\w/g, (l) => l.toUpperCase())
@@ -61,7 +68,9 @@ const formatStatus = (status: string) => {
 
 // Helper function to get status color
 const getStatusColor = (status: string) => {
-  switch (status) {
+  const normalizedStatus = normalizeStatus(status);
+  
+  switch (normalizedStatus) {
     case 'CONFIRMED':
       return 'bg-[#D1E2C4] text-[#3A4D39]'
     case 'PENDING_PAYMENT':
@@ -69,8 +78,11 @@ const getStatusColor = (status: string) => {
     case 'SHIPPED':
       return 'bg-blue-100 text-blue-700'
     case 'DELIVERED':
+    case 'COMPLETED':
       return 'bg-green-100 text-green-700'
     case 'CANCELLED':
+    case 'PAYMENT_FAILED':
+    case 'EXPIRED':
       return 'bg-red-100 text-red-700'
     default:
       return 'bg-gray-100 text-gray-700'

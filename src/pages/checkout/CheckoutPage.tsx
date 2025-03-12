@@ -243,7 +243,7 @@ const CheckoutPage: React.FC = () => {
         districtId: formData.districtId
       }
 
-      console.log('Creating order with request:', orderRequest) // For debugging
+      console.log('Creating order with request:', orderRequest)
 
       const response = await orderApi.createOrder(orderRequest)
 
@@ -251,8 +251,16 @@ const CheckoutPage: React.FC = () => {
         // Clear the coupon from localStorage when order is created
         localStorage.removeItem('cartCoupon')
 
-        // Redirect to VNPay payment URL
-        window.location.href = response.data.data?.paymentUrl || ''
+        if (formData.paymentMethod === 'ONLINE') {
+          // Redirect to VNPay payment URL
+          window.location.href = response.data.data?.paymentUrl || ''
+        } else if (formData.paymentMethod === 'COD') {
+          // For COD, simply show a confirmation and navigate as needed
+          toast.success(
+            'Đơn hàng đã được tạo. Bạn sẽ thanh toán khi nhận hàng.'
+          )
+          navigate({ to: '/order_history' }) // or your desired order confirmation page
+        }
       } else {
         toast.error(response.data.message || 'Failed to create order')
       }
@@ -265,12 +273,19 @@ const CheckoutPage: React.FC = () => {
   }
 
   // Update payment methods to only include VNPay
+  // Update payment methods to include both VNPay and COD
   const paymentMethods: PaymentMethod[] = [
     {
       id: 'ONLINE',
       name: 'ONLINE',
       icon: vnpayLogo,
       description: 'Thanh toán nhanh chóng và an toàn với VNPay'
+    },
+    {
+      id: 'COD',
+      name: 'COD',
+      icon: '', // Add a cash icon if available or leave it blank
+      description: 'Thanh toán khi nhận hàng'
     }
   ]
 
@@ -415,11 +430,13 @@ const CheckoutPage: React.FC = () => {
                           htmlFor={method.id}
                           className="flex flex-1 items-center space-x-3"
                         >
-                          <img
-                            src={method.icon}
-                            alt={method.name}
-                            className="size-8 object-contain"
-                          />
+                          {method.icon && (
+                            <img
+                              src={method.icon}
+                              alt={method.name}
+                              className="size-8 object-contain"
+                            />
+                          )}
                           <div className="space-y-1">
                             <p className="text-sm font-medium">{method.name}</p>
                             <p className="text-xs text-gray-500">

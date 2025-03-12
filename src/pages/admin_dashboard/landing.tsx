@@ -1,6 +1,6 @@
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
-import { useEffect } from 'react'
-import { ConfigProvider } from 'antd'
+import { useEffect, useState } from 'react'
+import { ConfigProvider, Spin } from 'antd'
 import {
   Users2,
   BookOpen,
@@ -21,6 +21,8 @@ import logo from '@/assets/logos/icon-white.svg'
 import { Area, AreaChart, ResponsiveContainer, YAxis, Tooltip } from 'recharts'
 //import statisticsApi from '@/utils/services/StatisticsService'
 import { useAuth } from '@/lib/context/AuthContext'
+import userApi from '@/lib/services/userService'
+import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns'
 
 interface StatCardProps {
   title: string
@@ -242,9 +244,18 @@ const tips = [
 export default function AdminDashboard() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-  // Commented out until stats API is ready
-  // const [stats, setStats] = useState<any>(null)
-  // const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalUsers: { value: 0, trend: 0, history: [] },
+    totalCourses: { value: 25, trend: 10, history: [] },
+    revenue: { value: 5000000, trend: 20, history: [] },
+    averageRating: { value: 4.5, trend: 5, totalReviews: 150, history: [] }
+  })
+  const [loading, setLoading] = useState(true)
+  const [quickStats, setQuickStats] = useState({
+    pendingApprovals: { totalCount: 0 },
+    newUsers: { totalCount: 0 },
+    supportTickets: { totalCount: 0 }
+  })
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -252,25 +263,129 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, navigate])
 
-  // Temporary mock data for UI development
-  const mockStats = {
-    pendingApprovals: { totalCount: 5 },
-    newUsers: { totalCount: 12 },
-    supportTickets: { totalCount: 3 },
-    totalUsers: { value: 100, trend: 15, history: [] },
-    totalCourses: { value: 25, trend: 10, history: [] },
-    revenue: { value: 5000000, trend: 20, history: [] },
-    averageRating: { value: 4.5, trend: 5, totalReviews: 150, history: [] }
+  // Fetch user data and generate chart data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        // Fetch all users (adjust page size as needed)
+        const response = await userApi.getUsers(1, 1000)
+
+        if (response.isSuccess && response.data) {
+          const users = Array.isArray(response.data) ? response.data : []
+          const totalUsers = users.length
+
+          // Generate historical data for the chart (last 6 months)
+          const historyData = generateUserHistoryData(users)
+
+          // Calculate trend (% change from previous month)
+          const trend = calculateTrend(historyData)
+
+          // Update stats
+          setStats((prevStats) => ({
+            ...prevStats,
+            totalUsers: {
+              value: totalUsers,
+              trend: trend,
+              history: historyData
+            }
+          }))
+
+          // Update quick stats
+          const newUsersCount = countNewUsers(users)
+          setQuickStats({
+            pendingApprovals: { totalCount: 5 }, // Replace with actual API call when available
+            newUsers: { totalCount: newUsersCount },
+            supportTickets: { totalCount: 3 } // Replace with actual API call when available
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [])
+
+  // Generate historical data for users based on creation dates
+  const generateUserHistoryData = (users) => {
+    const historyData = []
+    const today = new Date()
+
+    // Generate data for the last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const monthDate = subMonths(today, i)
+      const monthStart = startOfMonth(monthDate)
+      const monthEnd = endOfMonth(monthDate)
+
+      // Count users created in this month
+      const usersInMonth = users.filter((user) => {
+        // Check if createdDate exists, otherwise try birthDate as fallback
+        const dateField = user.createdDate || user.birthDate
+        if (!dateField) return false
+
+        const creationDate = new Date(dateField)
+        return creationDate >= monthStart && creationDate <= monthEnd
+      })
+
+      // Cumulative count of users up to this month
+      const cumulativeUsers = users.filter((user) => {
+        // Check if createdDate exists, otherwise try birthDate as fallback
+        const dateField = user.createdDate || user.birthDate
+        if (!dateField) return false
+
+        const creationDate = new Date(dateField)
+        return creationDate <= monthEnd
+      })
+
+      historyData.push({
+        date: format(monthDate, 'yyyy-MM-dd'),
+        value: cumulativeUsers.length,
+        monthlyNew: usersInMonth.length
+      })
+    }
+
+    return historyData
   }
 
+  // Calculate trend percentage (change from previous month)
+  const calculateTrend = (historyData) => {
+    if (historyData.length < 2) return 0
+
+    const currentValue = historyData[historyData.length - 1].value
+    const previousValue = historyData[historyData.length - 2].value
+
+    if (previousValue === 0) return 100 // If previous was 0, show 100% increase
+
+    return Math.round(((currentValue - previousValue) / previousValue) * 100)
+  }
+
+  // Count new users in the last 30 days
+  const countNewUsers = (users) => {
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    return users.filter((user) => {
+      // Check if createdDate exists, otherwise try birthDate as fallback
+      const dateField = user.createdDate || user.birthDate
+      if (!dateField) return false
+
+      const creationDate = new Date(dateField)
+      return creationDate >= thirtyDaysAgo
+    }).length
+  }
+
+  // Update quick actions with real data
   const quickActions = quickActionsData.map((action) => ({
     ...action,
     value:
       action.title === 'Pending Approvals'
-        ? mockStats.pendingApprovals.totalCount
+        ? quickStats.pendingApprovals.totalCount
         : action.title === 'New Users'
-          ? mockStats.newUsers.totalCount
-          : mockStats.supportTickets.totalCount
+          ? quickStats.newUsers.totalCount
+          : quickStats.supportTickets.totalCount
   }))
 
   // Update navigation calls
@@ -325,72 +440,120 @@ export default function AdminDashboard() {
 
           {/* Quick Actions */}
           <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {quickActions.map((action) => (
-              <button
-                key={action.title}
-                onClick={() => handleNavigation(action.path)}
-                className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
-                  p-6 backdrop-blur-lg transition-all duration-300 hover:border-gray-100/20"
-              >
-                <div className="flex items-center gap-4">
-                  <div
-                    className="rounded-lg bg-[#282d35]/50 p-3 backdrop-blur-lg transition-colors
-                    duration-300 group-hover:bg-[#2c333a]/50"
+            {loading
+              ? // Loading state for quick actions
+                Array(3)
+                  .fill(0)
+                  .map((_, index) => (
+                    <div
+                      key={index}
+                      className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
+                    p-6 backdrop-blur-lg"
+                    >
+                      <div className="flex animate-pulse items-center gap-4">
+                        <div className="rounded-lg bg-[#282d35]/50 p-3">
+                          <div className="size-5 rounded bg-gray-700"></div>
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <div className="h-4 w-24 rounded bg-gray-700"></div>
+                          <div className="mt-1 h-6 w-8 rounded bg-gray-700"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+              : quickActions.map((action) => (
+                  <button
+                    key={action.title}
+                    onClick={() => handleNavigation(action.path)}
+                    className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
+                    p-6 backdrop-blur-lg transition-all duration-300 hover:border-gray-100/20"
                   >
-                    <action.icon className={`size-5 ${action.color}`} />
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm text-gray-400">
-                      {action.title}
-                    </span>
-                    <span className={`text-xl font-semibold ${action.color}`}>
-                      {action.value}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            ))}
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="rounded-lg bg-[#282d35]/50 p-3 backdrop-blur-lg transition-colors
+                      duration-300 group-hover:bg-[#2c333a]/50"
+                      >
+                        <action.icon className={`size-5 ${action.color}`} />
+                      </div>
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm text-gray-400">
+                          {action.title}
+                        </span>
+                        <span
+                          className={`text-xl font-semibold ${action.color}`}
+                        >
+                          {action.value}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
           </div>
 
           {/* Stats Grid */}
           <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              title="Total Users"
-              value={mockStats.totalUsers.value}
-              trend={mockStats.totalUsers.trend}
-              subtitle="Active this month"
-              history={mockStats.totalUsers.history}
-              icon={<Users2 className="size-5 text-white" />}
-              onClick={() => handleNavigation('/admin/users')}
-            />
-            <StatCard
-              title="Total Courses"
-              value={mockStats.totalCourses.value}
-              trend={mockStats.totalCourses.trend}
-              subtitle="Published courses"
-              history={mockStats.totalCourses.history}
-              icon={<BookOpen className="size-5 text-white" />}
-              onClick={() => handleNavigation('/admin/courses')}
-            />
-            <StatCard
-              title="Revenue"
-              value={mockStats.revenue?.value || 0}
-              trend={mockStats.revenue?.trend || 0}
-              subtitle="Total revenue from successful transactions"
-              history={mockStats.revenue?.history || []}
-              icon={<DollarSign className="size-5 text-white" />}
-              format="currency"
-              onClick={() => handleNavigation('/admin/payments/invoices')}
-            />
-            <StatCard
-              title="Average Rating"
-              value={mockStats.averageRating.value}
-              trend={mockStats.averageRating.trend}
-              subtitle={`From ${mockStats.averageRating.totalReviews.toLocaleString()} reviews`}
-              history={mockStats.averageRating.history}
-              icon={<Star className="size-5 text-white" />}
-              onClick={() => handleNavigation('/admin/reviews')}
-            />
+            {loading ? (
+              // Show loading state for all 4 cards
+              Array(4)
+                .fill(0)
+                .map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 
+                    bg-clip-padding p-6 backdrop-blur-lg"
+                  >
+                    <div className="animate-pulse">
+                      <div className="mb-4 flex items-center justify-between">
+                        <div className="h-5 w-24 rounded bg-gray-700"></div>
+                        <div className="h-5 w-16 rounded bg-gray-700"></div>
+                      </div>
+                      <div className="mb-1 h-8 w-32 rounded bg-gray-700"></div>
+                      <div className="h-4 w-40 rounded bg-gray-700"></div>
+                      <div className="mt-6 h-[100px] rounded bg-gray-700/50"></div>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <>
+                <StatCard
+                  title="Total Users"
+                  value={stats.totalUsers.value}
+                  trend={stats.totalUsers.trend}
+                  subtitle="Active this month"
+                  history={stats.totalUsers.history}
+                  icon={<Users2 className="size-5 text-white" />}
+                  onClick={() => handleNavigation('/admin/users')}
+                />
+                <StatCard
+                  title="Total Courses"
+                  value={stats.totalCourses.value}
+                  trend={stats.totalCourses.trend}
+                  subtitle="Published courses"
+                  history={stats.totalCourses.history}
+                  icon={<BookOpen className="size-5 text-white" />}
+                  onClick={() => handleNavigation('/admin/courses')}
+                />
+                <StatCard
+                  title="Revenue"
+                  value={stats.revenue?.value || 0}
+                  trend={stats.revenue?.trend || 0}
+                  subtitle="Total revenue from successful transactions"
+                  history={stats.revenue?.history || []}
+                  icon={<DollarSign className="size-5 text-white" />}
+                  format="currency"
+                  onClick={() => handleNavigation('/admin/payments/invoices')}
+                />
+                <StatCard
+                  title="Average Rating"
+                  value={stats.averageRating.value}
+                  trend={stats.averageRating.trend}
+                  subtitle={`From ${stats.averageRating.totalReviews.toLocaleString()} reviews`}
+                  history={stats.averageRating.history}
+                  icon={<Star className="size-5 text-white" />}
+                  onClick={() => handleNavigation('/admin/reviews')}
+                />
+              </>
+            )}
           </div>
 
           {/* Tips & Best Practices */}

@@ -450,7 +450,7 @@ export default function Users() {
                         {/* Date and Status */}
                         <div className="mb-3 flex items-center justify-center gap-2">
                           <span className="flex items-center gap-1 text-xs text-gray-500">
-                            <span className="text-gray-600">Created:</span>
+                            <span className="text-gray-600">Birthdate:</span>
                             {format(new Date(user.createdDate), 'MMM dd, yyyy')}
                           </span>
                           <span className="text-xs text-gray-500">•</span>
