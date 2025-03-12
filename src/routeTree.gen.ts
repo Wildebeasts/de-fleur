@@ -621,6 +621,7 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/admin/reports'
       preLoaderRoute: typeof AdminReportsIndexImport
+    }
     '/admin/orders/': {
       id: '/admin/orders/'
       path: '/orders'
@@ -650,7 +651,6 @@ declare module '@tanstack/react-router' {
       parentRoute: typeof AdminImport
     }
   }
-}
 }
 // Create and export the route tree
 
