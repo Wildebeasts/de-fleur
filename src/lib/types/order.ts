@@ -38,7 +38,10 @@ export interface OrderItemResponse {
 export interface OrderResponse {
   id?: string
   customerId?: string
+  customerUserName?: string
+  customerEmail?: string
   couponId?: string
+  couponName?: string
   subTotal?: number
   totalPrice?: number
   orderDate?: string
