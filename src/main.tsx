@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AuthProvider } from './lib/context/AuthContext'
 import { Toaster } from 'sonner'
 import './index.css'
+import CanvasCursor from './components/CanvasCursor'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -39,6 +40,7 @@ function App() {
             <RouterProvider router={router} />
           </main>
           <Toaster position="bottom-right" richColors />
+          <CanvasCursor />
         </DeliveryProvider>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
