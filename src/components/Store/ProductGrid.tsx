@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useCosmetic } from '@/lib/context/CosmeticContext'
 import ProductCard from './ProductCard'
@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/pagination'
 import { Loader2 } from 'lucide-react'
 import CompareProducts from './CompareProducts'
+import { CosmeticResponse } from '@/lib/types/Cosmetic'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -32,6 +33,19 @@ const ProductGrid: React.FC = () => {
     totalPages,
     onPageChange
   } = useCosmetic()
+
+  const [selectedProducts, setSelectedProducts] = useState<CosmeticResponse[]>(
+    []
+  )
+
+  const toggleCompare = (product: CosmeticResponse) => {
+    setSelectedProducts((prev) => {
+      if (prev.find((p) => p.id === product.id)) {
+        return prev.filter((p) => p.id !== product.id) // Deselect product
+      }
+      return prev.length < 2 ? [...prev, product] : prev // Limit to 2 products
+    })
+  }
 
   if (isLoading) {
     return (
@@ -134,7 +148,10 @@ const ProductGrid: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* Product Comparison Section */}
-      <CompareProducts />
+      <CompareProducts
+        selectedProducts={selectedProducts}
+        setSelectedProducts={setSelectedProducts}
+      />
 
       <motion.div
         variants={containerVariants}
@@ -143,7 +160,15 @@ const ProductGrid: React.FC = () => {
         className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
       >
         {filteredCosmetics.map((cosmetic) => (
-          <ProductCard key={cosmetic.id} cosmetic={cosmetic} />
+          <ProductCard
+            key={cosmetic.id}
+            cosmetic={cosmetic}
+            selectedProducts={selectedProducts}
+            toggleCompare={toggleCompare}
+            isSelectedForComparison={selectedProducts.some(
+              (p) => p.id === cosmetic.id
+            )}
+          />
         ))}
       </motion.div>
 
