@@ -11,6 +11,7 @@ import {
   PaginationPrevious
 } from '@/components/ui/pagination'
 import { Loader2 } from 'lucide-react'
+import CompareProducts from './CompareProducts'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -132,6 +133,9 @@ const ProductGrid: React.FC = () => {
 
   return (
     <div className="space-y-8">
+      {/* Product Comparison Section */}
+      <CompareProducts />
+
       <motion.div
         variants={containerVariants}
         initial="hidden"
