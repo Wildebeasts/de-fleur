@@ -59,7 +59,7 @@ export const LoginPage: React.FC = () => {
       toast.success('Login successful!')
       navigate({ to: '/' })
     } catch (err) {
-      toast.error((err as Error)?.message || 'Login failed. Please try again.')
+      toast.error('Login failed. Please check your username and password.')
     }
   }
 
