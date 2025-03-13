@@ -19,8 +19,10 @@ import {
   XCircle,
   RefreshCw,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Star
 } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 import orderApi from '@/lib/services/orderApi'
 import { Route as OrderTrackRoute } from '@/routes/order_track'
 import {
@@ -34,6 +36,8 @@ import {
   HomeOutlined
 } from '@ant-design/icons'
 import cosmeticApi from '@/lib/services/cosmeticApi'
+import axios from 'axios'
+import feedbackApi from '@/lib/services/feedbackApi'
 
 // Animation variants
 const containerVariants = {
@@ -169,6 +173,127 @@ const getStatusColor = (status: string) => {
   }
 }
 
+// Feedback component for completed orders
+const OrderFeedback = ({ cosmeticId, cosmeticName }: { cosmeticId: string, cosmeticName: string }) => {
+  const [rating, setRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [content, setContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleSubmit = async () => {
+    if (rating === 0) {
+      toast.error('Please select a rating')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await feedbackApi.submitFeedback({
+        cosmeticId,
+        content: content || null,
+        rating
+      })
+
+      if (response.data.isSuccess) {
+        toast.success('Thank you for your feedback!')
+        setSubmitted(true)
+      } else {
+        toast.error(response.data.message || 'Failed to submit feedback')
+      }
+    } catch (error) {
+      console.error('Error submitting feedback:', error)
+      toast.error('An error occurred while submitting your feedback')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="mt-8 rounded-lg bg-green-50 p-6 text-center"
+      >
+        <CheckCircle className="mx-auto mb-4 size-12 text-green-500" />
+        <h3 className="mb-2 text-xl font-medium text-[#3A4D39]">
+          Thank You for Your Feedback!
+        </h3>
+        <p className="text-[#3A4D39]/80">
+          Your feedback helps us improve our products and services.
+        </p>
+      </motion.div>
+    )
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="mt-8 rounded-lg bg-orange-50 p-6"
+    >
+      <h3 className="mb-4 text-lg font-medium text-[#3A4D39]">
+        Rate Your Experience with {cosmeticName}
+      </h3>
+      
+      <div className="mb-6">
+        <p className="mb-2 text-sm text-[#3A4D39]/80">How would you rate this product?</p>
+        <div className="flex gap-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => setRating(star)}
+              onMouseEnter={() => setHoverRating(star)}
+              onMouseLeave={() => setHoverRating(0)}
+              className="text-2xl focus:outline-none"
+            >
+              <Star 
+                className={`size-8 ${
+                  star <= (hoverRating || rating)
+                    ? 'fill-yellow-400 text-yellow-400'
+                    : 'text-gray-300'
+                }`} 
+              />
+            </button>
+          ))}
+        </div>
+        {rating > 0 && (
+          <p className="mt-2 text-sm font-medium text-[#3A4D39]">
+            {rating === 1 ? 'Poor' : 
+             rating === 2 ? 'Fair' : 
+             rating === 3 ? 'Good' : 
+             rating === 4 ? 'Very Good' : 'Excellent'}
+          </p>
+        )}
+      </div>
+      
+      <div className="mb-6">
+        <label className="mb-2 block text-sm text-[#3A4D39]/80">
+          Share your thoughts (optional)
+        </label>
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="What did you like or dislike about this product?"
+          className="min-h-[100px] resize-none border-rose-200/50"
+        />
+      </div>
+      
+      <Button
+        onClick={handleSubmit}
+        disabled={isSubmitting || rating === 0}
+        className="w-full bg-[#3A4D39] hover:bg-[#4A5D49]"
+      >
+        {isSubmitting ? (
+          <Loader2 className="mr-2 size-4 animate-spin" />
+        ) : null}
+        Submit Feedback
+      </Button>
+    </motion.div>
+  )
+}
+
 const OrderTrackingPage: React.FC = () => {
   const [orderNumber, setOrderNumber] = useState('')
   const [searchedOrder, setSearchedOrder] = useState('')
@@ -263,6 +388,16 @@ const OrderTrackingPage: React.FC = () => {
     enabled: !!orderData?.orderItems?.[0]?.cosmeticId
   })
 
+  // Inside the OrderTrackingPage component, before the return statement
+  React.useEffect(() => {
+    if (orderData) {
+      console.log("Order status:", orderData.status);
+      console.log("Normalized status:", normalizeStatus(orderData.status));
+      console.log("Order items:", orderData.orderItems);
+      console.log("Is completed check:", normalizeStatus(orderData.status) === 'COMPLETED');
+    }
+  }, [orderData]);
+
   return (
     <>
       <motion.div
@@ -338,150 +473,167 @@ const OrderTrackingPage: React.FC = () => {
               </p>
             </motion.div>
           ) : orderData ? (
-            <motion.div
-              variants={itemVariants}
-              className="rounded-lg border border-rose-200/50 bg-white p-8 shadow-lg"
-            >
-              <div className="mb-8">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-xl font-medium text-[#3A4D39]">
-                    Order Status
-                  </h3>
-                  <span
-                    className={`rounded-full px-3 py-1 text-sm font-medium ${
-                      getStatusColor(orderData.status)
-                    }`}
-                  >
-                    {formatStatus(orderData.status ?? '')}
-                  </span>
+            <React.Fragment>
+              <motion.div
+                variants={itemVariants}
+                className="rounded-lg border border-rose-200/50 bg-white p-8 shadow-lg"
+              >
+                <div className="mb-8">
+                  <div className="mb-4 flex items-center justify-between">
+                    <h3 className="text-xl font-medium text-[#3A4D39]">
+                      Order Status
+                    </h3>
+                    <span
+                      className={`rounded-full px-3 py-1 text-sm font-medium ${
+                        getStatusColor(orderData.status)
+                      }`}
+                    >
+                      {formatStatus(orderData.status ?? '')}
+                    </span>
+                  </div>
+
+                  <Steps
+                    current={getCurrentStep()}
+                    status={
+                      getStepStatus(orderData.status)
+                    }
+                    items={stepItems.map((item, index) => ({
+                      ...item,
+                      status:
+                        index === getCurrentStep()
+                          ? normalizeStatus(orderData.status) === 'COMPLETED' || 
+                            normalizeStatus(orderData.status) === 'DELIVERED'
+                            ? 'finish'
+                            : 'process'
+                          : index < getCurrentStep()
+                            ? 'finish'
+                            : 'wait'
+                    }))}
+                    direction="horizontal"
+                    labelPlacement="vertical"
+                  />
+
+                  {[
+                    'CANCELLED',
+                    'PAYMENT_FAILED',
+                    'EXPIRED',
+                    'REFUNDED'
+                  ].includes(orderData.status ?? '') && (
+                      <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+                        <div className="flex items-center">
+                          <AlertTriangle className="mr-2 size-4" />
+                          <span className="font-medium">
+                            {orderData.status === 'REFUNDED'
+                              ? 'Order Refunded'
+                              : 'Order Cancelled'}
+                          </span>
+                        </div>
+                        <p className="mt-1">
+                          {orderData.status === 'REFUNDED'
+                            ? 'This order has been refunded. The amount will be credited back to your original payment method.'
+                            : 'This order has been cancelled and will not be processed further.'}
+                        </p>
+                      </div>
+                    )}
                 </div>
 
-                <Steps
-                  current={getCurrentStep()}
-                  status={
-                    getStepStatus(orderData.status)
-                  }
-                  items={stepItems.map((item, index) => ({
-                    ...item,
-                    status:
-                      index === getCurrentStep()
-                        ? normalizeStatus(orderData.status) === 'COMPLETED' || 
-                          normalizeStatus(orderData.status) === 'DELIVERED'
-                          ? 'finish'
-                          : 'process'
-                        : index < getCurrentStep()
-                          ? 'finish'
-                          : 'wait'
-                  }))}
-                  direction="horizontal"
-                  labelPlacement="vertical"
-                />
-
-                {[
-                  'CANCELLED',
-                  'PAYMENT_FAILED',
-                  'EXPIRED',
-                  'REFUNDED'
-                ].includes(orderData.status ?? '') && (
-                    <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-                      <div className="flex items-center">
-                        <AlertTriangle className="mr-2 size-4" />
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-12 rounded-lg bg-orange-50 p-6"
+                >
+                  <h3 className="mb-2 text-lg font-medium text-[#3A4D39]">
+                    Delivery Details
+                  </h3>
+                  <div className="grid gap-4 text-sm text-[#3A4D39]/80">
+                    <div className="flex justify-between">
+                      <span>Order Number:</span>
+                      <span className="font-medium">{orderData.id}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Order Date:</span>
+                      <span className="font-medium">
+                        {new Date(orderData.orderDate ?? '').toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Shipping Address:</span>
+                      <span className="font-medium">
+                        {orderData.shippingAddress}
+                      </span>
+                    </div>
+                    {orderData.trackingNumber && (
+                      <div className="flex justify-between">
+                        <span>Tracking Number:</span>
                         <span className="font-medium">
-                          {orderData.status === 'REFUNDED'
-                            ? 'Order Refunded'
-                            : 'Order Cancelled'}
+                          {orderData.trackingNumber}
                         </span>
                       </div>
-                      <p className="mt-1">
-                        {orderData.status === 'REFUNDED'
-                          ? 'This order has been refunded. The amount will be credited back to your original payment method.'
-                          : 'This order has been cancelled and will not be processed further.'}
-                      </p>
-                    </div>
-                  )}
-              </div>
-
-              <motion.div
-                variants={itemVariants}
-                className="mt-12 rounded-lg bg-orange-50 p-6"
-              >
-                <h3 className="mb-2 text-lg font-medium text-[#3A4D39]">
-                  Delivery Details
-                </h3>
-                <div className="grid gap-4 text-sm text-[#3A4D39]/80">
-                  <div className="flex justify-between">
-                    <span>Order Number:</span>
-                    <span className="font-medium">{orderData.id}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Order Date:</span>
-                    <span className="font-medium">
-                      {new Date(orderData.orderDate ?? '').toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Shipping Address:</span>
-                    <span className="font-medium">
-                      {orderData.shippingAddress}
-                    </span>
-                  </div>
-                  {orderData.trackingNumber && (
-                    <div className="flex justify-between">
-                      <span>Tracking Number:</span>
-                      <span className="font-medium">
-                        {orderData.trackingNumber}
-                      </span>
-                    </div>
-                  )}
-                  {orderData.deliveryDate && (
-                    <div className="flex justify-between">
-                      <span>Estimated Delivery:</span>
-                      <span className="font-medium">
-                        {new Date(orderData.deliveryDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-
-              <motion.div
-                variants={itemVariants}
-                className="mt-8 rounded-lg bg-orange-50 p-6"
-              >
-                <h3 className="mb-2 text-lg font-medium text-[#3A4D39]">
-                  Order Summary
-                </h3>
-                <div className="mt-8 space-y-4">
-                  {orderData.orderItems?.map((item: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between border-b border-[#3A4D39]/10 pb-4"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="size-12 rounded-md bg-[#D1E2C4]/30"></div>
-                        <div>
-                          <p className="font-medium text-[#3A4D39]">
-                            {cosmeticData
-                              ? cosmeticData.name
-                              : `Product ${index + 1}`}
-                          </p>
-                          <p className="text-sm text-[#3A4D39]/70">
-                            Qty: {item.quantity}
-                          </p>
-                        </div>
+                    )}
+                    {orderData.deliveryDate && (
+                      <div className="flex justify-between">
+                        <span>Estimated Delivery:</span>
+                        <span className="font-medium">
+                          {new Date(orderData.deliveryDate).toLocaleDateString()}
+                        </span>
                       </div>
-                      <span className="font-medium text-[#3A4D39]">
-                        {formatToVND(item.sellingPrice)}
-                      </span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between pt-2 text-lg font-semibold text-[#3A4D39]">
-                    <span>Total:</span>
-                    <span>{formatToVND(orderData.totalPrice ?? 0)}</span>
+                    )}
                   </div>
-                </div>
+                </motion.div>
+
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-8 rounded-lg bg-orange-50 p-6"
+                >
+                  <h3 className="mb-2 text-lg font-medium text-[#3A4D39]">
+                    Order Summary
+                  </h3>
+                  <div className="mt-8 space-y-4">
+                    {orderData.orderItems?.map((item: any, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between border-b border-[#3A4D39]/10 pb-4"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="size-12 rounded-md bg-[#D1E2C4]/30"></div>
+                          <div>
+                            <p className="font-medium text-[#3A4D39]">
+                              {cosmeticData
+                                ? cosmeticData.name
+                                : `Product ${index + 1}`}
+                            </p>
+                            <p className="text-sm text-[#3A4D39]/70">
+                              Qty: {item.quantity}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-medium text-[#3A4D39]">
+                          {formatToVND(item.sellingPrice)}
+                        </span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between pt-2 text-lg font-semibold text-[#3A4D39]">
+                      <span>Total:</span>
+                      <span>{formatToVND(orderData.totalPrice ?? 0)}</span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {(normalizeStatus(orderData.status) === 'COMPLETED' || 
+                  normalizeStatus(orderData.status) === 'DELIVERED') && 
+                  orderData.orderItems && 
+                  orderData.orderItems.length > 0 && (
+                  <motion.div
+                    variants={itemVariants}
+                    className="mt-8"
+                  >
+                    <OrderFeedback 
+                      cosmeticId={orderData.orderItems[0].cosmeticId} 
+                      cosmeticName={cosmeticData ? cosmeticData.name : `Product`}
+                    />
+                  </motion.div>
+                )}
               </motion.div>
-            </motion.div>
+            </React.Fragment>
           ) : searchedOrder ? (
             <motion.div
               variants={itemVariants}

@@ -63,11 +63,15 @@ const cosmeticApi = {
       formData.append(`images[${index}]`, file)
     })
 
-    return axiosClient.put<ApiResponse<void>>('/cosmetics/images', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
+    return axiosClient.post<ApiResponse<void>>(
+      `/cosmetics/${payload.cosmeticId}/images`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       }
-    })
+    )
   },
   createCosmetic: (payload: CreateCosmeticPayload) => {
     const formData = new FormData()
