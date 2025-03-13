@@ -46,6 +46,7 @@ export interface CosmeticResponse {
   cosmeticTypeId: string
   cosmeticType: CosmeticTypeResponse | null
   name: string
+  originalPrice: number
   price: number
   gender: boolean
   notice: string

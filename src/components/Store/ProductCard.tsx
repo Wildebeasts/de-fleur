@@ -9,12 +9,23 @@ import cartApi from '@/lib/services/cartApi'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
+  selectedProducts: CosmeticResponse[]
+  toggleCompare: (product: CosmeticResponse) => void
+  isSelectedForComparison: boolean
 }
 
-const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
+const ProductCard: React.FC<CosmeticCardProps> = ({
+  cosmetic,
+  toggleCompare,
+  isSelectedForComparison
+}) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const navigate = useNavigate()
+
+  // Check if the product is on sale
+  const isOnSale =
+    cosmetic.originalPrice && cosmetic.originalPrice > cosmetic.price
 
   const handleQuickView = () => {
     navigate({
@@ -43,6 +54,16 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
     } finally {
       setIsAddingToCart(false)
     }
+  }
+
+  // Format currency to VND
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount || 0)
   }
 
   // Safely get the image URL
@@ -74,6 +95,19 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => toggleCompare(cosmetic)}
+        className={`absolute right-2 top-2 z-10 flex size-9 items-center justify-center rounded-full border-2 transition-colors ${
+          isSelectedForComparison
+            ? 'bg-green-500 text-white'
+            : 'bg-white text-gray-600 hover:bg-gray-200'
+        } shadow-md`}
+      >
+        {isSelectedForComparison ? '✓' : '+'}
+      </motion.button>
+
       <motion.div className="relative mb-4 aspect-square overflow-hidden rounded-lg">
         <motion.img
           src={getImageUrl()}
@@ -81,6 +115,11 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
           className="size-full object-cover transition-transform duration-300"
           animate={{ scale: isHovered ? 1.05 : 1 }}
         />
+        {isOnSale && (
+          <div className="absolute left-0 top-4 bg-rose-500 px-3 py-1 text-sm font-semibold text-white">
+            Sale
+          </div>
+        )}
         <motion.button
           className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white px-6 py-2 text-sm font-medium text-[#3A4D39] shadow-lg transition-opacity duration-300 hover:bg-gray-100"
           initial={{ opacity: 0 }}
@@ -103,14 +142,23 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
           {cosmetic.notice || ''}
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
-          <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            {new Intl.NumberFormat('vi-VN', {
-              style: 'currency',
-              currency: 'VND',
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0
-            }).format(cosmetic.price || 0)}
-          </p>
+          <div className="flex flex-col">
+            {isOnSale ? (
+              <>
+                <span className="text-sm font-medium text-gray-500 line-through">
+                  {formatCurrency(cosmetic.originalPrice)}
+                </span>
+                <span className="font-inter text-xl font-semibold text-rose-600">
+                  {formatCurrency(cosmetic.price)}
+                </span>
+              </>
+            ) : (
+              <span className="font-inter text-xl font-semibold text-[#3A4D39]">
+                {formatCurrency(cosmetic.price)}
+              </span>
+            )}
+          </div>
+          {/* Add to Cart Button */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
