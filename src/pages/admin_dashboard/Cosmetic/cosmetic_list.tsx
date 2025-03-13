@@ -19,7 +19,8 @@ import {
   Image,
   Upload,
   Tag,
-  Space
+  Space,
+  Spin
 } from 'antd'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { ColumnType } from 'antd/es/table'
@@ -88,6 +89,7 @@ interface CosmeticDto {
   length?: number
   width?: number
   height?: number
+  size: number
 }
 
 interface BrandDto {
@@ -575,6 +577,9 @@ export default function Courses() {
         title: 'Brand & Type',
         key: 'brand',
         render: (_, record: CosmeticDto) => {
+          if (isLoadingBrands || isLoadingCosmeticTypes) {
+            return <Spin size="small" />
+          }
           const brand = brands?.find(b => b.id === record.brandId)
           const cosmeticType = cosmeticTypes?.find(c => c.id === record.cosmeticTypeId)
           return (
@@ -589,6 +594,9 @@ export default function Courses() {
         title: 'Stock',
         key: 'stock',
         render: (_, record: CosmeticDto) => {
+          if (isLoadingBatches) {
+            return <Spin size="small" />
+          }
           const cosmeticBatches = batches.filter(b => b.cosmeticId === record.id)
           const totalQuantity = cosmeticBatches.reduce((sum, batch) => sum + batch.quantity, 0)
           const nearestExpiry = cosmeticBatches
@@ -623,11 +631,18 @@ export default function Courses() {
       {
         title: 'Volume',
         key: 'volume',
-        render: (_: unknown, record: CosmeticDto) => (
-          <div className="text-white">
-            {record.volumeUnit || 'N/A'}
-          </div>
-        )
+        render: (_: unknown, record: CosmeticDto) => {
+          const volumeMap: Record<string, string> = {
+            '0': 'ml',
+            '1': 'gram',
+            '2': 'piece'
+          }
+          return (
+            <div className="text-white">
+              {record.size} {volumeMap[record.volumeUnit] || 'N/A'}
+            </div>
+          )
+        }
       },
       {
         title: 'Status',
@@ -670,7 +685,7 @@ export default function Courses() {
         )
       }
     ],
-    [handleDelete, handleEdit, handleMoreActions, queryClient]
+    [handleDelete, handleEdit, handleMoreActions, queryClient, isLoadingBrands, isLoadingCosmeticTypes, batches]
   )
 
   // Update expandedRowRender to remove motion animations
@@ -700,7 +715,12 @@ export default function Courses() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Brand Details Card */}
-          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4"
+          >
             <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
               Brand Details
             </h4>
@@ -738,10 +758,15 @@ export default function Courses() {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Product Details Card */}
-          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4"
+          >
             <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
               Product Details
             </h4>
@@ -776,10 +801,15 @@ export default function Courses() {
                 </Tooltip>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Physical Properties Card */}
-          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4"
+          >
             <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
               Physical Properties
             </h4>
@@ -811,10 +841,15 @@ export default function Courses() {
                 </span>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Classification Card */}
-          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+            className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4"
+          >
             <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
               Classification
             </h4>
@@ -861,11 +896,16 @@ export default function Courses() {
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Images Gallery Section */}
-        <div className="mt-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+          className="mt-6"
+        >
           <div className="mb-4 flex items-center justify-between">
             <h4 className="font-brand-medium text-xs uppercase tracking-wider text-[#8b949e]">
               Product Images
@@ -894,13 +934,13 @@ export default function Courses() {
               </Upload>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Decorative gradient line */}
         <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#3b82f640] to-transparent" />
       </div>
     )
-  }, [brands, skinTypes, cosmeticTypes, queryClient])
+  }, [brands, skinTypes, cosmeticTypes, queryClient, isLoadingBrands, isLoadingCosmeticTypes, batches])
 
   const isLoading =
     isLoadingBrands ||
