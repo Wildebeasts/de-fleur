@@ -38,13 +38,17 @@ export interface OrderItemResponse {
 export interface OrderResponse {
   id?: string
   customerId?: string
+  customerUserName?: string
+  customerEmail?: string
   couponId?: string
+  couponName?: string
   subTotal?: number
   totalPrice?: number
   orderDate?: string
   shippingAddress?: string
   billingAddress?: string
   trackingNumber?: string
+  ETA?: string
   deliveryDate?: string
   status?: string
   paymentUrl?: string
