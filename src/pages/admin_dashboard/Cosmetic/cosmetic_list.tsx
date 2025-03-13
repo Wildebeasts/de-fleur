@@ -41,7 +41,7 @@ import {
   MinusOutlined
 } from '@ant-design/icons'
 import { Input, Checkbox } from 'antd'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import React from 'react'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import { ImageOff } from 'lucide-react'
@@ -426,11 +426,18 @@ export default function Courses() {
     }
   }, [])
 
+  const volumeMap: Record<string, string> = {
+    '0': 'ml',
+    '1': 'gram',
+    '2': 'piece'
+  }
+
   // Define ALL handler functions before columns
   const handleEdit = useCallback(
-    (record: DataType) => {
+    (record: CosmeticDto) => {
       navigate({
-        to: `/admin/cosmetics/${record.id}/edit`,
+        to: '/admin/cosmetics/$cosmeticId/edit',
+        params: { cosmeticId: record.id }
       })
     },
     [navigate]
@@ -465,54 +472,6 @@ export default function Courses() {
     setSelectedCosmeticId(cosmeticId)
     setUploadModalVisible(true)
   }, [])
-
-  // Then declare handleMoreActions which depends on handleOpenUploadModal
-  const handleMoreActions = useCallback((record: CosmeticDto) => {
-    Modal.info({
-      title: 'Additional Actions',
-      content: (
-        <div className="mt-4 flex flex-col gap-2">
-          <Button
-            type="text"
-            icon={<UploadOutlined />}
-            onClick={() => {
-              Modal.destroyAll()
-              handleOpenUploadModal(record.id)
-            }}
-            className="flex items-center justify-start text-blue-500 hover:text-blue-400"
-          >
-            Upload Images
-          </Button>
-          <Button
-            type="text"
-            icon={<EyeOutlined />}
-            onClick={() => {
-              Modal.destroyAll()
-              navigate({ to: `/store/products/${record.id}` })
-            }}
-            className="flex items-center justify-start text-green-500 hover:text-green-400"
-          >
-            View in Store
-          </Button>
-          <Button
-            type="text"
-            icon={<BarChartOutlined />}
-            onClick={() => {
-              Modal.destroyAll()
-              // Add analytics navigation here
-            }}
-            className="flex items-center justify-start text-purple-500 hover:text-purple-400"
-          >
-            View Analytics
-          </Button>
-        </div>
-      ),
-      icon: null,
-      className: 'more-actions-modal',
-      footer: null,
-      width: 250
-    })
-  }, [navigate, handleOpenUploadModal])
 
   // Finally, declare columns which depends on both functions
   const columns = useMemo(
@@ -631,18 +590,11 @@ export default function Courses() {
       {
         title: 'Volume',
         key: 'volume',
-        render: (_: unknown, record: CosmeticDto) => {
-          const volumeMap: Record<string, string> = {
-            '0': 'ml',
-            '1': 'gram',
-            '2': 'piece'
-          }
-          return (
+        render: (_: unknown, record: CosmeticDto) => (
             <div className="text-white">
               {record.size} {volumeMap[record.volumeUnit] || 'N/A'}
             </div>
-          )
-        }
+        )
       },
       {
         title: 'Status',
@@ -674,18 +626,11 @@ export default function Courses() {
               onClick={() => handleDelete(record)}
               className="text-red-500 hover:text-red-400"
             />
-            <Button
-              type="text"
-              onClick={() => handleMoreActions(record)}
-              className="text-gray-400 hover:text-gray-300"
-            >
-              •••
-            </Button>
           </Space>
         )
       }
     ],
-    [handleDelete, handleEdit, handleMoreActions, queryClient, isLoadingBrands, isLoadingCosmeticTypes, batches]
+    [handleDelete, handleEdit, queryClient, isLoadingBrands, isLoadingCosmeticTypes, batches]
   )
 
   // Update expandedRowRender to remove motion animations
@@ -837,7 +782,7 @@ export default function Courses() {
               <div className="flex items-baseline justify-between">
                 <span className="text-xs text-[#8b949e]">Volume</span>
                 <span className="text-sm font-medium text-white">
-                  {record.volumeUnit || 'N/A'}
+                  {record.size} {volumeMap[record.volumeUnit] || 'N/A'}
                 </span>
               </div>
             </div>
@@ -954,12 +899,13 @@ export default function Courses() {
     rowKey: 'id',
     pagination: {
       current: currentPage,
-      total: cosmeticsData?.totalCount || 0,
-      pageSize: 10,
-      onChange: (page: number) => {
+      pageSize: pageSize,
+      total: cosmeticsData?.totalPages * cosmeticsData?.pageSize,
+      onChange: (page, pageSize) => {
         setCurrentPage(page)
-      },
-      className: 'custom-pagination'
+        setPageSize(pageSize)
+        queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
+      }
     },
     loading: isLoadingCosmetics,
     rowSelection: {
@@ -968,27 +914,8 @@ export default function Courses() {
     },
     expandable: {
       expandedRowRender,
-      expandRowByClick: false,
-      expandIcon: ({ expanded, onExpand, record }) => (
-        <motion.div
-          initial={false}
-          animate={{ rotate: expanded ? 45 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <Button
-            type="text"
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={(e) => {
-              e.stopPropagation()
-              onExpand(record, e)
-            }}
-            className="text-gray-400 hover:text-blue-400"
-          />
-        </motion.div>
-      )
-    },
-    className: 'custom-dark-table'
+      expandRowByClick: false
+    }
   }
 
   const handleMasterCheckboxChange = (e: CheckboxChangeEvent) => {
