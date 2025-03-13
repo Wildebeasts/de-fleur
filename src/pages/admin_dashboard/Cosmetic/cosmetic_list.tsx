@@ -17,7 +17,9 @@ import {
   Rate,
   Card,
   Image,
-  Upload
+  Upload,
+  Tag,
+  Space
 } from 'antd'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { ColumnType } from 'antd/es/table'
@@ -30,7 +32,12 @@ import {
   PlusOutlined,
   CloseOutlined,
   UploadOutlined,
-  InboxOutlined
+  InboxOutlined,
+  EyeOutlined,
+  BarChartOutlined,
+  StarFilled,
+  StarOutlined,
+  MinusOutlined
 } from '@ant-design/icons'
 import { Input, Checkbox } from 'antd'
 import { useNavigate } from '@tanstack/react-router'
@@ -44,7 +51,9 @@ import { CheckboxChangeEvent } from 'antd/es/checkbox'
 import brandApi from '@/lib/services/brandApi'
 import skinTypeApi from '@/lib/services/skinTypeApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
+import batchApi from '@/lib/services/batchApi'
 import { RcFile, UploadFile, UploadFileStatus } from 'antd/es/upload/interface'
+import { format } from 'date-fns'
 
 interface CosmeticDto {
   id: string
@@ -75,6 +84,10 @@ interface CosmeticDto {
   rating: number | null
   volumeUnit: string | null
   thumbnailUrl?: string
+  weight?: number
+  length?: number
+  width?: number
+  height?: number
 }
 
 interface BrandDto {
@@ -313,7 +326,6 @@ export default function Courses() {
   const navigate = useNavigate()
 
   // State declarations
-  const [data] = useState<DataType[]>([])
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
@@ -338,14 +350,7 @@ export default function Courses() {
         searchText
       )
       if (response.data.isSuccess) {
-        return {
-          items: response.data.data?.items.map(item => ({
-            ...item,
-            key: item.id
-          })),
-          totalCount: response.data.data?.totalCount || (response.data.data?.totalPages || 0) * pageSize,
-          totalPages: response.data.data?.totalPages || 0
-        }
+        return response.data.data
       }
       throw new Error('Failed to fetch cosmetics')
     }
@@ -359,6 +364,14 @@ export default function Courses() {
     }
   })
 
+  const { data: batches = [], isLoading: isLoadingBatches } = useQuery({
+    queryKey: ['batches'],
+    queryFn: async () => {
+      const response = await batchApi.getBatches()
+      return response.data.data
+    }
+  })
+
   const { data: skinTypes = [], isLoading: isLoadingSkinTypes } = useQuery({
     queryKey: ['skinTypes'],
     queryFn: async () => {
@@ -367,14 +380,13 @@ export default function Courses() {
     }
   })
 
-  const { data: cosmeticTypes = [], isLoading: isLoadingCosmeticTypes } =
-    useQuery({
-      queryKey: ['cosmeticTypes'],
-      queryFn: async () => {
-        const response = await cosmeticTypeApi.getCosmeticTypes()
-        return response.data.data
-      }
-    })
+  const { data: cosmeticTypes = [], isLoading: isLoadingCosmeticTypes } = useQuery({
+    queryKey: ['cosmeticTypes'],
+    queryFn: async () => {
+      const response = await cosmeticTypeApi.getCosmeticTypes()
+      return response.data.data
+    }
+  })
 
   // Filter data based on search
   const filteredData = useMemo(() => {
@@ -446,178 +458,174 @@ export default function Courses() {
     [queryClient]
   )
 
-  // THEN define columns
+  // First, declare handleOpenUploadModal
+  const handleOpenUploadModal = useCallback((cosmeticId: string) => {
+    setSelectedCosmeticId(cosmeticId)
+    setUploadModalVisible(true)
+  }, [])
+
+  // Then declare handleMoreActions which depends on handleOpenUploadModal
+  const handleMoreActions = useCallback((record: CosmeticDto) => {
+    Modal.info({
+      title: 'Additional Actions',
+      content: (
+        <div className="mt-4 flex flex-col gap-2">
+          <Button
+            type="text"
+            icon={<UploadOutlined />}
+            onClick={() => {
+              Modal.destroyAll()
+              handleOpenUploadModal(record.id)
+            }}
+            className="flex items-center justify-start text-blue-500 hover:text-blue-400"
+          >
+            Upload Images
+          </Button>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => {
+              Modal.destroyAll()
+              navigate({ to: `/store/products/${record.id}` })
+            }}
+            className="flex items-center justify-start text-green-500 hover:text-green-400"
+          >
+            View in Store
+          </Button>
+          <Button
+            type="text"
+            icon={<BarChartOutlined />}
+            onClick={() => {
+              Modal.destroyAll()
+              // Add analytics navigation here
+            }}
+            className="flex items-center justify-start text-purple-500 hover:text-purple-400"
+          >
+            View Analytics
+          </Button>
+        </div>
+      ),
+      icon: null,
+      className: 'more-actions-modal',
+      footer: null,
+      width: 250
+    })
+  }, [navigate, handleOpenUploadModal])
+
+  // Finally, declare columns which depends on both functions
   const columns = useMemo(
     () => [
       {
         title: 'Product Name',
         dataIndex: 'name',
         key: 'name',
-        width: '25%',
-        render: (text: string, record: DataType) => (
-          <Tooltip
-            title={
-              <div>
-                <div className="font-semibold">{text}</div>
-                <div className="mt-1 text-xs text-gray-300">
-                  {record.mainUsage}
-                </div>
-                <div className="mt-1 text-xs text-gray-400">
-                  {record.ingredients && (
-                    <>
-                      <span className="font-medium">Ingredients:</span>{' '}
-                      {record.ingredients.length > 100
-                        ? `${record.ingredients.substring(0, 100)}...`
-                        : record.ingredients}
-                    </>
+        render: (text: string, record: CosmeticDto) => (
+          <div className="flex items-center gap-3">
+            <div className="relative size-10">
+              <Tooltip title="Click to update thumbnail">
+                <div 
+                  className="group relative cursor-pointer"
+                  onClick={async () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) {
+                        try {
+                          await cosmeticApi.uploadCosmeticImages({
+                            cosmeticId: record.id,
+                            images: [file],
+                            imageType: 'thumbnail'
+                          });
+                          message.success('Thumbnail updated successfully');
+                          queryClient.invalidateQueries({ queryKey: ['cosmetics'] });
+                        } catch (error) {
+                          console.error('Error updating thumbnail:', error);
+                          message.error('Failed to update thumbnail');
+                        }
+                      }
+                    };
+                    input.click();
+                  }}
+                >
+                  {record.thumbnailUrl ? (
+                    <Image
+                      src={record.thumbnailUrl}
+                      alt={text}
+                      className="size-10 rounded-lg object-cover shadow-sm transition-opacity group-hover:opacity-75"
+                      preview={false}
+                    />
+                  ) : (
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-gray-800 transition-colors group-hover:bg-gray-700">
+                      <UploadOutlined className="size-5 text-gray-500" />
+                    </div>
                   )}
                 </div>
-              </div>
-            }
-            placement="rightTop"
-          >
-            <div className="flex items-center gap-3">
-              <div className="relative size-10">
-                {record.thumbnailUrl ? (
-                  <Image
-                    src={record.thumbnailUrl}
-                    alt={text}
-                    className="size-10 cursor-pointer rounded-lg object-cover shadow-sm"
-                    preview={{
-                      mask: null,
-                      maskClassName:
-                        'opacity-0 hover:opacity-100 transition-opacity',
-                      rootClassName: 'product-image-preview'
-                    }}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                      target.parentElement
-                        ?.querySelector('.thumbnail-placeholder')
-                        ?.classList.remove('hidden')
-                    }}
-                  />
-                ) : record.cosmeticImages?.[0]?.imageUrl ? (
-                  <Image
-                    src={record.cosmeticImages[0].imageUrl}
-                    alt={text}
-                    className="size-10 cursor-pointer rounded-lg object-cover shadow-sm"
-                    preview={{
-                      mask: null,
-                      maskClassName:
-                        'opacity-0 hover:opacity-100 transition-opacity',
-                      rootClassName: 'product-image-preview'
-                    }}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.style.display = 'none'
-                      target.parentElement
-                        ?.querySelector('.thumbnail-placeholder')
-                        ?.classList.remove('hidden')
-                    }}
-                  />
-                ) : (
-                  <div
-                    className="thumbnail-placeholder flex size-10 cursor-pointer items-center justify-center rounded-lg bg-gray-800 transition-colors hover:bg-gray-700"
-                    onClick={() => handleOpenUploadModal(record.id)}
-                  >
-                    <Tooltip title="Upload image">
-                      <UploadOutlined className="size-5 text-gray-500" />
-                    </Tooltip>
-                  </div>
-                )}
-              </div>
-              <div className="flex max-w-[200px] flex-col">
-                <div className="truncate font-medium text-gray-200">
-                  <MemoizedHighlightText
-                    text={text || 'Unnamed Product'}
-                    searchText={searchText}
-                  />
-                </div>
-                <div className="truncate text-xs text-gray-500">
-                  <MemoizedHighlightText
-                    text={record.mainUsage || 'No description'}
-                    searchText={searchText}
-                  />
-                </div>
-              </div>
+              </Tooltip>
             </div>
-          </Tooltip>
+            <div>
+              <div className="font-medium text-white">{text}</div>
+              <div className="text-sm text-gray-400">{record.mainUsage || 'No usage specified'}</div>
+            </div>
+          </div>
         )
       },
       {
         title: 'Brand & Type',
-        key: 'brandAndType',
-        width: '20%',
-        render: (_: unknown, record: DataType) => (
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              {record.brand?.logoUrl && (
-                <img
-                  src={record.brand?.logoUrl || ''}
-                  // @ts-expect-error -- logoUrl is optional
-                  alt={record.brand?.name}
-                  className="size-5 object-contain"
-                />
-              )}
-              <span className="font-medium text-gray-300">
-                {record.brand?.name || 'No brand'}
-              </span>
+        key: 'brand',
+        render: (_, record: CosmeticDto) => {
+          const brand = brands?.find(b => b.id === record.brandId)
+          const cosmeticType = cosmeticTypes?.find(c => c.id === record.cosmeticTypeId)
+          return (
+            <div>
+              <div className="font-medium text-white">{brand?.name || 'No brand'}</div>
+              <div className="text-sm text-gray-400">{cosmeticType?.name || 'No type'}</div>
             </div>
-            <span className="text-xs text-gray-500">
-              {record.cosmeticType?.name || 'No type'}
-            </span>
-          </div>
-        )
+          )
+        }
       },
       {
         title: 'Stock',
         key: 'stock',
-        width: '15%',
-        render: (_: unknown, record: DataType) => (
-          <div className="flex flex-col gap-1">
-            <span className="font-medium text-gray-300">
-              {record.quantity} units
-            </span>
-            <span className="text-xs text-gray-500">
-              {record.batches?.[0]?.expirationDate
-                ? `Expires: ${new Date(
-                  record.batches[0].expirationDate
-                ).toLocaleDateString()}`
-                : 'No expiry date'}
-            </span>
-          </div>
-        )
+        render: (_, record: CosmeticDto) => {
+          const cosmeticBatches = batches.filter(b => b.cosmeticId === record.id)
+          const totalQuantity = cosmeticBatches.reduce((sum, batch) => sum + batch.quantity, 0)
+          const nearestExpiry = cosmeticBatches
+            .filter(b => b.expirationDate)
+            .sort((a, b) => new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime())[0]
+
+          return (
+            <div>
+              <div className="font-medium text-white">{totalQuantity} units</div>
+              <div className="text-sm text-gray-400">
+                {nearestExpiry 
+                  ? `Expires: ${format(new Date(nearestExpiry.expirationDate), 'dd/MM/yyyy')}`
+                  : 'No expiry date'}
+              </div>
+            </div>
+          )
+        }
       },
       {
         title: 'Rating',
         dataIndex: 'rating',
         key: 'rating',
-        width: '15%',
-        render: (rating: number | null, record: DataType) => (
-          <div className="flex items-center gap-2">
-            <Rate
-              disabled
-              allowHalf
-              value={rating || 0}
-              className="text-xs"
-              style={{ fontSize: '14px' }}
-            />
-            <span className="text-xs text-gray-400">
+        render: (rating: number) => (
+          <div>
+            <Rate disabled defaultValue={rating || 0} allowHalf />
+            <div className="text-sm text-gray-400">
               ({rating?.toFixed(1) || '0.0'})
-            </span>
+            </div>
           </div>
         )
       },
       {
         title: 'Volume',
         key: 'volume',
-        width: '15%',
-        render: (_: unknown, record: DataType) => (
-          <div className="flex flex-col gap-1">
-            <span className="font-medium text-gray-300">
-              {record.volumeUnit || 'N/A'}
-            </span>
+        render: (_: unknown, record: CosmeticDto) => (
+          <div className="text-white">
+            {record.volumeUnit || 'N/A'}
           </div>
         )
       },
@@ -625,345 +633,326 @@ export default function Courses() {
         title: 'Status',
         dataIndex: 'isActive',
         key: 'status',
-        width: '8%',
         render: (isActive: boolean) => (
-          <Badge
-            status={isActive ? 'success' : 'error'}
-            text={
-              <span style={{ color: isActive ? '#10b981' : '#ef4444' }}>
-                {isActive ? 'Active' : 'Inactive'}
-              </span>
-            }
-          />
+          <Tag
+            color={isActive ? 'success' : 'error'}
+            className="min-w-[80px] text-center"
+          >
+            {isActive ? 'Active' : 'Inactive'}
+          </Tag>
         )
       },
       {
         title: 'Actions',
         key: 'actions',
-        width: 80,
-        align: 'center' as const,
-        render: (_: unknown, record: DataType) => (
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: 'edit',
-                  icon: <EditOutlined />,
-                  label: 'Edit',
-                  onClick: () => handleEdit(record)
-                },
-                {
-                  key: 'delete',
-                  icon: <DeleteOutlined />,
-                  label: 'Delete',
-                  danger: true,
-                  onClick: () => handleDelete(record)
-                }
-              ]
-            }}
-            trigger={['click']}
-          >
+        render: (_: unknown, record: CosmeticDto) => (
+          <Space size="middle">
             <Button
               type="text"
-              icon={<EllipsisOutlined />}
-              className="text-gray-400 hover:text-blue-400"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+              className="text-blue-500 hover:text-blue-400"
             />
-          </Dropdown>
+            <Button
+              type="text"
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record)}
+              className="text-red-500 hover:text-red-400"
+            />
+            <Button
+              type="text"
+              onClick={() => handleMoreActions(record)}
+              className="text-gray-400 hover:text-gray-300"
+            >
+              •••
+            </Button>
+          </Space>
         )
       }
     ],
-    [searchText, handleEdit, handleDelete]
+    [handleDelete, handleEdit, handleMoreActions, queryClient]
   )
 
-  // Add expandable config for nested tables
-  const expandableConfig = useMemo(
-    () => ({
-      expandedRowRender: (record: DataType) => (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-          className="space-y-6 p-4"
-        >
-          {/* Skin Type Details */}
-          <MotionCard
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            title={
-              <span className="text-sm font-medium text-gray-200">
-                Skin Type Details
-              </span>
-            }
-            className="border-0 bg-[#141414]"
-            headStyle={{
-              backgroundColor: '#1f1f1f',
-              borderBottom: '1px solid #303030'
-            }}
-            bodyStyle={{ backgroundColor: '#141414' }}
-          >
-            <div className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <div className="text-xs font-medium uppercase text-gray-500">
-                    Name
-                  </div>
-                  <div className="mt-1 text-gray-200">
-                    {record.skinType.name}
-                  </div>
-                </div>
-                <div className="col-span-2">
-                  <div className="text-xs font-medium uppercase text-gray-500">
-                    Description
-                  </div>
-                  <div className="mt-1 text-gray-200">
-                    {record.skinType.description}
-                  </div>
-                </div>
-              </div>
-              <div className="mt-4">
-                <div className="text-xs font-medium uppercase text-gray-500">
-                  Properties
-                </div>
-                <div className="mt-2 flex gap-2">
-                  {record.skinType.isSensitive && (
-                    <motion.span
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="inline-flex items-center rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400 ring-1 ring-inset ring-red-500/20"
-                    >
-                      Sensitive
-                    </motion.span>
-                  )}
-                  {record.skinType.isUneven && (
-                    <motion.span
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.1 }}
-                      className="inline-flex items-center rounded-md bg-yellow-500/10 px-2 py-1 text-xs font-medium text-yellow-400 ring-1 ring-inset ring-yellow-500/20"
-                    >
-                      Uneven
-                    </motion.span>
-                  )}
-                  {record.skinType.isWrinkle && (
-                    <motion.span
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className="inline-flex items-center rounded-md bg-purple-500/10 px-2 py-1 text-xs font-medium text-purple-400 ring-1 ring-inset ring-purple-500/20"
-                    >
-                      Wrinkle
-                    </motion.span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </MotionCard>
+  // Update expandedRowRender to remove motion animations
+  const expandedRowRender = useCallback((record: CosmeticDto) => {
+    const brand = brands?.find(b => b.id === record.brandId)
+    const skinType = skinTypes?.find(s => s.id === record.skinTypeId)
+    const cosmeticType = cosmeticTypes?.find(c => c.id === record.cosmeticTypeId)
 
-          {/* Product Details */}
-          <MotionCard
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            title={
-              <span className="text-sm font-medium text-gray-200">
-                Product Details
-              </span>
-            }
-            className="border-0 bg-[#141414]"
-            headStyle={{
-              backgroundColor: '#1f1f1f',
-              borderBottom: '1px solid #303030'
-            }}
-            bodyStyle={{ backgroundColor: '#141414' }}
-          >
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
-                <div className="text-xs font-medium uppercase text-gray-500">
-                  Origin
-                </div>
-                <div className="mt-1 text-gray-200">{record.origin}</div>
-              </div>
-              <div className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
-                <div className="text-xs font-medium uppercase text-gray-500">
-                  Texture
-                </div>
-                <div className="mt-1 text-gray-200">{record.texture}</div>
-              </div>
-              <div className="col-span-2 rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
-                <div className="text-xs font-medium uppercase text-gray-500">
-                  Instructions
-                </div>
-                <div className="mt-1 text-gray-200">{record.instructions}</div>
-              </div>
-              <div className="col-span-2 rounded-lg border border-gray-800 bg-[#1f1f1f] p-4">
-                <div className="text-xs font-medium uppercase text-gray-500">
-                  Notice
-                </div>
-                <div className="mt-1 text-gray-200">{record.notice}</div>
-              </div>
-            </div>
-          </MotionCard>
+    const handleImageUpload = async (files: RcFile[]) => {
+      try {
+        await cosmeticApi.uploadCosmeticImages({
+          cosmeticId: record.id,
+          images: files
+        })
+        message.success('Images uploaded successfully')
+        queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
+      } catch (error) {
+        console.error('Error uploading images:', error)
+        message.error('Failed to upload images')
+      }
+    }
 
-          {/* Reviews Section */}
-          <MotionCard
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            title={
-              <span className="text-sm font-medium text-gray-200">
-                Reviews ({record.feedbacks.length})
-              </span>
-            }
-            className="border-0 bg-[#141414]"
-            headStyle={{
-              backgroundColor: '#1f1f1f',
-              borderBottom: '1px solid #303030'
-            }}
-            bodyStyle={{ backgroundColor: '#141414' }}
-          >
-            <div className="space-y-3">
-              {record.feedbacks.map((feedback) => (
-                <div
-                  key={feedback.id}
-                  className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <Rate
-                      disabled
-                      value={feedback.rating}
-                      className="text-sm"
-                    />
-                  </div>
-                  <div className="mt-2 text-sm text-gray-400">
-                    {feedback.content}
-                  </div>
+    return (
+      <div className="relative overflow-hidden rounded-xl border border-[#1d1f2b] bg-[#141414] p-6">
+        {/* Decorative gradient line */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#3b82f640] to-transparent" />
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+          {/* Brand Details Card */}
+          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+            <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
+              Brand Details
+            </h4>
+            <div className="flex items-start gap-3">
+              {brand?.logoUrl ? (
+                <div className="relative size-12 shrink-0 overflow-hidden rounded-lg">
+                  <Image
+                    src={brand.logoUrl}
+                    alt={brand.name}
+                    className="size-full bg-[#1d1f2b] object-contain p-2"
+                  />
                 </div>
-              ))}
-              {record.feedbacks.length === 0 && (
-                <div className="text-sm text-gray-400">No reviews yet</div>
+              ) : (
+                <div className="flex size-12 items-center justify-center rounded-lg bg-[#1d1f2b]">
+                  <ImageOff className="size-6 text-[#8b949e]" />
+                </div>
               )}
-            </div>
-          </MotionCard>
-
-          {/* Subcategories */}
-          {record.cosmeticSubcategories.length > 0 && (
-            <MotionCard
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              title={
-                <span className="text-sm font-medium text-gray-200">
-                  Subcategories
-                </span>
-              }
-              className="border-0 bg-[#141414]"
-              headStyle={{
-                backgroundColor: '#1f1f1f',
-                borderBottom: '1px solid #303030'
-              }}
-              bodyStyle={{ backgroundColor: '#141414' }}
-            >
-              <motion.div
-                className="grid gap-3"
-                variants={{
-                  hidden: { opacity: 0 },
-                  show: {
-                    opacity: 1,
-                    transition: {
-                      staggerChildren: 0.1
-                    }
-                  }
-                }}
-                initial="hidden"
-                animate="show"
-              >
-                {record.cosmeticSubcategories.map((subCategory) => (
-                  <motion.div
-                    key={subCategory.subCategoryId}
-                    variants={{
-                      hidden: { opacity: 0, x: -20 },
-                      show: { opacity: 1, x: 0 }
-                    }}
-                    className="rounded-lg border border-gray-800 bg-[#1f1f1f] p-4"
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">
+                  {brand?.name || 'N/A'}
+                </p>
+                <p className="mt-1 line-clamp-2 text-xs text-[#8b949e]">
+                  {brand?.description || 'No description available'}
+                </p>
+                {brand?.websiteUrl && (
+                  <a
+                    href={brand.websiteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
                   >
-                    <div className="font-medium text-gray-200">
-                      {subCategory.subCategory.name}
-                    </div>
-                    <div className="mt-1 text-sm text-gray-400">
-                      {subCategory.subCategory.description}
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            </MotionCard>
+                    Visit Website
+                    <motion.span whileHover={{ x: 2 }}>→</motion.span>
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Product Details Card */}
+          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+            <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
+              Product Details
+            </h4>
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Main Usage</span>
+                <span className="text-sm font-medium text-white">
+                  {record.mainUsage || 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Gender</span>
+                <Tag
+                  color={record.gender ? 'blue' : 'purple'}
+                  className="m-0 font-medium"
+                >
+                  {record.gender ? 'Male' : 'Female'}
+                </Tag>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Origin</span>
+                <span className="text-sm font-medium text-white">
+                  {record.origin || 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Instructions</span>
+                <Tooltip title={record.instructions || 'No instructions available'}>
+                  <span className="line-clamp-1 max-w-[200px] text-sm font-medium text-white">
+                    {record.instructions || 'N/A'}
+                  </span>
+                </Tooltip>
+              </div>
+            </div>
+          </div>
+
+          {/* Physical Properties Card */}
+          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+            <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
+              Physical Properties
+            </h4>
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Weight</span>
+                <span className="text-sm font-medium text-white">
+                  {record.weight ? `${record.weight}g` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Dimensions</span>
+                <span className="text-sm font-medium text-white">
+                  {record.length && record.width && record.height
+                    ? `${record.length}×${record.width}×${record.height}cm`
+                    : 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Texture</span>
+                <span className="text-sm font-medium text-white">
+                  {record.texture || 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-xs text-[#8b949e]">Volume</span>
+                <span className="text-sm font-medium text-white">
+                  {record.volumeUnit || 'N/A'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Classification Card */}
+          <div className="rounded-lg border border-[#1d1f2b] bg-[#1a1b24] p-4">
+            <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-[#8b949e]">
+              Classification
+            </h4>
+            <div className="space-y-4">
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs text-[#8b949e]">Skin Type</span>
+                  <Tag color="cyan" className="m-0">
+                    {skinType?.name || 'N/A'}
+                  </Tag>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {skinType?.isDry && (
+                    <Tag color="orange" className="m-0">
+                      Dry
+                    </Tag>
+                  )}
+                  {skinType?.isSensitive && (
+                    <Tag color="red" className="m-0">
+                      Sensitive
+                    </Tag>
+                  )}
+                  {skinType?.isUneven && (
+                    <Tag color="purple" className="m-0">
+                      Uneven
+                    </Tag>
+                  )}
+                  {skinType?.isWrinkle && (
+                    <Tag color="gold" className="m-0">
+                      Wrinkle
+                    </Tag>
+                  )}
+                </div>
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-xs text-[#8b949e]">Cosmetic Type</span>
+                  <Tag color="blue" className="m-0">
+                    {cosmeticType?.name || 'N/A'}
+                  </Tag>
+                </div>
+                <p className="mt-1 line-clamp-2 text-xs text-[#8b949e]">
+                  {cosmeticType?.description || 'No description available'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Images Gallery Section */}
+        <div className="mt-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h4 className="font-brand-medium text-xs uppercase tracking-wider text-[#8b949e]">
+              Product Images
+            </h4>
+          </div>
+
+          {record.cosmeticImages?.length > 0 ? (
+            <ImagesGallery record={record} onUpload={handleImageUpload} />
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#1d1f2b] bg-[#1a1b24] py-12">
+              <ImageOff className="mb-3 size-8 text-[#8b949e]" />
+              <p className="text-sm text-[#8b949e]">No images available</p>
+              <Upload
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  handleImageUpload([file])
+                  return false
+                }}
+              >
+                <Button
+                  type="link"
+                  className="mt-2 text-blue-400 hover:text-blue-300"
+                >
+                  Upload Images
+                </Button>
+              </Upload>
+            </div>
           )}
-        </motion.div>
-      )
-    }),
-    []
-  )
+        </div>
+
+        {/* Decorative gradient line */}
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#3b82f640] to-transparent" />
+      </div>
+    )
+  }, [brands, skinTypes, cosmeticTypes, queryClient])
 
   const isLoading =
-    isLoadingCosmetics ||
     isLoadingBrands ||
     isLoadingSkinTypes ||
     isLoadingCosmeticTypes
 
   // Update tableConfig to use new data source
-  const tableConfig = useMemo(
-    () => ({
-      columns,
-      dataSource: cosmeticsData?.items || [],
-      loading: isLoading,
-      rowSelection: {
-        type: 'checkbox' as const,
-        selectedRowKeys,
-        onChange: setSelectedRowKeys,
-        columnTitle: '',
-        columnWidth: 48,
-        hideSelectAll: true
+  const tableConfig = {
+    columns,
+    dataSource: cosmeticsData?.items || [],
+    rowKey: 'id',
+    pagination: {
+      current: currentPage,
+      total: cosmeticsData?.totalCount || 0,
+      pageSize: 10,
+      onChange: (page: number) => {
+        setCurrentPage(page)
       },
-      expandable: expandableConfig,
-      pagination: {
-        current: currentPage,
-        total: cosmeticsData?.totalCount ?? 0,
-        pageSize: pageSize,
-        onChange: (page: number) => {
-          setCurrentPage(page)
-        },
-        showTotal: (total: number) => `Total ${total} items`,
-        showSizeChanger: true,
-        pageSizeOptions: ['12', '24', '36', '48'],
-        onShowSizeChange: (current: number, size: number) => {
-          setPageSize(size)
-          setCurrentPage(1) // Reset to first page when changing page size
-        }
-      },
-      scroll: { y: 800 },
-      size: 'middle' as const,
-      className: 'custom-dark-table',
-      onChange: (pagination: any, filters: any, sorter: any) => {
-        if (sorter.field && sorter.order) {
-          setSortColumn(sorter.field)
-          setSortOrder(sorter.order === 'ascend' ? 'asc' : 'desc')
-        }
-      }
-    }),
-    [
-      columns,
-      cosmeticsData,
-      isLoading,
+      className: 'custom-pagination'
+    },
+    loading: isLoadingCosmetics,
+    rowSelection: {
       selectedRowKeys,
-      expandableConfig,
-      currentPage,
-      pageSize
-    ]
-  )
+      onChange: setSelectedRowKeys
+    },
+    expandable: {
+      expandedRowRender,
+      expandRowByClick: false,
+      expandIcon: ({ expanded, onExpand, record }) => (
+        <motion.div
+          initial={false}
+          animate={{ rotate: expanded ? 45 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Button
+            type="text"
+            size="small"
+            icon={<PlusOutlined />}
+            onClick={(e) => {
+              e.stopPropagation()
+              onExpand(record, e)
+            }}
+            className="text-gray-400 hover:text-blue-400"
+          />
+        </motion.div>
+      )
+    },
+    className: 'custom-dark-table'
+  }
 
   const handleMasterCheckboxChange = (e: CheckboxChangeEvent) => {
-    setSelectedRowKeys(e.target.checked ? data.map((item) => item.key) : [])
+    setSelectedRowKeys(e.target.checked ? (cosmeticsData?.items || []).map((item) => item.id) : [])
   }
 
   const handleAdd = useCallback(() => {
@@ -1285,18 +1274,6 @@ export default function Courses() {
     }
   `
 
-  // Add this function to handle opening the upload modal
-  const handleOpenUploadModal = useCallback((cosmeticId: string) => {
-    setSelectedCosmeticId(cosmeticId)
-    setUploadModalVisible(true)
-  }, [])
-
-  // Add this function to handle successful uploads
-  const handleUploadSuccess = () => {
-    // Refresh the cosmetics data after successful upload
-    queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
-  }
-
   return (
     <ConfigProvider theme={tableTheme}>
       <style>{`
@@ -1390,7 +1367,6 @@ export default function Courses() {
           >
             <Button
               type="primary"
-
               onClick={() => navigate({ to: '/admin/coupons' })}
               style={{
                 backgroundColor: '#1e1f2a',
@@ -1410,9 +1386,9 @@ export default function Courses() {
 
         <div className="mb-4 flex flex-col items-center gap-4 rounded-lg bg-[#1f1f1f] p-6 md:flex-row">
           <Checkbox
-            checked={selectedRowKeys.length === data.length}
+            checked={selectedRowKeys.length === cosmeticsData?.items.length}
             indeterminate={
-              selectedRowKeys.length > 0 && selectedRowKeys.length < data.length
+              selectedRowKeys.length > 0 && selectedRowKeys.length < cosmeticsData?.items.length
             }
             onChange={handleMasterCheckboxChange}
           />
@@ -1478,3 +1454,80 @@ export default function Courses() {
     </ConfigProvider>
   )
 }
+
+// Add this component for the image upload feature
+const ImageUploadButton = ({ onUpload }: { onUpload: (files: RcFile[]) => void }) => {
+  const [isHovered, setIsHovered] = useState(false)
+
+  return (
+    <Upload.Dragger
+      name="images"
+      multiple
+      showUploadList={false}
+      beforeUpload={(file) => {
+        // Validate file type
+        const isImage = file.type.startsWith('image/')
+        if (!isImage) {
+          message.error('You can only upload image files!')
+          return false
+        }
+
+        // Validate file size (5MB limit)
+        const isLt5M = file.size / 1024 / 1024 < 5
+        if (!isLt5M) {
+          message.error('Image must be smaller than 5MB!')
+          return false
+        }
+
+        onUpload([file])
+        return false
+      }}
+      className="aspect-square"
+    >
+      <motion.div
+        initial={false}
+        animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
+        onHoverStart={() => setIsHovered(true)}
+        onHoverEnd={() => setIsHovered(false)}
+        className={`flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#1d1f2b] bg-[#1a1b24] transition-colors ${
+          isHovered ? 'border-blue-400' : ''
+        }`}
+      >
+        <div className="flex flex-col items-center">
+          <InboxOutlined className="mb-2 text-2xl text-gray-400" />
+          <p className="text-xs text-gray-400">Click or drag to upload</p>
+        </div>
+      </motion.div>
+    </Upload.Dragger>
+  )
+}
+
+// Update the ImagesGallery component to only show full-size preview
+const ImagesGallery = ({ record, onUpload }: { record: CosmeticDto; onUpload: (files: RcFile[]) => void }) => (
+  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+    {/* Upload Button */}
+    <ImageUploadButton onUpload={onUpload} />
+    
+    {/* Existing Images - Simple preview only */}
+    {record.cosmeticImages?.map((image) => (
+      <div
+        key={image.id}
+        className="relative aspect-square overflow-hidden rounded-lg border border-[#1d1f2b] bg-[#1a1b24]"
+      >
+        <Image
+          src={image.imageUrl || ''}
+          alt="Product image"
+          className="size-full cursor-pointer object-cover"
+          preview={{
+            src: image.imageUrl || '',
+            mask: (
+              <div className="flex items-center justify-center gap-2">
+                <EyeOutlined /> View
+              </div>
+            )
+          }}
+        />
+      </div>
+    ))}
+  </div>
+)

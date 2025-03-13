@@ -46,6 +46,7 @@ import { Route as AdminOrdersIndexImport } from './routes/admin/orders/index'
 import { Route as AdminCouponsIndexImport } from './routes/admin/coupons/index'
 import { Route as AdminCosmeticsIndexImport } from './routes/admin/cosmetics/index'
 import { Route as AdminBlogsIndexImport } from './routes/admin/blogs/index'
+import { Route as AdminBatchesIndexImport } from './routes/admin/batches/index'
 import { Route as AdminUsersCartsImport } from './routes/admin/users/carts'
 import { Route as AdminIssueTicketsCreateImport } from './routes/admin/issue-tickets/create'
 import { Route as AdminCouponsCreateImport } from './routes/admin/coupons/create'
@@ -266,6 +267,12 @@ const AdminCosmeticsIndexRoute = AdminCosmeticsIndexImport.update({
 const AdminBlogsIndexRoute = AdminBlogsIndexImport.update({
   id: '/blogs/',
   path: '/blogs/',
+  getParentRoute: () => AdminRoute,
+} as any)
+
+const AdminBatchesIndexRoute = AdminBatchesIndexImport.update({
+  id: '/batches/',
+  path: '/batches/',
   getParentRoute: () => AdminRoute,
 } as any)
 
@@ -595,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersCartsImport
       parentRoute: typeof AdminImport
     }
+    '/admin/batches/': {
+      id: '/admin/batches/'
+      path: '/batches'
+      fullPath: '/admin/batches'
+      preLoaderRoute: typeof AdminBatchesIndexImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/blogs/': {
       id: '/admin/blogs/'
       path: '/blogs'
@@ -666,6 +680,7 @@ interface AdminRouteChildren {
   AdminCouponsCreateRoute: typeof AdminCouponsCreateRoute
   AdminIssueTicketsCreateRoute: typeof AdminIssueTicketsCreateRoute
   AdminUsersCartsRoute: typeof AdminUsersCartsRoute
+  AdminBatchesIndexRoute: typeof AdminBatchesIndexRoute
   AdminBlogsIndexRoute: typeof AdminBlogsIndexRoute
   AdminCosmeticsIndexRoute: typeof AdminCosmeticsIndexRoute
   AdminCouponsIndexRoute: typeof AdminCouponsIndexRoute
@@ -686,6 +701,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCouponsCreateRoute: AdminCouponsCreateRoute,
   AdminIssueTicketsCreateRoute: AdminIssueTicketsCreateRoute,
   AdminUsersCartsRoute: AdminUsersCartsRoute,
+  AdminBatchesIndexRoute: AdminBatchesIndexRoute,
   AdminBlogsIndexRoute: AdminBlogsIndexRoute,
   AdminCosmeticsIndexRoute: AdminCosmeticsIndexRoute,
   AdminCouponsIndexRoute: AdminCouponsIndexRoute,
@@ -736,6 +752,7 @@ export interface FileRoutesByFullPath {
   '/admin/coupons/create': typeof AdminCouponsCreateRoute
   '/admin/issue-tickets/create': typeof AdminIssueTicketsCreateRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
+  '/admin/batches': typeof AdminBatchesIndexRoute
   '/admin/blogs': typeof AdminBlogsIndexRoute
   '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
   '/admin/coupons': typeof AdminCouponsIndexRoute
@@ -783,6 +800,7 @@ export interface FileRoutesByTo {
   '/admin/coupons/create': typeof AdminCouponsCreateRoute
   '/admin/issue-tickets/create': typeof AdminIssueTicketsCreateRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
+  '/admin/batches': typeof AdminBatchesIndexRoute
   '/admin/blogs': typeof AdminBlogsIndexRoute
   '/admin/cosmetics': typeof AdminCosmeticsIndexRoute
   '/admin/coupons': typeof AdminCouponsIndexRoute
@@ -832,6 +850,7 @@ export interface FileRoutesById {
   '/admin/coupons/create': typeof AdminCouponsCreateRoute
   '/admin/issue-tickets/create': typeof AdminIssueTicketsCreateRoute
   '/admin/users/carts': typeof AdminUsersCartsRoute
+  '/admin/batches/': typeof AdminBatchesIndexRoute
   '/admin/blogs/': typeof AdminBlogsIndexRoute
   '/admin/cosmetics/': typeof AdminCosmeticsIndexRoute
   '/admin/coupons/': typeof AdminCouponsIndexRoute
@@ -882,6 +901,7 @@ export interface FileRouteTypes {
     | '/admin/coupons/create'
     | '/admin/issue-tickets/create'
     | '/admin/users/carts'
+    | '/admin/batches'
     | '/admin/blogs'
     | '/admin/cosmetics'
     | '/admin/coupons'
@@ -928,6 +948,7 @@ export interface FileRouteTypes {
     | '/admin/coupons/create'
     | '/admin/issue-tickets/create'
     | '/admin/users/carts'
+    | '/admin/batches'
     | '/admin/blogs'
     | '/admin/cosmetics'
     | '/admin/coupons'
@@ -975,6 +996,7 @@ export interface FileRouteTypes {
     | '/admin/coupons/create'
     | '/admin/issue-tickets/create'
     | '/admin/users/carts'
+    | '/admin/batches/'
     | '/admin/blogs/'
     | '/admin/cosmetics/'
     | '/admin/coupons/'
@@ -1109,6 +1131,7 @@ export const routeTree = rootRoute
         "/admin/coupons/create",
         "/admin/issue-tickets/create",
         "/admin/users/carts",
+        "/admin/batches/",
         "/admin/blogs/",
         "/admin/cosmetics/",
         "/admin/coupons/",
@@ -1225,6 +1248,10 @@ export const routeTree = rootRoute
     },
     "/admin/users/carts": {
       "filePath": "admin/users/carts.tsx",
+      "parent": "/admin"
+    },
+    "/admin/batches/": {
+      "filePath": "admin/batches/index.tsx",
       "parent": "/admin"
     },
     "/admin/blogs/": {
