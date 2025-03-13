@@ -9,9 +9,16 @@ import cartApi from '@/lib/services/cartApi'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
+  selectedProducts: CosmeticResponse[]
+  toggleCompare: (product: CosmeticResponse) => void
+  isSelectedForComparison: boolean
 }
 
-const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
+const ProductCard: React.FC<CosmeticCardProps> = ({
+  cosmetic,
+  toggleCompare,
+  isSelectedForComparison
+}) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const navigate = useNavigate()
@@ -88,6 +95,19 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => toggleCompare(cosmetic)}
+        className={`absolute right-2 top-2 z-10 flex size-9 items-center justify-center rounded-full border-2 transition-colors ${
+          isSelectedForComparison
+            ? 'bg-green-500 text-white'
+            : 'bg-white text-gray-600 hover:bg-gray-200'
+        } shadow-md`}
+      >
+        {isSelectedForComparison ? '✓' : '+'}
+      </motion.button>
+
       <motion.div className="relative mb-4 aspect-square overflow-hidden rounded-lg">
         <motion.img
           src={getImageUrl()}
@@ -138,6 +158,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({ cosmetic }) => {
               </span>
             )}
           </div>
+          {/* Add to Cart Button */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
