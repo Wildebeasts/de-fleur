@@ -26,7 +26,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange }) => {
     string | undefined
   >()
   const [selectedGender, setSelectedGender] = useState<boolean | undefined>()
-  const [priceRange, setPriceRange] = useState([0, 1000000])
+  const [priceRange, setPriceRange] = useState([0, 10000000])
 
   // Fetch filter options
   const { data: brands, isLoading: brandsLoading } = useQuery({
@@ -80,7 +80,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange }) => {
     setSelectedSkinType(undefined)
     setSelectedCosmeticType(undefined)
     setSelectedGender(undefined)
-    setPriceRange([0, 1000000])
+    setPriceRange([0, 10000000])
 
     onFilterChange({})
   }
@@ -113,10 +113,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange }) => {
       <div className="mb-8">
         <h3 className="mb-4 text-lg font-medium text-[#3A4D39]">Price Range</h3>
         <Slider
-          defaultValue={[0, 1000000]}
+          defaultValue={[0, 10000000]}
           min={0}
-          max={1000000}
-          step={50000}
+          max={10000000}
+          step={100000}
           value={priceRange}
           onValueChange={setPriceRange}
           className="mb-4"

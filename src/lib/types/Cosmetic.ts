@@ -1,8 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SkinTypeResponse } from './SkinType'
 import { CosmeticSubCategoryResponse } from './SubCategory'
-import { BrandResponse } from './Brand'
-import { CosmeticTypeResponse } from './CosmeticType'
 
 export enum VolumeUnit {
   ML = 'ml',
@@ -40,11 +37,11 @@ export interface CosmeticResponse {
   lastModifiedBy: string | null
   isActive: boolean
   brandId: string
-  brand: BrandResponse | null
+  //brand: BrandResponse | null
   skinTypeId: string
-  skinType: SkinTypeResponse | null
+  //skinType: SkinTypeResponse | null
   cosmeticTypeId: string
-  cosmeticType: CosmeticTypeResponse | null
+  //cosmeticType: CosmeticTypeResponse | null
   name: string
   originalPrice: number
   price: number
@@ -60,10 +57,10 @@ export interface CosmeticResponse {
   width: number
   height: number
   thumbnailUrl: string | null
-  volumeUnit: VolumeUnit
+  //volumeUnit: VolumeUnit
   cosmeticSubcategories: CosmeticSubCategoryResponse[]
   cosmeticImages: CosmeticImageCosmeticResponse[]
-  batches: BatchResponse[]
+  //batches: BatchResponse[]
   feedbacks: FeedbackCosmeticResponse[]
   quantity: number
   rating: number | null

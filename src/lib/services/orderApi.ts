@@ -44,9 +44,16 @@ const orderApi = {
   // Get order by ID
   getOrderById: (orderId: string) =>
     axiosClient.get<ApiResponse<OrderResponse>>(`/orders/${orderId}`),
+
   // Create a Walk In Order
   createWalkInOrder: (request: OrderWalkInRequest) =>
-    axiosClient.post<ApiResponse<OrderResponse>>('/orders/walkin', request)
+    axiosClient.post<ApiResponse<OrderResponse>>('/orders/walkin', request),
+
+  // Cancel order (updates status to CANCELLED)
+  cancelOrder: (orderId: string) =>
+    axiosClient.put<ApiResponse<OrderResponse>>(`/orders/${orderId}/status`, {
+      status: 'CANCELLED'
+    })
 }
 
 export default orderApi
