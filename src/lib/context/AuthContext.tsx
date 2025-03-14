@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useLogin } from '../hooks/useAuth'
-import { LoginRequest, LoginResponse } from '../types/auth'
+import { useLogin, useRegister } from '../hooks/useAuth'
+import { LoginRequest, LoginResponse, RegisterRequest } from '../types/auth'
 import { LoginApiResponse } from '../types/base/Api'
 import { jwtDecode } from 'jwt-decode'
 
@@ -15,6 +15,7 @@ interface AuthContextType {
   isInitialized: boolean
   user: LoginResponse | null
   login: (credentials: LoginRequest) => Promise<LoginApiResponse>
+  register: (creadentials: RegisterRequest) => Promise<LoginApiResponse>
   logout: () => void
   redirectBasedOnRole: () => string | null
 }
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const loginMutation = useLogin()
+  const registerMutation = useRegister()
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -65,6 +67,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('user')
       setUser(null)
       setIsAuthenticated(false)
+      throw error
+    }
+  }
+
+  const register = async (credentials: RegisterRequest) => {
+    try {
+      const response: LoginApiResponse =
+        await registerMutation.mutateAsync(credentials)
+      console.log('Register response:', response) // Debug log
+
+      return response // Return the response for the component to use
+    } catch (error) {
+      console.error('Register error:', error) // Debug log
       throw error
     }
   }

@@ -10,6 +10,7 @@ import { CouponResponse } from '@/lib/types/Coupon'
 
 interface OrderSummaryProps {
   selectedProducts: CosmeticResponse[]
+  setSelectedProducts: (products: CosmeticResponse[]) => void
   onIncreaseQuantity: (product: CosmeticResponse) => void
   onDecreaseQuantity: (productId: string) => void
   onRemoveProduct: (productId: string) => void
@@ -21,6 +22,7 @@ interface OrderSummaryProps {
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
   selectedProducts,
+  setSelectedProducts,
   onIncreaseQuantity,
   onDecreaseQuantity,
   onRemoveProduct,
@@ -31,6 +33,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
 }) => {
   const [couponCode, setCouponCode] = useState('') // State for coupon code input
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false) // Loading state for coupon validation
+  const [isSubmitting, setIsSubmitting] = useState(false) // Spinner state
   // Form state
   const [formData, setFormData] = useState<OrderWalkInRequest>({
     Cosmetics: {},
@@ -53,7 +56,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const handleSubmitOrder = async () => {
     // Validate form data
     const validationErrors: { [key: string]: string } = {}
-
+    setIsSubmitting(true) // Show spinner
     // Validate CustomerPhoneNumber
     if (!formData.CustomerPhoneNumber) {
       validationErrors.CustomerPhoneNumber = 'Phone number is required'
@@ -80,6 +83,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       Object.entries(validationErrors).forEach(([field, message]) => {
         toast.error(`${field}: ${message}`)
       })
+      setIsSubmitting(false)
       return
     }
 
@@ -110,6 +114,37 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         // Handle successful order creation
         toast.success('Order created successfully!')
         console.log('Order created:', response.data.data)
+
+        // Convert invoice byte string to a downloadable file
+        const invoiceBytes = response.data.data!.invoice!
+        const blob = new Blob(
+          [
+            new Uint8Array(
+              atob(invoiceBytes)
+                .split('')
+                .map((c) => c.charCodeAt(0))
+            )
+          ],
+          { type: 'application/pdf' }
+        )
+        const invoiceUrl = URL.createObjectURL(blob)
+
+        // Open invoice in new tab
+        window.open(invoiceUrl, '_blank')
+
+        // Reset form and selected products
+        setFormData({
+          Cosmetics: {},
+          FirstName: '',
+          LastName: '',
+          CustomerPhoneNumber: '',
+          CouponId: null,
+          PaymentMethod: 'CASH'
+        })
+        setSelectedProducts([])
+        setCustomerName('')
+        setCustomerPhoneNumber('')
+        setCoupon(null)
       } else {
         // Handle API error
         toast.error(response.data.message || 'Failed to create order')
@@ -118,6 +153,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       // Handle network or server errors
       console.error('Error creating order:', error)
       toast.error('An error occurred while creating the order')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -359,8 +396,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             whileTap={{ scale: 0.95 }}
             className="mt-4 w-full rounded-full bg-[#c183de] px-6 py-2.5 text-sm font-medium text-white shadow-lg transition-colors duration-300 hover:bg-[#482daa] disabled:opacity-50"
             onClick={handleSubmitOrder}
+            disabled={isSubmitting}
           >
-            {'Create Order'}
+            {isSubmitting ? 'Creating Order...' : 'Create Order'}
           </motion.button>
         </div>
       )}
