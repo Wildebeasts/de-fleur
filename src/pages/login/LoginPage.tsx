@@ -33,7 +33,7 @@ const itemVariants = {
 }
 
 export const LoginPage: React.FC = () => {
-  const { login, isLoading } = useAuth()
+  const { login, isLoading, redirectBasedOnRole } = useAuth()
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     userName: '',
@@ -57,7 +57,10 @@ export const LoginPage: React.FC = () => {
         password: formData.password
       })
       toast.success('Login successful!')
-      navigate({ to: '/' })
+
+      // Get the redirect URL from auth context
+      const redirectUrl = redirectBasedOnRole() || '/'
+      navigate({ to: redirectUrl })
     } catch (err) {
       toast.error('Login failed. Please check your username and password.')
     }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import ImageCarousel from './ImageCarousel'
 
 interface ProductImageProps {
   imageUrl?: string
@@ -14,6 +15,8 @@ const ProductImage: React.FC<ProductImageProps> = ({
     imageUrl || cosmeticImages?.[0]?.imageUrl || ''
   )
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [zoomLevel, setZoomLevel] = useState(1)
+  const [isLoading, setIsLoading] = useState(true)
 
   const handleThumbnailClick = (image: string) => {
     setSelectedImage(image)
@@ -29,6 +32,8 @@ const ProductImage: React.FC<ProductImageProps> = ({
     ...(cosmeticImages?.map((img) => img.imageUrl) || [])
   ].filter(Boolean)
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
   return (
     <div className="flex w-3/5 flex-col max-md:ml-0 max-md:w-full">
       <div className="relative">
@@ -41,10 +46,20 @@ const ProductImage: React.FC<ProductImageProps> = ({
             selectedImage ||
             'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
           }
-          className={`aspect-[1.03] w-full rounded-lg object-contain max-md:mt-8 max-md:max-w-full max-sm:mt-3.5 ${isFullscreen ? 'cursor-zoom-out' : 'cursor-zoom-in'}`}
+          className={`aspect-[1.03] w-full rounded-lg object-contain max-md:mt-8 max-md:max-w-full max-sm:mt-3.5 ${
+            isFullscreen ? 'cursor-zoom-out' : 'cursor-zoom-in'
+          }`}
           alt="Product image"
           onClick={toggleFullscreen}
+          style={{ transform: `scale(${isFullscreen ? zoomLevel : 1})` }}
+          onLoad={() => setIsLoading(false)}
         />
+
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="size-10 animate-spin rounded-full border-4 border-[#3A4D39] border-t-transparent"></div>
+          </div>
+        )}
 
         {/* Fullscreen button */}
         <button
@@ -67,14 +82,23 @@ const ProductImage: React.FC<ProductImageProps> = ({
       </div>
 
       {/* Thumbnail gallery */}
-      {allImages.length > 1 && (
+      {isMobile ? (
+        <ImageCarousel
+          images={allImages}
+          onImageChange={handleThumbnailClick}
+        />
+      ) : (
         <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
           {allImages.map((img, index) => (
             <motion.div
               key={index}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`relative size-20 shrink-0 cursor-pointer overflow-hidden rounded-md border-2 ${selectedImage === img ? 'border-[#3A4D39]' : 'border-transparent'}`}
+              className={`relative size-20 shrink-0 cursor-pointer overflow-hidden rounded-md border-2 ${
+                selectedImage === img
+                  ? 'border-[#3A4D39]'
+                  : 'border-transparent'
+              }`}
               onClick={() => handleThumbnailClick(img)}
             >
               <img
@@ -126,6 +150,16 @@ const ProductImage: React.FC<ProductImageProps> = ({
           </div>
         </motion.div>
       )}
+
+      {/* Zoom controls */}
+      <div className="zoom-controls">
+        <button onClick={() => setZoomLevel(Math.min(zoomLevel + 0.5, 3))}>
+          +
+        </button>
+        <button onClick={() => setZoomLevel(Math.max(zoomLevel - 0.5, 1))}>
+          -
+        </button>
+      </div>
     </div>
   )
 }

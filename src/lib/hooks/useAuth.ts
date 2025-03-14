@@ -2,7 +2,8 @@ import { useMutation } from '@tanstack/react-query'
 import type {
   LoginRequest,
   LoginResponse,
-  RefreshTokenRequest
+  RefreshTokenRequest,
+  RegisterRequest
 } from '../types/auth'
 import axiosClient from '../api/axiosClient'
 import { ApiResponse } from '../types/base/Api'
@@ -19,6 +20,21 @@ async function loginRequest(
 
   if (!response.data.isSuccess) {
     throw new Error(response.data.message || 'Login failed')
+  }
+
+  return response.data
+}
+
+async function registerRequest(
+  data: RegisterRequest
+): Promise<ApiResponse<LoginResponse>> {
+  const response = await axiosClient.post<ApiResponse<LoginResponse>>(
+    '/auth/register',
+    data
+  )
+
+  if (!response.data.isSuccess) {
+    throw new Error(response.data.message || 'Register failed')
   }
 
   return response.data
@@ -42,6 +58,12 @@ async function refreshTokenRequest(
 export function useLogin() {
   return useMutation({
     mutationFn: loginRequest
+  })
+}
+
+export function useRegister() {
+  return useMutation({
+    mutationFn: registerRequest
   })
 }
 

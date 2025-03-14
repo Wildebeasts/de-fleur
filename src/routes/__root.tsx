@@ -12,6 +12,10 @@ import { ScrollToTop } from '../components/ScrollToTop'
 import { ThemeProvider } from 'next-themes'
 import authApi from '@/lib/services/authApi'
 import userApi from '@/lib/services/userService'
+import { useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { jwtDecode } from 'jwt-decode'
+import { useAuth } from '@/lib/context/AuthContext'
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = [
@@ -142,6 +146,36 @@ function RootComponent() {
   const isAdminRoute = matches.some((match) =>
     match.pathname.includes('/admin')
   )
+  const navigate = useNavigate()
+  const { redirectBasedOnRole } = useAuth()
+
+  useEffect(() => {
+    const checkAuthAndRedirect = async () => {
+      const accessToken = localStorage.getItem('accessToken')
+      const currentPathname = matches[0]?.location?.pathname
+
+      if (accessToken && currentPathname === '/login') {
+        try {
+          // Get the user profile to verify authentication
+          await userApi.getUserProfile()
+
+          // Use the auth context to determine redirect path
+          const redirectUrl = redirectBasedOnRole()
+
+          if (redirectUrl) {
+            navigate({ to: redirectUrl })
+          }
+        } catch (error) {
+          console.error('Error checking auth status:', error)
+        }
+      }
+    }
+
+    // Only run the check if we have matches
+    if (matches.length > 0) {
+      checkAuthAndRedirect()
+    }
+  }, [navigate, matches, redirectBasedOnRole])
 
   return (
     <QuizResultProvider>

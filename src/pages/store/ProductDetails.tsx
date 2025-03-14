@@ -76,6 +76,9 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
     visible: { opacity: 1, y: 0 }
   }
 
+  const finalCosmeticImages =
+    cosmeticImages?.filter((img) => img && img.imageUrl) || []
+
   return (
     <motion.div
       className="flex items-center justify-center gap-2.5 p-2.5"
@@ -92,7 +95,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({
                 <div className="flex gap-5 max-md:flex-col">
                   <ProductImage
                     imageUrl={productImage}
-                    cosmeticImages={cosmeticImages}
+                    cosmeticImages={finalCosmeticImages}
                   />
                   <ProductInfo
                     productId={productId}

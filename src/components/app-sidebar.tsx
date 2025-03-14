@@ -143,6 +143,16 @@ const data = {
           path: '/admin/orders'
         }
       ]
+    },
+    {
+      title: 'Batches',
+      icon: ShoppingBag,
+      items: [
+        {
+          title: 'All Batches',
+          path: '/admin/batches'
+        }
+      ]
     }
 
     // {

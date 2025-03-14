@@ -36,7 +36,7 @@ const cosmeticApi = {
     minPrice?: number,
     maxPrice?: number
   ) => {
-    let url = `/cosmetics?pageIndex=${pageIndex}&pageSize=${pageSize}`
+    let url = `/cosmetics?pageIndex=${pageIndex}&pageSize=${pageSize}&includeRelated=true`
 
     if (sortColumn) url += `&sortColumn=${sortColumn}`
     if (sortOrder) url += `&sortOrder=${sortOrder}`
@@ -54,7 +54,11 @@ const cosmeticApi = {
     axiosClient.get<ApiResponse<CosmeticResponse>>(`/cosmetics/${id}`),
   deleteCosmetic: (id: string) =>
     axiosClient.delete<ApiResponse<void>>(`/cosmetics/${id}`),
-  uploadCosmeticImages: (payload: { cosmeticId: string; images: File[] }) => {
+  uploadCosmeticImages: (payload: {
+    cosmeticId: string
+    images: File[]
+    imageType?: string
+  }) => {
     const formData = new FormData()
     formData.append('cosmeticId', payload.cosmeticId)
 
@@ -63,15 +67,15 @@ const cosmeticApi = {
       formData.append(`images[${index}]`, file)
     })
 
-    return axiosClient.post<ApiResponse<void>>(
-      `/cosmetics/${payload.cosmeticId}/images`,
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+    const endpoint = payload.imageType
+      ? `/cosmetics/${payload.cosmeticId}/images?imageType=${payload.imageType}`
+      : `/cosmetics/${payload.cosmeticId}/images`
+
+    return axiosClient.post<ApiResponse<void>>(endpoint, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
       }
-    )
+    })
   },
   createCosmetic: (payload: CreateCosmeticPayload) => {
     const formData = new FormData()
@@ -117,6 +121,23 @@ const cosmeticApi = {
       {
         headers: {
           'Content-Type': 'application/json'
+        }
+      }
+    )
+  },
+  uploadCosmeticThumbnail: (payload: {
+    cosmeticId: string
+    thumbnail: File
+  }) => {
+    const formData = new FormData()
+    formData.append('thumbnail', payload.thumbnail)
+
+    return axiosClient.post<ApiResponse<void>>(
+      `/cosmetics/${payload.cosmeticId}/images?type=thumbnail`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data'
         }
       }
     )

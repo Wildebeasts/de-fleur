@@ -14,8 +14,11 @@ export interface LoginResponse {
 export interface RegisterRequest {
   userName: string
   password: string
+  passwordConfirmation: string
+  gender: boolean
   email: string
-  fullName: string
+  firstName: string
+  lastName: string
   phoneNumber: string
 }
 

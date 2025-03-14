@@ -80,7 +80,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange }) => {
     setSelectedSkinType(undefined)
     setSelectedCosmeticType(undefined)
     setSelectedGender(undefined)
-    setPriceRange([0, 10000000])
+    setPriceRange([0, 5000000])
 
     onFilterChange({})
   }
@@ -113,10 +113,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange }) => {
       <div className="mb-8">
         <h3 className="mb-4 text-lg font-medium text-[#3A4D39]">Price Range</h3>
         <Slider
-          defaultValue={[0, 10000000]}
+          defaultValue={[0, 5000000]}
           min={0}
-          max={10000000}
-          step={100000}
+          max={5000000}
+          step={50000}
           value={priceRange}
           onValueChange={setPriceRange}
           className="mb-4"
