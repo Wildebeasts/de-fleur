@@ -9,13 +9,16 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { ArrowRight, Loader2, Package, ShoppingBag } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Loader2, Package, ShoppingBag } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import orderApi from '@/lib/services/orderApi'
 import { format } from 'date-fns'
 import cosmeticApi from '@/lib/services/cosmeticApi'
+import { OrderStatus, OrderStatusType } from '@/lib/constants/orderStatus'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -51,56 +54,41 @@ interface Order {
   deliveryDate: string
 }
 
-// Helper function to normalize status case
-const normalizeStatus = (status: string): string => {
-  if (!status) return '';
-  return status.toUpperCase();
-}
-
-// Helper function to format status for display
-const formatStatus = (status: string) => {
-  return status
-    .toUpperCase() // Normalize to uppercase first
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (l) => l.toUpperCase())
+// Helper function to normalize status case and ensure type safety
+const normalizeStatus = (status: string): OrderStatusType => {
+  if (!status) return OrderStatus.PENDING;
+  return status.toUpperCase() as OrderStatusType;
 }
 
 // Helper function to get status color
 const getStatusColor = (status: string) => {
   const normalizedStatus = normalizeStatus(status);
-  
+
   switch (normalizedStatus) {
-    case 'CONFIRMED':
+    case OrderStatus.CONFIRMED:
       return 'bg-[#D1E2C4] text-[#3A4D39]'
-    case 'PENDING_PAYMENT':
+    case OrderStatus.PENDING:
       return 'bg-yellow-100 text-yellow-700'
-    case 'SHIPPED':
+    case OrderStatus.DELIVERY:
       return 'bg-blue-100 text-blue-700'
-    case 'DELIVERED':
-    case 'COMPLETED':
+    case OrderStatus.COMPLETED:
       return 'bg-green-100 text-green-700'
-    case 'CANCELLED':
-    case 'PAYMENT_FAILED':
-    case 'EXPIRED':
+    case OrderStatus.CANCELLED:
+    case OrderStatus.FAILED:
+    case OrderStatus.EXPIRED:
       return 'bg-red-100 text-red-700'
     default:
       return 'bg-gray-100 text-gray-700'
   }
 }
 
-// Format date helper
-const formatDate = (dateString: string) => {
-  try {
-    return format(new Date(dateString), 'MMMM dd, yyyy')
-  } catch (error) {
-    return 'Invalid date'
-  }
-}
+const CANCELLABLE_STATUSES: OrderStatusType[] = [OrderStatus.PENDING]
 
 const OrderCard = ({ order }: { order: Order }) => {
   const navigate = useNavigate()
   const [cosmeticNames, setCosmeticNames] = useState<Record<string, string>>({})
+  const [isCancelling, setIsCancelling] = useState(false)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     const fetchCosmeticNames = async () => {
@@ -125,6 +113,26 @@ const OrderCard = ({ order }: { order: Order }) => {
     navigate({ to: '/order_track', search: { orderId: order.id } })
   }
 
+  const handleCancel = async () => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) {
+      return
+    }
+
+    setIsCancelling(true)
+    try {
+      await orderApi.cancelOrder(order.id)
+      toast.success('Order cancelled successfully')
+      queryClient.invalidateQueries({ queryKey: ['myOrders'] })
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      toast.error('Failed to cancel order')
+    } finally {
+      setIsCancelling(false)
+    }
+  }
+
+  const canCancel = CANCELLABLE_STATUSES.includes(normalizeStatus(order.status))
+
   return (
     <motion.div
       variants={itemVariants}
@@ -132,64 +140,98 @@ const OrderCard = ({ order }: { order: Order }) => {
       transition={{ type: 'spring', stiffness: 300 }}
     >
       <Card className="overflow-hidden border-rose-200/50">
-        <CardHeader className="bg-orange-50/50">
+        <CardHeader className="border-b border-rose-200/50 bg-[#F5F5F5] p-4">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg text-[#3A4D39]">
-                Order #{order.id.substring(0, 8)}...
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-medium text-[#3A4D39]">
+                Order #{order.id.slice(0, 8)}
               </CardTitle>
-              <CardDescription>{formatDate(order.orderDate)}</CardDescription>
+              <CardDescription>
+                {format(new Date(order.orderDate), 'MMM dd, yyyy')}
+              </CardDescription>
             </div>
-            <span
-              className={`rounded-full px-3 py-1 text-sm font-medium ${getStatusColor(
-                order.status
-              )}`}
-            >
-              {formatStatus(order.status)}
-            </span>
+            <div className="flex items-center gap-2">
+              <Badge className={cn('px-2 py-1', getStatusColor(order.status))}>
+                {normalizeStatus(order.status).replace('_', ' ')}
+              </Badge>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="mb-4 space-y-2">
-            {order.orderItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between text-sm"
-              >
-                <span className="text-[#3A4D39]">
-                  {item.quantity}x{' '}
-                  {cosmeticNames[item.cosmeticId] || `Product ${index + 1}`}
-                </span>
-                <span className="font-medium text-[#3A4D39]">
+
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            {/* Order Items Summary */}
+            <div className="space-y-2">
+              {order.orderItems.map((item) => (
+                <div
+                  key={item.cosmeticId}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="text-[#3A4D39]">
+                    {cosmeticNames[item.cosmeticId]} × {item.quantity}
+                  </span>
+                  <span className="font-medium">
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    }).format(item.sellingPrice)}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Shipping Info */}
+            {order.trackingNumber && (
+              <div className="rounded-md bg-[#F5F5F5] p-3 text-sm">
+                <div className="flex items-center gap-2 text-[#3A4D39]">
+                  <Package className="size-4" />
+                  <span>Tracking: {order.trackingNumber}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Total and Actions */}
+            <div className="flex items-center justify-between border-t pt-4">
+              <div className="space-y-1">
+                <span className="text-sm text-[#3A4D39]/70">Total Amount</span>
+                <p className="font-medium text-[#3A4D39]">
                   {new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
                     currency: 'VND',
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
-                  }).format(item.sellingPrice)}
-                </span>
+                  }).format(order.totalPrice)}
+                </p>
               </div>
-            ))}
-          </div>
-          <div className="flex items-center justify-between border-t pt-4">
-            <span className="font-medium text-[#3A4D39]">
-              Total:{' '}
-              {new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND',
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0
-              }).format(order.totalPrice)}
-            </span>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                variant="ghost"
-                className="text-[#3A4D39] hover:bg-[#D1E2C4]/10"
-                onClick={handleViewDetails}
-              >
-                View Details <ArrowRight className="ml-2 size-4" />
-              </Button>
-            </motion.div>
+              <div className="flex gap-2">
+                {canCancel && (
+                  <Button
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={isCancelling}
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    {isCancelling ? (
+                      <>
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                        Cancelling...
+                      </>
+                    ) : (
+                      'Cancel Order'
+                    )}
+                  </Button>
+                )}
+                <Button
+                  variant="default"
+                  className="bg-[#3A4D39] hover:bg-[#4A5D49]"
+                  onClick={handleViewDetails}
+                >
+                  View Details
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -26,7 +26,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ onFilterChange }) => {
     string | undefined
   >()
   const [selectedGender, setSelectedGender] = useState<boolean | undefined>()
-  const [priceRange, setPriceRange] = useState([0, 1000000])
+  const [priceRange, setPriceRange] = useState([0, 10000000])
 
   // Fetch filter options
   const { data: brands, isLoading: brandsLoading } = useQuery({

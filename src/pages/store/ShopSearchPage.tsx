@@ -7,16 +7,25 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import { CosmeticProvider } from '@/lib/context/CosmeticContext'
 import { CosmeticFilter } from '@/lib/types/CosmeticFilter'
 import Breadcrumb from '@/components/Store/Breadcrumb'
+import { useSearch } from '@tanstack/react-router'
 
 const ITEMS_PER_PAGE = 12
 
+// Add this type definition
+type SearchParams = {
+  name?: string
+}
+
 const ShopSearchPage: React.FC = () => {
   const queryClient = useQueryClient()
+  const search = useSearch({ from: '/shop' }) as SearchParams
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE)
   const [sortColumn, setSortColumn] = useState('name')
   const [sortOrder, setSortOrder] = useState('asc')
-  const [filters, setFilters] = useState<CosmeticFilter>({})
+  const [filters, setFilters] = useState<CosmeticFilter>({
+    name: search.name || undefined
+  })
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedBrands, setSelectedBrands] = useState<string[]>([])
   const [selectedCosmeticTypes, setSelectedCosmeticTypes] = useState<string[]>(
@@ -42,6 +51,7 @@ const ShopSearchPage: React.FC = () => {
   // Build complete filter object from all filter states
   useEffect(() => {
     const updatedFilters: CosmeticFilter = {
+      name: search.name || undefined,
       brandId: selectedBrands.length > 0 ? selectedBrands.join(',') : undefined,
       skinTypeId:
         selectedCategories.length > 0
@@ -57,6 +67,7 @@ const ShopSearchPage: React.FC = () => {
 
     setFilters(updatedFilters)
   }, [
+    search.name,
     selectedBrands,
     selectedCategories,
     selectedCosmeticTypes,
