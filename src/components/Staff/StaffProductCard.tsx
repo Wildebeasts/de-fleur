@@ -15,6 +15,10 @@ const StaffProductCard: React.FC<StaffProductCardProps> = ({
   const [isHovered, setIsHovered] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
 
+  // Check if the product is on sale
+  const isOnSale =
+    product.originalPrice && product.originalPrice > product.price
+
   const handleAddToOrder = async () => {
     try {
       setIsAdding(true)
@@ -27,6 +31,16 @@ const StaffProductCard: React.FC<StaffProductCardProps> = ({
     }
   }
 
+  // Format currency to VND
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount || 0)
+  }
+
   return (
     <motion.article
       className="relative flex w-full items-center gap-6 rounded-2xl bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-xl"
@@ -36,6 +50,11 @@ const StaffProductCard: React.FC<StaffProductCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
     >
+      {isOnSale && (
+        <div className="absolute left-0 top-4 bg-rose-500 px-3 py-1 text-sm font-semibold text-white">
+          Sale
+        </div>
+      )}
       {/* Product Image */}
       <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-[#F9F5F0]">
         <motion.img
@@ -69,12 +88,20 @@ const StaffProductCard: React.FC<StaffProductCardProps> = ({
         </h3>
         <p className="text-sm text-gray-600">{product.notice}</p>
         <p className="mt-1 text-lg font-bold text-[#3A4D39]">
-          {new Intl.NumberFormat('vi-VN', {
-            style: 'currency',
-            currency: 'VND',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-          }).format(product.price)}
+          {isOnSale ? (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-gray-500 line-through">
+                {formatCurrency(product.originalPrice)}
+              </span>
+              <span className="font-inter text-xl font-semibold text-rose-600">
+                {formatCurrency(product.price)}
+              </span>
+            </div>
+          ) : (
+            <span className="font-inter text-xl font-semibold text-[#3A4D39]">
+              {formatCurrency(product.price)}
+            </span>
+          )}
         </p>
       </div>
 

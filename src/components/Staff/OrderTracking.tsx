@@ -58,7 +58,7 @@ const formatDateVN = (dateString: string) => {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: false
+    hour12: true
   })
 }
 
@@ -212,8 +212,8 @@ const OrderTracking = () => {
                     </TableCell>
                     <TableCell>{order.shippingAddress || 'N/A'}</TableCell>
                     <TableCell>{order.billingAddress || 'N/A'}</TableCell>
-                    <TableCell>{order.trackingNumber || 'N/A'}</TableCell>
-                    <TableCell>{formatDateVN(order.ETA!) || 'N/A'}</TableCell>
+                    <TableCell>{order.trackingNumber || 'Walk-In'}</TableCell>
+                    <TableCell>{order.ETA || 'N/A'}</TableCell>
                     <TableCell>
                       {formatDateVN(order.deliveryDate!) || 'N/A'}
                     </TableCell>
@@ -231,7 +231,11 @@ const OrderTracking = () => {
                         onValueChange={(value) =>
                           handleStatusChange(order.id!, value)
                         }
-                        disabled={updating === order.id}
+                        disabled={
+                          updating === order.id ||
+                          order.status === 'COMPLETED' ||
+                          order.status === 'CANCELLED'
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
