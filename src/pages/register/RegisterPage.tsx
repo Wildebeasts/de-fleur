@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +14,9 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { FaGoogle, FaApple } from 'react-icons/fa'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useAuth } from '@/lib/context/AuthContext'
+import { toast } from 'sonner'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -31,6 +33,53 @@ const itemVariants = {
 }
 
 export const RegisterPage: React.FC = () => {
+  const { register, isLoading } = useAuth()
+  const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    userName: '',
+    gender: true
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value, type, checked } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [id]: type === 'checkbox' ? checked : value
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('Passwords do not match!')
+      return
+    }
+
+    try {
+      await register({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        phoneNumber: formData.phoneNumber,
+        email: formData.email,
+        password: formData.password,
+        passwordConfirmation: formData.confirmPassword,
+        userName: formData.userName,
+        gender: formData.gender
+      })
+      toast.success('Registration successful!')
+      navigate({ to: '/' })
+    } catch (err) {
+      toast.error('Registration failed. Please try again.')
+    }
+  }
+
   return (
     <motion.div
       initial="hidden"
@@ -54,112 +103,180 @@ export const RegisterPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
-            <motion.div variants={itemVariants} className="flex gap-4">
-              <Button
-                variant="outline"
-                className="flex-1 border-rose-200 hover:bg-rose-50"
-              >
-                <FaGoogle className="mr-2" />
-                Google
-              </Button>
-              <Button
-                variant="outline"
-                className="flex-1 border-rose-200 hover:bg-rose-50"
-              >
-                <FaApple className="mr-2" />
-                Apple
-              </Button>
-            </motion.div>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-6">
+              <motion.div variants={itemVariants} className="flex gap-4">
+                <Button
+                  variant="outline"
+                  className="flex-1 border-rose-200 hover:bg-rose-50"
+                >
+                  <FaGoogle className="mr-2" />
+                  Google
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 border-rose-200 hover:bg-rose-50"
+                >
+                  <FaApple className="mr-2" />
+                  Apple
+                </Button>
+              </motion.div>
 
-            <div className="relative">
-              <Separator />
-              <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
-                or continue with email
-              </span>
-            </div>
+              <div className="relative">
+                <Separator />
+                <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
+                  or continue with email
+                </span>
+              </div>
 
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+              <motion.div variants={itemVariants} className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      className="border-rose-200 focus-visible:ring-rose-300"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      className="border-rose-200 focus-visible:ring-rose-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="userName">User Name</Label>
                   <Input
-                    id="firstName"
+                    id="userName"
+                    type="text"
+                    value={formData.userName}
+                    onChange={handleInputChange}
                     className="border-rose-200 focus-visible:ring-rose-300"
                   />
                 </div>
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phoneNumber">Phone</Label>
                   <Input
-                    id="lastName"
+                    id="phoneNumber"
+                    type="tel"
+                    value={formData.phoneNumber}
+                    onChange={handleInputChange}
+                    required
                     className="border-rose-200 focus-visible:ring-rose-300"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="hello@example.com"
-                  className="border-rose-200 focus-visible:ring-rose-300"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="hello@example.com"
+                    required
+                    className="border-rose-200 focus-visible:ring-rose-300"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  className="border-rose-200 focus-visible:ring-rose-300"
-                />
-                <p className="text-xs text-gray-500">
-                  Must be at least 8 characters long
-                </p>
-              </div>
+                <div className="space-y-2">
+                  <Label>Gender</Label>
+                  <div className="flex items-center gap-4">
+                    <Button
+                      type="button"
+                      variant={formData.gender ? 'default' : 'outline'}
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, gender: true }))
+                      }
+                    >
+                      Male
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={!formData.gender ? 'default' : 'outline'}
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, gender: false }))
+                      }
+                    >
+                      Female
+                    </Button>
+                  </div>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  className="border-rose-200 focus-visible:ring-rose-300"
-                />
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <Checkbox id="newsletter" className="mt-1 border-rose-200" />
-                <div className="grid gap-1.5 leading-none">
-                  <label
-                    htmlFor="newsletter"
-                    className="text-sm font-medium leading-none text-gray-700"
-                  >
-                    Email Newsletter
-                  </label>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    className="border-rose-200 focus-visible:ring-rose-300"
+                  />
                   <p className="text-xs text-gray-500">
-                    Get updates about new products and skincare tips
+                    Must be at least 8 characters long
                   </p>
                 </div>
-              </div>
-            </motion.div>
-          </CardContent>
 
-          <CardFooter className="flex-col space-y-4">
-            <Button className="w-full bg-rose-300 text-black hover:bg-rose-400">
-              Create Account
-            </Button>
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link
-                to="/login"
-                search={{ redirect: '/register' }}
-                className="h-auto p-0 text-rose-500 hover:text-rose-600"
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    required
+                    className="border-rose-200 focus-visible:ring-rose-300"
+                  />
+                </div>
+
+                <div className="flex items-start space-x-2">
+                  <Checkbox id="newsletter" className="mt-1 border-rose-200" />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="newsletter"
+                      className="text-sm font-medium leading-none text-gray-700"
+                    >
+                      Email Newsletter
+                    </label>
+                    <p className="text-xs text-gray-500">
+                      Get updates about new products and skincare tips
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </CardContent>
+
+            <CardFooter className="flex-col space-y-4">
+              <Button
+                className="w-full bg-rose-300 text-black hover:bg-rose-400"
+                disabled={isLoading}
+                type="submit"
               >
-                Sign in
-              </Link>
-            </p>
-          </CardFooter>
+                {isLoading ? 'Creating Account...' : 'Create Account'}
+              </Button>
+              <p className="text-sm text-gray-600">
+                Already have an account?{' '}
+                <Link
+                  to="/login"
+                  search={{ redirect: '/register' }}
+                  className="h-auto p-0 text-rose-500 hover:text-rose-600"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </CardFooter>
+          </form>
         </Card>
 
         <motion.div
