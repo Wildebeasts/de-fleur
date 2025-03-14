@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable tailwindcss/no-custom-classname */
 /* eslint-disable prettier/prettier */
 import React, { useState, useEffect } from 'react'
@@ -95,17 +96,17 @@ const CartList: React.FC = () => {
     queryFn: async () => {
       try {
         if (!selectedCart) return {}
-        
+
         const cosmeticIds = selectedCart.items
           .map(item => item.cosmeticId)
           .filter(id => id !== null && id !== undefined)
-        
+
         if (cosmeticIds.length === 0) return {}
-        
+
         const details = await Promise.all(
           cosmeticIds.map(id => cosmeticApi.getCosmeticById(id))
         )
-        
+
         return details.reduce((acc, cosmetic) => {
           if (cosmetic && cosmetic.data && cosmetic.data.isSuccess && cosmetic.data.data) {
             acc[cosmetic.data.data.id] = cosmetic.data.data
@@ -262,8 +263,8 @@ const CartList: React.FC = () => {
                         Total
                       </div>
                       <div className="flex items-center gap-1 text-2xl font-bold text-white">
-                        {cart.totalPrice > 0 
-                          ? cart.totalPrice.toLocaleString() 
+                        {cart.totalPrice > 0
+                          ? cart.totalPrice.toLocaleString()
                           : "0"}
                         <span className="text-xl">đ</span>
                       </div>
@@ -298,7 +299,7 @@ const CartList: React.FC = () => {
               <ShoppingCart className="mr-3 size-5 text-blue-400" />
               Cart Details
             </h2>
-            
+
             <div className="space-y-6">
               {/* Customer Info */}
               <div className="rounded-lg bg-gray-800/40 p-4">
@@ -310,7 +311,7 @@ const CartList: React.FC = () => {
                   {selectedCart.customer?.email || 'No email provided'}
                 </div>
               </div>
-              
+
               {/* Items */}
               <div className="rounded-lg bg-gray-800/40 p-4">
                 <div className="mb-3 text-sm font-medium text-blue-400">Items</div>
@@ -336,7 +337,7 @@ const CartList: React.FC = () => {
                   ))}
                 </div>
               </div>
-              
+
               {/* Summary */}
               <div className="rounded-lg bg-gray-800/40 p-4">
                 <div className="flex items-center justify-between border-b border-gray-700 pb-3">
@@ -345,21 +346,21 @@ const CartList: React.FC = () => {
                     {calculateSubtotal(selectedCart.items).toLocaleString()}đ
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between border-b border-gray-700 py-3">
                   <span className="text-sm text-gray-400">Shipping</span>
                   <span className="text-white">
                     {calculateShipping().toLocaleString()}đ
                   </span>
                 </div>
-                
+
                 {selectedCart.eventDiscountTotal > 0 && (
                   <div className="flex items-center justify-between border-b border-gray-700 py-3">
                     <span className="text-sm text-gray-400">Discount</span>
                     <span className="text-green-400">-{selectedCart.eventDiscountTotal.toLocaleString()}đ</span>
                   </div>
                 )}
-                
+
                 <div className="flex items-center justify-between pt-3">
                   <span className="text-sm font-medium text-blue-400">Total</span>
                   <span className="text-xl font-bold text-white">
