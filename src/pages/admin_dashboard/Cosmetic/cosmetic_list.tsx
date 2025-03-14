@@ -484,7 +484,7 @@ export default function Courses() {
           <div className="flex items-center gap-3">
             <div className="relative size-10">
               <Tooltip title="Click to update thumbnail">
-                <div 
+                <div
                   className="group relative cursor-pointer"
                   onClick={async () => {
                     const input = document.createElement('input');
@@ -535,7 +535,7 @@ export default function Courses() {
       {
         title: 'Brand & Type',
         key: 'brand',
-        render: (_, record: CosmeticDto) => {
+        render: (_: any, record: CosmeticDto) => {
           if (isLoadingBrands || isLoadingCosmeticTypes) {
             return <Spin size="small" />
           }
@@ -552,11 +552,11 @@ export default function Courses() {
       {
         title: 'Stock',
         key: 'stock',
-        render: (_, record: CosmeticDto) => {
+        render: (_: any, record: CosmeticDto) => {
           if (isLoadingBatches) {
             return <Spin size="small" />
           }
-          const cosmeticBatches = batches.filter(b => b.cosmeticId === record.id)
+          const cosmeticBatches = batches[0]?.data?.filter(b => b.cosmeticId === record.id) || []
           const totalQuantity = cosmeticBatches.reduce((sum, batch) => sum + batch.quantity, 0)
           const nearestExpiry = cosmeticBatches
             .filter(b => b.expirationDate)
@@ -566,7 +566,7 @@ export default function Courses() {
             <div>
               <div className="font-medium text-white">{totalQuantity} units</div>
               <div className="text-sm text-gray-400">
-                {nearestExpiry 
+                {nearestExpiry
                   ? `Expires: ${format(new Date(nearestExpiry.expirationDate), 'dd/MM/yyyy')}`
                   : 'No expiry date'}
               </div>
@@ -591,9 +591,9 @@ export default function Courses() {
         title: 'Volume',
         key: 'volume',
         render: (_: unknown, record: CosmeticDto) => (
-            <div className="text-white">
-              {record.size} {volumeMap[record.volumeUnit] || 'N/A'}
-            </div>
+          <div className="text-white">
+            {record.size} {volumeMap[record.volumeUnit || ''] || 'N/A'}
+          </div>
         )
       },
       {
@@ -623,7 +623,7 @@ export default function Courses() {
             <Button
               type="text"
               icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
+              onClick={() => handleDelete({ ...record, key: record.id } as DataType)}
               className="text-red-500 hover:text-red-400"
             />
           </Space>
@@ -660,7 +660,7 @@ export default function Courses() {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Brand Details Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
@@ -706,7 +706,7 @@ export default function Courses() {
           </motion.div>
 
           {/* Product Details Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
@@ -749,7 +749,7 @@ export default function Courses() {
           </motion.div>
 
           {/* Physical Properties Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.2 }}
@@ -782,14 +782,14 @@ export default function Courses() {
               <div className="flex items-baseline justify-between">
                 <span className="text-xs text-[#8b949e]">Volume</span>
                 <span className="text-sm font-medium text-white">
-                  {record.size} {volumeMap[record.volumeUnit] || 'N/A'}
+                  {record.size} {volumeMap[record.volumeUnit || ''] || 'N/A'}
                 </span>
               </div>
             </div>
           </motion.div>
 
           {/* Classification Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}
@@ -845,7 +845,7 @@ export default function Courses() {
         </div>
 
         {/* Images Gallery Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.4 }}
@@ -900,8 +900,8 @@ export default function Courses() {
     pagination: {
       current: currentPage,
       pageSize: pageSize,
-      total: cosmeticsData?.totalPages * cosmeticsData?.pageSize,
-      onChange: (page, pageSize) => {
+      total: cosmeticsData?.totalPages ? cosmeticsData?.totalPages * cosmeticsData?.pageSize : 0,
+      onChange: (page: number, pageSize: number) => {
         setCurrentPage(page)
         setPageSize(pageSize)
         queryClient.invalidateQueries({ queryKey: ['cosmetics'] })
@@ -1355,7 +1355,7 @@ export default function Courses() {
           <Checkbox
             checked={selectedRowKeys.length === cosmeticsData?.items.length}
             indeterminate={
-              selectedRowKeys.length > 0 && selectedRowKeys.length < cosmeticsData?.items.length
+              selectedRowKeys.length > 0 && selectedRowKeys.length < (cosmeticsData?.items?.length || 0)
             }
             onChange={handleMasterCheckboxChange}
           />
@@ -1456,9 +1456,8 @@ const ImageUploadButton = ({ onUpload }: { onUpload: (files: RcFile[]) => void }
         animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={() => setIsHovered(false)}
-        className={`flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#1d1f2b] bg-[#1a1b24] transition-colors ${
-          isHovered ? 'border-blue-400' : ''
-        }`}
+        className={`flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#1d1f2b] bg-[#1a1b24] transition-colors ${isHovered ? 'border-blue-400' : ''
+          }`}
       >
         <div className="flex flex-col items-center">
           <InboxOutlined className="mb-2 text-2xl text-gray-400" />
@@ -1474,7 +1473,7 @@ const ImagesGallery = ({ record, onUpload }: { record: CosmeticDto; onUpload: (f
   <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
     {/* Upload Button */}
     <ImageUploadButton onUpload={onUpload} />
-    
+
     {/* Existing Images - Simple preview only */}
     {record.cosmeticImages?.map((image) => (
       <div

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react'
 import {
   Table,
@@ -8,7 +9,7 @@ import {
   Input,
   Card
 } from 'antd'
-import { DeleteOutlined, SearchOutlined, Package } from '@ant-design/icons'
+import { DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
@@ -37,24 +38,31 @@ export default function BatchList() {
     queryFn: async () => {
       const response = await batchApi.getBatches()
       if (response.data.isSuccess) {
-        // Fetch cosmetic details for each batch
+        // Extract just the batch data array
+        const batches = response.data.data || []
+
+        // Transform into the format we need
         const batchesWithDetails = await Promise.all(
-          response.data.data.map(async (batch) => {
+          batches.map(async (batch) => {
             try {
+              // Cast to access the properties we need
+              const batchData = batch as unknown as BatchResponse
               const cosmeticResponse = await cosmeticApi.getCosmeticById(
-                batch.cosmeticId
+                batchData.cosmeticId
               )
               return {
-                ...batch,
-                key: batch.id,
-                cosmeticName: cosmeticResponse.data.data.name
-              }
+                ...batchData,
+                key: batchData.id,
+                cosmeticName: cosmeticResponse?.data?.data?.name || 'Unknown'
+              } as BatchWithDetails
             } catch (error) {
+              // Cast to access the properties we need
+              const batchData = batch as unknown as BatchResponse
               return {
-                ...batch,
-                key: batch.id,
+                ...batchData,
+                key: batchData.id,
                 cosmeticName: 'Unknown'
-              }
+              } as BatchWithDetails
             }
           })
         )
@@ -324,6 +332,7 @@ export default function BatchList() {
                 showTotal: (total) => `Total ${total} batches`
               }}
               scroll={{ x: 1000, y: 700 }}
+              // eslint-disable-next-line tailwindcss/no-custom-classname
               className="custom-dark-table"
             />
           </Card>

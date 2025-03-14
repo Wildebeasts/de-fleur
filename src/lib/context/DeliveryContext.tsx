@@ -52,9 +52,10 @@ export const DeliveryProvider: React.FC<{ children: React.ReactNode }> = ({
     setIsProvincesLoading(true)
     try {
       const response = await deliveryApi.getProvince()
-      setProvinces(response.data.data || [])
+      setProvinces(response.data?.data || [])
     } catch (error) {
       console.error('Error fetching provinces:', error)
+      setProvinces([]) // Ensure provinces is always an array
     }
     setIsProvincesLoading(false)
   }
@@ -69,9 +70,10 @@ export const DeliveryProvider: React.FC<{ children: React.ReactNode }> = ({
       const response = await deliveryApi.getDistrict({
         province_id: provinceId
       })
-      setDistricts(response.data.data || [])
+      setDistricts(response.data?.data || [])
     } catch (error) {
       console.error('Error fetching districts:', error)
+      setDistricts([]) // Ensure districts is always an array
     }
     setIsDistrictsLoading(false)
   }
@@ -84,9 +86,10 @@ export const DeliveryProvider: React.FC<{ children: React.ReactNode }> = ({
     setWards([]) // Reset wards when district changes
     try {
       const response = await deliveryApi.getWard({ district_id: districtId })
-      setWards(response.data.data || [])
+      setWards(response.data?.data || [])
     } catch (error) {
       console.error('Error fetching wards:', error)
+      setWards([]) // Ensure wards is always an array
     }
     setIsWardsLoading(false)
   }

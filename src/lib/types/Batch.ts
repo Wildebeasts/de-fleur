@@ -1,9 +1,14 @@
 export interface BatchResponse {
   id: string
-  name: string
-  description: string
-  createdAt: string
-  updatedAt: string
+  cosmeticId: string
+  quantity: number
+  exportedDate: string
+  manufactureDate: string
+  expirationDate: string
+  name?: string
+  description?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface Batch {
@@ -17,7 +22,7 @@ export interface Batch {
 
 export interface BatchesApiResponse {
   isSuccess: boolean
-  data: Batch[]
+  data: BatchResponse[]
   message: string
   errors: string[]
 }

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react'
 import { motion } from 'framer-motion'
@@ -187,7 +188,12 @@ const BestsellingProducts: React.FC = () => {
         >
           {products.map((product) => (
             <motion.div key={product.id} variants={itemVariants}>
-              <ProductCard cosmetic={product} />
+              <ProductCard
+                cosmetic={product}
+                selectedProducts={[]}
+                toggleCompare={() => { }}
+                isSelectedForComparison={false}
+              />
             </motion.div>
           ))}
         </motion.div>

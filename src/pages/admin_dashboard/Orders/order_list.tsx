@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import React, { useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -95,7 +97,7 @@ const statusIcons = {
 // Status colors for badges
 const getStatusBadgeConfig = (status: string) => {
   const normalizedStatus = normalizeStatus(status);
-  
+
   switch (normalizedStatus) {
     case 'CONFIRMED':
       return { status: 'success', text: 'Confirmed', icon: statusIcons.CONFIRMED };
@@ -188,7 +190,7 @@ const OrderList: React.FC = () => {
         // Direct API call to get the raw response
         const response = await userApi.getUsers();
         console.log('Raw user API response:', response);
-        
+
         // Check if response is directly an array
         if (Array.isArray(response)) {
           setAllUsers(response);
@@ -231,7 +233,7 @@ const OrderList: React.FC = () => {
       console.log('API Response:', response.data); // Debug log
       if (response.data.isSuccess) {
         // Transform the data to ensure consistent structure
-        return response.data.data.map((order: any) => ({
+        return (response.data.data || []).map((order: any) => ({
           ...order,
           orderItems: Array.isArray(order.orderItems) ? order.orderItems : [],
           customer: order.customer || null,
@@ -261,7 +263,7 @@ const OrderList: React.FC = () => {
     setLoadingDetails(true);
     setSelectedOrderDetails(order);
     setDetailsModalVisible(true);
-    
+
     try {
       // Find user from pre-fetched users list by matching customerId with user id
       if (order.customerId) {
@@ -276,7 +278,7 @@ const OrderList: React.FC = () => {
       } else {
         setUserDetails(null);
       }
-      
+
       // Fetch details for each order item
       const itemDetailsPromises = order.orderItems.map(async (item) => {
         try {
@@ -293,7 +295,7 @@ const OrderList: React.FC = () => {
           return item;
         }
       });
-      
+
       const itemsWithDetails = await Promise.all(itemDetailsPromises);
       setOrderItemsDetails(itemsWithDetails);
     } catch (error) {
@@ -325,7 +327,7 @@ const OrderList: React.FC = () => {
   // Confirm delete order
   const confirmDeleteOrder = async () => {
     if (!selectedOrder) return;
-    
+
     try {
       const response = await orderApi.deleteOrder(selectedOrder.id);
       if (response.data.isSuccess) {
@@ -344,7 +346,7 @@ const OrderList: React.FC = () => {
   // Confirm status update
   const confirmStatusUpdate = async () => {
     if (!selectedOrder) return;
-    
+
     try {
       const response = await orderApi.updateOrderStatus(selectedOrder.id, { status: newStatus });
       if (response.data.isSuccess) {
@@ -380,15 +382,15 @@ const OrderList: React.FC = () => {
       render: (customerId: string, record: Order) => {
         // Find user from allUsers by matching customerId with user id
         const user = allUsers.find(u => u.id === customerId);
-        
+
         // Debug logging to see what's happening
-        console.log('Rendering customer:', { 
-          customerId, 
-          userFound: !!user, 
+        console.log('Rendering customer:', {
+          customerId,
+          userFound: !!user,
           userName: user?.userName,
-          allUsersLength: allUsers.length 
+          allUsersLength: allUsers.length
         });
-        
+
         if (user) {
           return (
             <div>
@@ -657,6 +659,7 @@ const OrderList: React.FC = () => {
                 showTotal: (total) => `Total ${total} orders`
               }}
               scroll={{ x: 1000, y: 700 }}
+              // eslint-disable-next-line tailwindcss/no-custom-classname
               className="custom-dark-table"
             />
           </Card>
@@ -670,6 +673,8 @@ const OrderList: React.FC = () => {
           onOk={confirmDeleteOrder}
           okText="Delete"
           okButtonProps={{ danger: true }}
+          // eslint-disable-next-line tailwindcss/no-custom-classname
+          className="custom-dark-modal"
         >
           <p>Are you sure you want to delete this order?</p>
           <p className="mt-2 text-sm text-gray-400">
@@ -749,7 +754,7 @@ const OrderList: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Customer Information */}
               <div className="rounded-lg bg-gray-800/40 p-4">
                 <h3 className="mb-3 text-lg font-medium text-white">Customer Information</h3>
@@ -780,7 +785,7 @@ const OrderList: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Shipping Information */}
               <div className="rounded-lg bg-gray-800/40 p-4">
                 <h3 className="mb-3 text-lg font-medium text-white">Shipping Information</h3>
@@ -801,7 +806,7 @@ const OrderList: React.FC = () => {
                   )}
                 </div>
               </div>
-              
+
               {/* Order Items */}
               <div className="rounded-lg bg-gray-800/40 p-4">
                 <h3 className="mb-3 text-lg font-medium text-white">Order Items</h3>
@@ -811,9 +816,9 @@ const OrderList: React.FC = () => {
                       <div key={index} className="flex items-center gap-4 border-b border-gray-700 pb-4">
                         <div className="size-16 shrink-0 overflow-hidden rounded-md bg-gray-700">
                           {item.details?.images?.[0] ? (
-                            <img 
-                              src={item.details.images[0]} 
-                              alt={item.details.name} 
+                            <img
+                              src={item.details.images[0]}
+                              alt={item.details.name}
                               className="size-full object-cover"
                             />
                           ) : (
@@ -846,7 +851,7 @@ const OrderList: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="mt-4 flex justify-end border-t border-gray-700 pt-4">
                   <div className="text-right">
                     <div className="text-sm text-gray-400">
@@ -868,4 +873,4 @@ const OrderList: React.FC = () => {
   );
 };
 
-export default OrderList; 
+export default OrderList;

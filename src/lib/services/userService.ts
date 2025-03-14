@@ -47,11 +47,15 @@ const userApi = {
     }
   },
 
-  getUsers: async (page: number, pageSize: number) => {
+  getUsers: async (page?: number, pageSize?: number) => {
     try {
-      const response = await axiosClient.get(
-        `/user?page=${page}&pageSize=${pageSize}`
-      )
+      // Build the URL with optional pagination parameters
+      let url = '/user'
+      if (page !== undefined && pageSize !== undefined) {
+        url += `?page=${page}&pageSize=${pageSize}`
+      }
+
+      const response = await axiosClient.get(url)
 
       // Log the full response to debug
       console.log('Get users API response:', response.data)
@@ -60,7 +64,7 @@ const userApi = {
       if (Array.isArray(response.data)) {
         return {
           isSuccess: true,
-          data: response.data,
+          data: response.data as UserDto[],
           message: 'Successfully retrieved users',
           errors: []
         }

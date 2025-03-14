@@ -140,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isInitialized,
         user,
         login,
+        register,
         logout,
         redirectBasedOnRole
       }}

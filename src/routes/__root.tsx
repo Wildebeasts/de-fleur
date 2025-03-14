@@ -14,7 +14,6 @@ import authApi from '@/lib/services/authApi'
 import userApi from '@/lib/services/userService'
 import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { jwtDecode } from 'jwt-decode'
 import { useAuth } from '@/lib/context/AuthContext'
 
 // Protected routes that require authentication
@@ -152,9 +151,9 @@ function RootComponent() {
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
       const accessToken = localStorage.getItem('accessToken')
-      const currentPathname = matches[0]?.location?.pathname
+      const currentLocation = matches[0]?.pathname || ''
 
-      if (accessToken && currentPathname === '/login') {
+      if (accessToken && currentLocation === '/login') {
         try {
           // Get the user profile to verify authentication
           await userApi.getUserProfile()

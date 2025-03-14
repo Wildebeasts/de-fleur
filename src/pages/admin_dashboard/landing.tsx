@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable prettier/prettier */
 /* eslint-disable tailwindcss/migration-from-tailwind-2 */
 import { useEffect, useState } from 'react'
 import { ConfigProvider, Spin } from 'antd'
@@ -66,9 +69,9 @@ function StatCard({
           <p className="text-xs text-gray-400">
             {format === 'currency'
               ? new Intl.NumberFormat('vi-VN', {
-                  style: 'currency',
-                  currency: 'VND'
-                }).format(payload[0].value)
+                style: 'currency',
+                currency: 'VND'
+              }).format(payload[0].value)
               : payload[0].value.toLocaleString()}
           </p>
           {payload[0].payload.date && (
@@ -94,9 +97,8 @@ function StatCard({
           <span className="text-gray-400">{title}</span>
         </div>
         <div
-          className={`flex items-center gap-1 ${
-            isPositiveTrend ? 'text-emerald-400' : 'text-rose-400'
-          }`}
+          className={`flex items-center gap-1 ${isPositiveTrend ? 'text-emerald-400' : 'text-rose-400'
+            }`}
         >
           {isPositiveTrend ? (
             <ArrowUp className="size-4" />
@@ -110,9 +112,9 @@ function StatCard({
         <span className="text-2xl font-semibold text-white">
           {format === 'currency'
             ? new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-              }).format(displayValue)
+              style: 'currency',
+              currency: 'VND'
+            }).format(displayValue)
             : displayValue.toLocaleString()}
         </span>
       </div>
@@ -152,9 +154,8 @@ function StatCard({
                 dataKey="value"
                 stroke={isPositiveTrend ? '#10b981' : '#ef4444'}
                 strokeWidth={2}
-                fill={`url(#colorValue-${
-                  isPositiveTrend ? 'positive' : 'negative'
-                })`}
+                fill={`url(#colorValue-${isPositiveTrend ? 'positive' : 'negative'
+                  })`}
                 fillOpacity={1}
                 isAnimationActive={true}
                 animationDuration={1500}
@@ -245,10 +246,27 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [stats, setStats] = useState({
-    totalUsers: { value: 0, trend: 0, history: [] },
-    totalCourses: { value: 25, trend: 10, history: [] },
-    revenue: { value: 5000000, trend: 20, history: [] },
-    averageRating: { value: 4.5, trend: 5, totalReviews: 150, history: [] }
+    totalUsers: {
+      value: 0,
+      trend: 0,
+      history: [] as Array<{ date: string; value: number; monthlyNew?: number }>
+    },
+    totalCourses: {
+      value: 25,
+      trend: 10,
+      history: [] as Array<{ date: string; value: number }>
+    },
+    revenue: {
+      value: 5000000,
+      trend: 20,
+      history: [] as Array<{ date: string; value: number }>
+    },
+    averageRating: {
+      value: 4.5,
+      trend: 5,
+      totalReviews: 150,
+      history: [] as Array<{ date: string; value: number }>
+    }
   })
   const [loading, setLoading] = useState(true)
   const [quickStats, setQuickStats] = useState({
@@ -310,7 +328,7 @@ export default function AdminDashboard() {
   }, [])
 
   // Generate historical data for users based on creation dates
-  const generateUserHistoryData = (users) => {
+  const generateUserHistoryData = (users: any) => {
     const historyData = []
     const today = new Date()
 
@@ -321,7 +339,7 @@ export default function AdminDashboard() {
       const monthEnd = endOfMonth(monthDate)
 
       // Count users created in this month
-      const usersInMonth = users.filter((user) => {
+      const usersInMonth = users.filter((user: any) => {
         // Check if createdDate exists, otherwise try birthDate as fallback
         const dateField = user.createdDate || user.birthDate
         if (!dateField) return false
@@ -331,7 +349,7 @@ export default function AdminDashboard() {
       })
 
       // Cumulative count of users up to this month
-      const cumulativeUsers = users.filter((user) => {
+      const cumulativeUsers = users.filter((user: any) => {
         // Check if createdDate exists, otherwise try birthDate as fallback
         const dateField = user.createdDate || user.birthDate
         if (!dateField) return false
@@ -351,7 +369,7 @@ export default function AdminDashboard() {
   }
 
   // Calculate trend percentage (change from previous month)
-  const calculateTrend = (historyData) => {
+  const calculateTrend = (historyData: any) => {
     if (historyData.length < 2) return 0
 
     const currentValue = historyData[historyData.length - 1].value
@@ -363,11 +381,11 @@ export default function AdminDashboard() {
   }
 
   // Count new users in the last 30 days
-  const countNewUsers = (users) => {
+  const countNewUsers = (users: any) => {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    return users.filter((user) => {
+    return users.filter((user: any) => {
       // Check if createdDate exists, otherwise try birthDate as fallback
       const dateField = user.createdDate || user.birthDate
       if (!dateField) return false
@@ -378,7 +396,7 @@ export default function AdminDashboard() {
   }
 
   // Update quick actions with real data
-  const quickActions = quickActionsData.map((action) => ({
+  const quickActions = quickActionsData.map((action: any) => ({
     ...action,
     value:
       action.title === 'Pending Approvals'
@@ -442,52 +460,52 @@ export default function AdminDashboard() {
           <div className="mb-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {loading
               ? // Loading state for quick actions
-                Array(3)
-                  .fill(0)
-                  .map((_, index) => (
-                    <div
-                      key={index}
-                      className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
-                    p-6 backdrop-blur-lg"
-                    >
-                      <div className="flex animate-pulse items-center gap-4">
-                        <div className="rounded-lg bg-[#282d35]/50 p-3">
-                          <div className="size-5 rounded bg-gray-700"></div>
-                        </div>
-                        <div className="flex flex-col items-start">
-                          <div className="h-4 w-24 rounded bg-gray-700"></div>
-                          <div className="mt-1 h-6 w-8 rounded bg-gray-700"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-              : quickActions.map((action) => (
-                  <button
-                    key={action.title}
-                    onClick={() => handleNavigation(action.path)}
+              Array(3)
+                .fill(0)
+                .map((_, index) => (
+                  <div
+                    key={index}
                     className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
-                    p-6 backdrop-blur-lg transition-all duration-300 hover:border-gray-100/20"
+                    p-6 backdrop-blur-lg"
                   >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className="rounded-lg bg-[#282d35]/50 p-3 backdrop-blur-lg transition-colors
-                      duration-300 group-hover:bg-[#2c333a]/50"
-                      >
-                        <action.icon className={`size-5 ${action.color}`} />
+                    <div className="flex animate-pulse items-center gap-4">
+                      <div className="rounded-lg bg-[#282d35]/50 p-3">
+                        <div className="size-5 rounded bg-gray-700"></div>
                       </div>
                       <div className="flex flex-col items-start">
-                        <span className="text-sm text-gray-400">
-                          {action.title}
-                        </span>
-                        <span
-                          className={`text-xl font-semibold ${action.color}`}
-                        >
-                          {action.value}
-                        </span>
+                        <div className="h-4 w-24 rounded bg-gray-700"></div>
+                        <div className="mt-1 h-6 w-8 rounded bg-gray-700"></div>
                       </div>
                     </div>
-                  </button>
-                ))}
+                  </div>
+                ))
+              : quickActions.map((action) => (
+                <button
+                  key={action.title}
+                  onClick={() => handleNavigation(action.path)}
+                  className="group rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 bg-clip-padding
+                    p-6 backdrop-blur-lg transition-all duration-300 hover:border-gray-100/20"
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className="rounded-lg bg-[#282d35]/50 p-3 backdrop-blur-lg transition-colors
+                      duration-300 group-hover:bg-[#2c333a]/50"
+                    >
+                      <action.icon className={`size-5 ${action.color}`} />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm text-gray-400">
+                        {action.title}
+                      </span>
+                      <span
+                        className={`text-xl font-semibold ${action.color}`}
+                      >
+                        {action.value}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
           </div>
 
           {/* Stats Grid */}
@@ -499,7 +517,7 @@ export default function AdminDashboard() {
                 .map((_, index) => (
                   <div
                     key={index}
-                    className="rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60 
+                    className="rounded-xl border border-gray-100/10 bg-[#1a1b24] bg-opacity-60
                     bg-clip-padding p-6 backdrop-blur-lg"
                   >
                     <div className="animate-pulse">
