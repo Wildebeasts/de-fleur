@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import ImageCarousel from './ImageCarousel'
+import ImageCarousel from '@/components/Store/ImageCarousel'
 
 interface ProductImageProps {
   imageUrl?: string
@@ -17,6 +17,7 @@ const ProductImage: React.FC<ProductImageProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
+  const [carouselIndex, setCarouselIndex] = useState(0)
 
   const handleThumbnailClick = (image: string) => {
     setSelectedImage(image)
@@ -33,6 +34,20 @@ const ProductImage: React.FC<ProductImageProps> = ({
   ].filter(Boolean)
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+  // Number of thumbnails to show at once in desktop view
+  const THUMBNAILS_TO_SHOW = 4
+
+  // Calculate max index to prevent scrolling past the end
+  const maxIndex = Math.max(0, allImages.length - THUMBNAILS_TO_SHOW)
+
+  const handleNextSlide = () => {
+    setCarouselIndex((prev) => Math.min(prev + 1, maxIndex))
+  }
+
+  const handlePrevSlide = () => {
+    setCarouselIndex((prev) => Math.max(prev - 1, 0))
+  }
 
   return (
     <div className="flex w-3/5 flex-col max-md:ml-0 max-md:w-full">
@@ -88,26 +103,77 @@ const ProductImage: React.FC<ProductImageProps> = ({
           onImageChange={handleThumbnailClick}
         />
       ) : (
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-          {allImages.map((img, index) => (
-            <motion.div
-              key={index}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`relative size-20 shrink-0 cursor-pointer overflow-hidden rounded-md border-2 ${
-                selectedImage === img
-                  ? 'border-[#3A4D39]'
-                  : 'border-transparent'
-              }`}
-              onClick={() => handleThumbnailClick(img)}
+        <div className="relative mt-4">
+          {/* Left navigation button */}
+          {carouselIndex > 0 && (
+            <button
+              onClick={handlePrevSlide}
+              className="absolute -left-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md transition-all hover:bg-[#3A4D39] hover:text-white"
             >
-              <img
-                src={img}
-                alt={`Product thumbnail ${index + 1}`}
-                className="size-full object-cover"
-              />
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          )}
+
+          {/* Thumbnail container with animation */}
+          <motion.div className="flex gap-2 overflow-hidden" initial={false}>
+            <motion.div
+              className="flex gap-2"
+              animate={{ x: -carouselIndex * 84 }} // 84px = thumbnail width (80px) + gap (4px)
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            >
+              {allImages.map((img, index) => (
+                <motion.div
+                  key={index}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative size-20 shrink-0 cursor-pointer overflow-hidden rounded-md border-2 ${
+                    selectedImage === img
+                      ? 'border-[#3A4D39]'
+                      : 'border-transparent'
+                  }`}
+                  onClick={() => handleThumbnailClick(img)}
+                >
+                  <img
+                    src={img}
+                    alt={`Product thumbnail ${index + 1}`}
+                    className="size-full object-cover"
+                  />
+                </motion.div>
+              ))}
             </motion.div>
-          ))}
+          </motion.div>
+
+          {/* Right navigation button */}
+          {carouselIndex < maxIndex && (
+            <button
+              onClick={handleNextSlide}
+              className="absolute -right-4 top-1/2 z-10 flex size-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-md transition-all hover:bg-[#3A4D39] hover:text-white"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          )}
         </div>
       )}
 
