@@ -2,6 +2,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useLogin } from '../hooks/useAuth'
 import { LoginRequest, LoginResponse } from '../types/auth'
 import { LoginApiResponse } from '../types/base/Api'
+import { jwtDecode } from 'jwt-decode'
+
+interface JwtPayload {
+  roles: string | string[]
+  [key: string]: unknown
+}
 
 interface AuthContextType {
   isAuthenticated: boolean
@@ -10,6 +16,7 @@ interface AuthContextType {
   user: LoginResponse | null
   login: (credentials: LoginRequest) => Promise<LoginApiResponse>
   logout: () => void
+  redirectBasedOnRole: () => string | null
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -70,6 +77,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(false)
   }
 
+  const redirectBasedOnRole = () => {
+    const accessToken = localStorage.getItem('accessToken')
+    if (!accessToken) return null
+
+    try {
+      const decoded = jwtDecode<JwtPayload>(accessToken)
+
+      // Convert roles to array if it's a string
+      const roles = Array.isArray(decoded.roles)
+        ? decoded.roles
+        : [decoded.roles]
+
+      // Check for admin roles
+      const hasAdminRole = roles.some(
+        (role) =>
+          role === 'Admin' || role === 'Administrator' || role === 'Manager'
+      )
+
+      if (hasAdminRole) {
+        return '/admin'
+      }
+
+      // Check for staff roles
+      const hasStaffRole = roles.some(
+        (role) =>
+          role === 'Staff' || role === 'Manager' || role === 'Administrator'
+      )
+
+      if (hasStaffRole) {
+        return '/staff'
+      }
+
+      // Default redirect for authenticated users with no special roles
+      return '/'
+    } catch (error) {
+      console.error('Error decoding JWT:', error)
+      return '/'
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -78,7 +125,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isInitialized,
         user,
         login,
-        logout
+        logout,
+        redirectBasedOnRole
       }}
     >
       {children}
