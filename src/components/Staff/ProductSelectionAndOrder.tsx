@@ -189,6 +189,7 @@ const ProductSelectionAndOrder = () => {
             <div className="lg:col-span-3">
               <OrderSummary
                 selectedProducts={selectedProducts}
+                setSelectedProducts={setSelectedProducts}
                 onIncreaseQuantity={handleAddToOrder}
                 onDecreaseQuantity={handleDecreaseQuantity}
                 onRemoveProduct={handleRemoveFromOrder}
