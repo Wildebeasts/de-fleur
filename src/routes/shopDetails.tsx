@@ -122,21 +122,17 @@ function RouteComponent() {
   // Fix the cosmeticImages type issue
   const processedCosmeticImages = Array.isArray(product.cosmeticImages)
     ? product.cosmeticImages.map((img) => {
-      if (typeof img === 'object' && img !== null) {
-        return {
-          id: (img as { id?: string }).id || String(Math.random()),
-          imageUrl:
-            (img as { imageUrl?: string }).imageUrl ||
-            'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
+        if (typeof img === 'object' && img !== null) {
+          return {
+            id: (img as { id?: string }).id || String(Math.random()),
+            imageUrl: (img as { imageUrl?: string }).imageUrl || 'fallback-url'
+          }
         }
-      }
-      return {
-        id: String(Math.random()),
-        imageUrl:
-          String(img) ||
-          'https://cdn.builder.io/api/v1/image/assets/TEMP/866f03b1126b552963088927ab1354e532e4e786039d557d037f1e0378571d45'
-      }
-    })
+        return {
+          id: String(Math.random()),
+          imageUrl: String(img) || 'fallback-url'
+        }
+      })
     : []
 
   return (

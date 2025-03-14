@@ -21,6 +21,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
   const navigate = useNavigate()
 
   // Check if the product is on sale
@@ -68,6 +69,12 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
 
   // Safely get the image URL
   const getImageUrl = () => {
+    // First check for a dedicated thumbnailUrl
+    if (cosmetic.thumbnailUrl) {
+      return cosmetic.thumbnailUrl
+    }
+
+    // Then check for cosmetic images
     if (!cosmetic.cosmeticImages || cosmetic.cosmeticImages.length === 0) {
       return 'https://placehold.co/300x300/png?text=No+Image'
     }
@@ -114,6 +121,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
           alt={cosmetic.name || 'Product image'}
           className="size-full object-cover transition-transform duration-300"
           animate={{ scale: isHovered ? 1.05 : 1 }}
+          onLoad={() => setImageLoading(false)}
         />
         {isOnSale && (
           <div className="absolute left-0 top-4 bg-rose-500 px-3 py-1 text-sm font-semibold text-white">
@@ -128,6 +136,11 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
         >
           Quick View
         </motion.button>
+        {imageLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="size-8 animate-spin rounded-full border-4 border-[#3A4D39] border-t-transparent"></div>
+          </div>
+        )}
       </motion.div>
 
       <div className="z-10 w-full">
