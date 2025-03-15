@@ -87,7 +87,7 @@ const StaffProductCard: React.FC<StaffProductCardProps> = ({
           {product.name}
         </h3>
         <p className="text-sm text-gray-600">{product.notice}</p>
-        <p className="mt-1 text-lg font-bold text-[#3A4D39]">
+        <div className="mt-1 text-lg font-bold text-[#3A4D39]">
           {isOnSale ? (
             <div className="flex flex-col">
               <span className="text-sm font-medium text-gray-500 line-through">
@@ -102,7 +102,7 @@ const StaffProductCard: React.FC<StaffProductCardProps> = ({
               {formatCurrency(product.price)}
             </span>
           )}
-        </p>
+        </div>
       </div>
 
       {/* Add to Order Button */}
