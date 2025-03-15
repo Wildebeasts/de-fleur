@@ -213,7 +213,7 @@ const OrderTracking = () => {
                     <TableCell>{order.shippingAddress || 'N/A'}</TableCell>
                     <TableCell>{order.billingAddress || 'N/A'}</TableCell>
                     <TableCell>{order.trackingNumber || 'Walk-In'}</TableCell>
-                    <TableCell>{order.ETA || 'N/A'}</TableCell>
+                    <TableCell>{formatDateVN(order.eta!)}</TableCell>
                     <TableCell>
                       {formatDateVN(order.deliveryDate!) || 'N/A'}
                     </TableCell>
