@@ -186,7 +186,7 @@ const PaymentReturn: React.FC = () => {
             <div className="space-y-3">
               <Button
                 className="w-full bg-[#3A4D39] hover:bg-[#4A5D49]"
-                onClick={() => navigate({ to: '/account_manage' })}
+                onClick={() => navigate({ to: '/order_history' })}
               >
                 View Orders
               </Button>

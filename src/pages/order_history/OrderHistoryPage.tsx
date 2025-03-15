@@ -240,6 +240,8 @@ const OrderCard = ({ order }: { order: Order }) => {
 }
 
 const OrderHistoryPage: React.FC = () => {
+  const navigate = useNavigate()
+
   // Fetch orders using the API
   const {
     data: ordersData,
@@ -287,67 +289,86 @@ const OrderHistoryPage: React.FC = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="min-h-screen bg-gradient-to-b from-orange-50/80 to-white px-4 py-16"
+      className="min-h-screen bg-gradient-to-b from-orange-50/80 to-white"
     >
-      <div className="mx-auto max-w-6xl">
-        <motion.section variants={itemVariants} className="mb-16 text-center">
-          <span className="mb-4 inline-block rounded-full bg-rose-100 px-4 py-2 text-sm text-rose-500">
-            Order History
-          </span>
-          <h1 className="mb-4 text-4xl font-semibold text-[#3A4D39]">
-            Your Orders
-          </h1>
-          <p className="mx-auto max-w-2xl text-lg text-[#3A4D39]/80">
-            Track and manage all your orders in one place
-          </p>
-        </motion.section>
-
-        {ordersData && ordersData.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {ordersData.map((order) => (
-              <OrderCard
-                key={order.id || ''}
-                order={{
-                  id: order.id || '',
-                  orderDate: order.orderDate || '',
-                  status: order.status || '',
-                  totalPrice: order.totalPrice || 0,
-                  orderItems: (order.orderItems || []).map(item => ({
-                    cosmeticId: item.cosmeticId || '',
-                    quantity: item.quantity || 0,
-                    sellingPrice: item.sellingPrice || 0,
-                    subTotal: item.sellingPrice * item.quantity || 0 // Calculate subTotal
-                  })),
-                  trackingNumber: order.trackingNumber || '',
-                  shippingAddress: order.shippingAddress || '',
-                  deliveryDate: order.deliveryDate || ''
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col items-center justify-center rounded-lg border border-rose-200/50 bg-white p-12 text-center shadow-sm"
+      <div className="mb-8 w-full bg-[#fff9f1] py-4 shadow-sm">
+        <div className="mx-auto flex max-w-4xl justify-center gap-4">
+          <Button
+            variant="outline"
+            className="border-rose-200 bg-white"
+            onClick={() => navigate({ to: '/account_manage' })}
           >
-            <div className="mb-4 rounded-full bg-orange-50 p-6">
-              <ShoppingBag className="size-12 text-[#3A4D39]/40" />
-            </div>
-            <h2 className="mb-2 text-xl font-semibold text-[#3A4D39]">
-              No Orders Yet
-            </h2>
-            <p className="mb-6 text-[#3A4D39]/70">
-              You haven&apos;t placed any orders yet. Start shopping to see your
-              orders here.
+            Account Settings
+          </Button>
+          <Button
+            className="bg-orange-500 text-white hover:bg-orange-600"
+          >
+            Order History
+          </Button>
+        </div>
+      </div>
+
+      <div className="px-4 pb-16">
+        <div className="mx-auto max-w-6xl">
+          <motion.section variants={itemVariants} className="mb-16 text-center">
+            <span className="mb-4 inline-block rounded-full bg-rose-100 px-4 py-2 text-sm text-rose-500">
+              Order History
+            </span>
+            <h1 className="mb-4 text-4xl font-semibold text-[#3A4D39]">
+              Your Orders
+            </h1>
+            <p className="mx-auto max-w-2xl text-lg text-[#3A4D39]/80">
+              Track and manage all your orders in one place
             </p>
-            <Button
-              className="bg-[#3A4D39] hover:bg-[#4A5D49]"
-              onClick={() => (window.location.href = '/shop')}
+          </motion.section>
+
+          {ordersData && ordersData.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {ordersData.map((order) => (
+                <OrderCard
+                  key={order.id || ''}
+                  order={{
+                    id: order.id || '',
+                    orderDate: order.orderDate || '',
+                    status: order.status || '',
+                    totalPrice: order.totalPrice || 0,
+                    orderItems: (order.orderItems || []).map(item => ({
+                      cosmeticId: item.cosmeticId || '',
+                      quantity: item.quantity || 0,
+                      sellingPrice: item.sellingPrice || 0,
+                      subTotal: item.sellingPrice * item.quantity || 0 // Calculate subTotal
+                    })),
+                    trackingNumber: order.trackingNumber || '',
+                    shippingAddress: order.shippingAddress || '',
+                    deliveryDate: order.deliveryDate || ''
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              variants={itemVariants}
+              className="flex flex-col items-center justify-center rounded-lg border border-rose-200/50 bg-white p-12 text-center shadow-sm"
             >
-              Browse Products
-            </Button>
-          </motion.div>
-        )}
+              <div className="mb-4 rounded-full bg-orange-50 p-6">
+                <ShoppingBag className="size-12 text-[#3A4D39]/40" />
+              </div>
+              <h2 className="mb-2 text-xl font-semibold text-[#3A4D39]">
+                No Orders Yet
+              </h2>
+              <p className="mb-6 text-[#3A4D39]/70">
+                You haven&apos;t placed any orders yet. Start shopping to see your
+                orders here.
+              </p>
+              <Button
+                className="bg-[#3A4D39] hover:bg-[#4A5D49]"
+                onClick={() => (window.location.href = '/shop')}
+              >
+                Browse Products
+              </Button>
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
   )
