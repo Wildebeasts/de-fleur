@@ -23,6 +23,7 @@ import { CalculateShippingFeeRequest } from '@/lib/types/delivery'
 import { CartItem } from '@/lib/types/Cart'
 import { CouponResponse } from '@/lib/types/Coupon'
 import couponApi from '@/lib/services/couponApi'
+import axios, { AxiosError } from 'axios'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -262,11 +263,16 @@ const CheckoutPage: React.FC = () => {
           navigate({ to: '/order_history' }) // or your desired order confirmation page
         }
       } else {
-        toast.error(response.data.message || 'Failed to create order')
+        toast.error(response.data.message)
       }
     } catch (error) {
-      toast.error('Failed to create order')
-      console.error('Error creating order:', error)
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.data?.message || 'Something went wrong!'
+        toast.error(`${errorMessage}`)
+      } else {
+        toast.error('An unexpected error occurred!')
+      }
     } finally {
       setIsLoading(false)
     }
