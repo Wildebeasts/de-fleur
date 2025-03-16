@@ -17,6 +17,9 @@
 
   <script>
     ;(function (d, t) {
+      // Don't initialize Chatwoot on admin pages
+      if (window.location.pathname.includes('/admin')) return;
+      
       var BASE_URL = 'https://chat.pak160404.click'
       var g = d.createElement(t),
         s = d.getElementsByTagName(t)[0]
