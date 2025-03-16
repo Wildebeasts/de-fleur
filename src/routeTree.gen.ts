@@ -27,6 +27,7 @@ import { Route as OrderhistoryImport } from './routes/order_history'
 import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
 import { Route as GlossaryImport } from './routes/glossary'
+import { Route as ForgotpasswordImport } from './routes/forgot_password'
 import { Route as FeedbackImport } from './routes/feedback'
 import { Route as FaqImport } from './routes/faq'
 import { Route as CollectionsImport } from './routes/collections'
@@ -155,6 +156,12 @@ const JournalRoute = JournalImport.update({
 const GlossaryRoute = GlossaryImport.update({
   id: '/glossary',
   path: '/glossary',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ForgotpasswordRoute = ForgotpasswordImport.update({
+  id: '/forgot_password',
+  path: '/forgot_password',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -432,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/feedback'
       fullPath: '/feedback'
       preLoaderRoute: typeof FeedbackImport
+      parentRoute: typeof rootRoute
+    }
+    '/forgot_password': {
+      id: '/forgot_password'
+      path: '/forgot_password'
+      fullPath: '/forgot_password'
+      preLoaderRoute: typeof ForgotpasswordImport
       parentRoute: typeof rootRoute
     }
     '/glossary': {
@@ -758,6 +772,7 @@ export interface FileRoutesByFullPath {
   '/collections': typeof CollectionsRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot_password': typeof ForgotpasswordRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
@@ -808,6 +823,7 @@ export interface FileRoutesByTo {
   '/collections': typeof CollectionsRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot_password': typeof ForgotpasswordRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
@@ -860,6 +876,7 @@ export interface FileRoutesById {
   '/collections': typeof CollectionsRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot_password': typeof ForgotpasswordRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
@@ -913,6 +930,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/faq'
     | '/feedback'
+    | '/forgot_password'
     | '/glossary'
     | '/journal'
     | '/login'
@@ -962,6 +980,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/faq'
     | '/feedback'
+    | '/forgot_password'
     | '/glossary'
     | '/journal'
     | '/login'
@@ -1012,6 +1031,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/faq'
     | '/feedback'
+    | '/forgot_password'
     | '/glossary'
     | '/journal'
     | '/login'
@@ -1064,6 +1084,7 @@ export interface RootRouteChildren {
   CollectionsRoute: typeof CollectionsRoute
   FaqRoute: typeof FaqRoute
   FeedbackRoute: typeof FeedbackRoute
+  ForgotpasswordRoute: typeof ForgotpasswordRoute
   GlossaryRoute: typeof GlossaryRoute
   JournalRoute: typeof JournalRoute
   LoginRoute: typeof LoginRoute
@@ -1095,6 +1116,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsRoute: CollectionsRoute,
   FaqRoute: FaqRoute,
   FeedbackRoute: FeedbackRoute,
+  ForgotpasswordRoute: ForgotpasswordRoute,
   GlossaryRoute: GlossaryRoute,
   JournalRoute: JournalRoute,
   LoginRoute: LoginRoute,
@@ -1135,6 +1157,7 @@ export const routeTree = rootRoute
         "/collections",
         "/faq",
         "/feedback",
+        "/forgot_password",
         "/glossary",
         "/journal",
         "/login",
@@ -1208,6 +1231,9 @@ export const routeTree = rootRoute
     },
     "/feedback": {
       "filePath": "feedback.tsx"
+    },
+    "/forgot_password": {
+      "filePath": "forgot_password.tsx"
     },
     "/glossary": {
       "filePath": "glossary.tsx"
