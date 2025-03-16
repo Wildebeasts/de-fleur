@@ -304,8 +304,8 @@ export default function Brands() {
   return (
     <ConfigProvider theme={tableTheme}>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Brands']}
-        previousItems={['Admin Dashboard']}
+        items={['Admin Dashboard', 'Cosmetics', 'Brands']}
+        previousItems={['Admin Dashboard', 'Cosmetics']}
       />
       <motion.div
         className="mx-auto mt-32 w-4/5"

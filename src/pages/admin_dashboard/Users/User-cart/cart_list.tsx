@@ -177,8 +177,8 @@ const CartList: React.FC = () => {
       }}
     >
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Carts', 'All Carts']}
-        previousItems={['Admin Dashboard', 'Carts']}
+        items={['Admin Dashboard', 'Users', 'User Carts']}
+        previousItems={['Admin Dashboard', 'Users']}
       />
 
       <div className="mx-auto mt-32 w-4/5">

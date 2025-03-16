@@ -299,7 +299,7 @@ export default function Users() {
   return (
     <ConfigProvider theme={tableTheme}>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Users']}
+        items={['Admin Dashboard', 'Users', 'All Users']}
         previousItems={['Admin Dashboard']}
       />
       <div className="mx-auto mt-32 w-4/5">

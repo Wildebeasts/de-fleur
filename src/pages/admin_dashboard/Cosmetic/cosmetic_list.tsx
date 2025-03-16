@@ -1281,7 +1281,7 @@ export default function Courses() {
         ${additionalStyles}
       `}</style>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Cosmetics']}
+        items={['Admin Dashboard', 'Cosmetics', 'All Cosmetics']}
         previousItems={['Admin Dashboard']}
       />
       <div className="mx-auto mt-32 w-[70%]">

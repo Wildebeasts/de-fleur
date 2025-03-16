@@ -10,7 +10,9 @@ import {
   Home,
   //Settings2,
   Flag,
-  Users
+  Users,
+  PackageCheck,
+  Boxes
 } from 'lucide-react'
 import { useRouter } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
@@ -136,7 +138,7 @@ const data = {
     },
     {
       title: 'Orders',
-      icon: ShoppingBag,
+      icon: PackageCheck,
       items: [
         {
           title: 'All Orders',
@@ -146,7 +148,7 @@ const data = {
     },
     {
       title: 'Batches',
-      icon: ShoppingBag,
+      icon: Boxes,
       items: [
         {
           title: 'All Batches',

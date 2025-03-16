@@ -261,8 +261,8 @@ export default function CosmeticTypes() {
   return (
     <ConfigProvider theme={tableTheme}>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Cosmetic Types']}
-        previousItems={['Admin Dashboard']}
+        items={['Admin Dashboard', 'Cosmetics', 'Cosmetic Types']}
+        previousItems={['Admin Dashboard', 'Cosmetics']}
       />
       <motion.div
         className="mx-auto mt-32 w-4/5"

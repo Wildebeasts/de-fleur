@@ -339,8 +339,8 @@ export default function SkinTypes() {
   return (
     <ConfigProvider theme={tableTheme}>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Skin Types']}
-        previousItems={['Admin Dashboard']}
+        items={['Admin Dashboard', 'Cosmetics', 'Skin Types']}
+        previousItems={['Admin Dashboard', 'Cosmetics']}
       />
       <motion.div
         className="mx-auto mt-32 w-4/5"

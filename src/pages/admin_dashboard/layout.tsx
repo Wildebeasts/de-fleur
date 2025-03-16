@@ -11,7 +11,7 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { BreadcrumbProvider } from '@/lib/context/BreadcrumbContext'
-import React from 'react'
+import React, { useState } from 'react'
 import logo from '@/assets/logos/icon-white.svg'
 import { useMatches } from '@tanstack/react-router'
 import { ThemeProvider } from 'next-themes'
@@ -26,12 +26,77 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const matches = useMatches()
-  const breadcrumbs = matches
-    .filter((match) => match.pathname.startsWith('/admin'))
-    .map((match) => match.pathname.split('/').pop() || 'Admin')
+  const [breadcrumbItems, setBreadcrumbItems] = useState([
+    {
+      label: 'Admin Dashboard',
+      path: '/admin'
+    }
+  ])
 
-  const handleBreadcrumbUpdate = () => {
-    // Implementation of handleBreadcrumbUpdate
+  const pathToLabelMap = {
+    // Main sections
+    admin: 'Admin Dashboard',
+
+    // Cosmetics section
+    cosmetics: 'Cosmetics',
+    cosmetic_type: 'Cosmetic Types',
+    'skin-type': 'Skin Types',
+    brand_list: 'Brands',
+
+    // Batches
+    batches: 'Batches',
+
+    // Users section
+    users: 'Users',
+    carts: 'User Carts',
+
+    // Blogs
+    blogs: 'Blogs',
+
+    // Coupons
+    coupons: 'Coupons',
+
+    // Issue tickets
+    'issue-tickets': 'Issue Tickets',
+    reports: 'Reports',
+
+    // CRUD operations
+    add: 'Create',
+    edit: 'Edit',
+    create: 'Create',
+    'create-report': 'Create Report',
+
+    // Other common admin sections
+    dashboard: 'Dashboard',
+    settings: 'Settings',
+    profile: 'Profile',
+    orders: 'Orders',
+    inventory: 'Inventory',
+    analytics: 'Analytics'
+  }
+
+  const handleBreadcrumbUpdate = (...items: string[]) => {
+    // Convert the string array to the breadcrumb items format
+    const newBreadcrumbs = items.map((item, index) => {
+      // For the first item, use the admin path
+      if (index === 0) {
+        return {
+          label: item,
+          path: '/admin'
+        }
+      }
+
+      // For other items, construct a path or use empty string for the last item
+      return {
+        label: item,
+        path:
+          index === items.length - 1
+            ? ''
+            : `/admin/${item.toLowerCase().replace(/\s+/g, '-')}`
+      }
+    })
+
+    setBreadcrumbItems(newBreadcrumbs)
   }
 
   return (
@@ -51,22 +116,22 @@ export default function Layout({ children }: LayoutProps) {
                   <Separator orientation="vertical" className="mr-2 h-4" />
                   <Breadcrumb>
                     <BreadcrumbList className="py-0 leading-none">
-                      {breadcrumbs.map((item, index) => (
+                      {breadcrumbItems.map((item, index) => (
                         <React.Fragment key={index}>
                           {index > 0 && (
                             <BreadcrumbSeparator className="hidden leading-none md:block" />
                           )}
                           <BreadcrumbItem className="hidden md:block">
-                            {index === breadcrumbs.length - 1 ? (
+                            {index === breadcrumbItems.length - 1 ? (
                               <BreadcrumbPage className="py-0 leading-none text-white">
-                                {item}
+                                {item.label}
                               </BreadcrumbPage>
                             ) : (
                               <BreadcrumbLink
-                                href="#"
+                                href={item.path}
                                 className="py-0 leading-none"
                               >
-                                {item}
+                                {item.label}
                               </BreadcrumbLink>
                             )}
                           </BreadcrumbItem>

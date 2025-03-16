@@ -346,7 +346,7 @@ export default function BlogList() {
   return (
     <ConfigProvider theme={tableTheme}>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Blogs']}
+        items={['Admin Dashboard', 'Blogs', 'All Blogs']}
         previousItems={['Admin Dashboard']}
       />
       <motion.div

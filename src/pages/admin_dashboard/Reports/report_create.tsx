@@ -242,8 +242,8 @@ export default function CreateReport() {
     <ConfigProvider theme={tableTheme}>
       <style>{additionalStyles}</style>
       <BreadcrumbUpdater
-        items={['Admin Dashboard', 'Issue Tickets', 'Create Report']}
-        previousItems={['Admin Dashboard', 'Issue Tickets', 'Reports']}
+        items={['Admin Dashboard', 'Reports', 'Create Report']}
+        previousItems={['Admin Dashboard', 'Reports']}
       />
       <motion.div
         className="mx-auto mt-32 w-4/5"

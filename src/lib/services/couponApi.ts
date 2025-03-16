@@ -7,7 +7,7 @@ import {
 } from '../types/Coupon'
 
 const couponApi = {
-  getCoupons: () =>
+  getCoupons: (page = 1, pageSize = 10, searchText = '') =>
     axiosClient.get<ApiResponse<CouponResponse[]>>('/coupon/get-all-coupons'),
   getCouponByCode: (code: string) =>
     axiosClient.get<ApiResponse<CouponResponse>>(
