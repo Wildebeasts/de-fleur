@@ -257,6 +257,17 @@ const useCanvasCursor = (enabled = true) => {
       window.removeEventListener('blur', () => {
         isRunning = false
       })
+
+      // Add these lines to ensure complete cleanup
+      const canvas = document.getElementById('canvas') as HTMLCanvasElement
+      if (canvas && ctx) {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+      // Reset any animation frames
+      if (window.cancelAnimationFrame) {
+        window.cancelAnimationFrame(frame)
+      }
     }
   }, [enabled])
 

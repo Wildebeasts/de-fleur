@@ -547,7 +547,7 @@ export default function AdminDashboard() {
     }
   }, [userData])
 
-  // Add this effect to process order data
+  // Process order data when it's available
   useEffect(() => {
     if (ordersData && Array.isArray(ordersData)) {
       // Filter only completed orders
@@ -587,13 +587,17 @@ export default function AdminDashboard() {
         value: Number(value)
       }))
       
-      // Calculate trend percentage (if possible)
+      // Calculate trend percentage with improved logic
       let revenueTrend = 0
       const currentMonthRevenue = revenueByMonth[format(today, 'MMM')] || 0
       const lastMonthDate = subMonths(today, 1)
       const lastMonthRevenue = revenueByMonth[format(lastMonthDate, 'MMM')] || 0
       
-      if (lastMonthRevenue > 0) {
+      if (currentMonthRevenue > 0 && lastMonthRevenue === 0) {
+        // If last month was zero but current month has revenue, show 100% increase
+        revenueTrend = 100
+      } else if (lastMonthRevenue > 0) {
+        // Calculate percentage change when last month had revenue
         revenueTrend = Math.round(((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
       }
       
@@ -609,11 +613,11 @@ export default function AdminDashboard() {
         revenueByMonth
       })
       
-      // Update revenue state - make sure this is fully replacing the revenue object
+      // Update revenue state
       setStats(prev => ({
         ...prev,
         revenue: {
-          value: totalRevenue, // Use totalRevenue instead of just current month
+          value: totalRevenue,
           trend: revenueTrend,
           history: revenueData
         }
@@ -705,7 +709,7 @@ export default function AdminDashboard() {
         value: Number(value)
       }))
       
-      // Calculate trend percentage (if possible)
+      // Calculate ratings trend with improved logic
       let ratingTrend = 0
       const currentMonthRating = avgRatingsByMonth[format(today, 'MMM')] || 0
       const lastMonthDate = subMonths(today, 1)
@@ -713,6 +717,9 @@ export default function AdminDashboard() {
       
       if (lastMonthRating > 0) {
         ratingTrend = Math.round(((currentMonthRating - lastMonthRating) / lastMonthRating) * 100)
+      } else if (currentMonthRating > 0 && lastMonthRating === 0) {
+        // If there were no ratings last month but there are this month
+        ratingTrend = 100
       }
       
       // Calculate overall average rating
