@@ -221,12 +221,12 @@ export default function EditBatch() {
       border-top-color: #303030 !important;
     }
     /* Add these styles for disabled inputs */
-    .ant-input[disabled], 
-    .ant-input-number-input[disabled], 
+    .ant-input[disabled],
+    .ant-input-number-input[disabled],
     .ant-picker-input > input[disabled] {
       color: #9ca3af !important;
     }
-    
+
     .ant-picker-disabled .ant-picker-input > input {
       color: #9ca3af !important;
     }

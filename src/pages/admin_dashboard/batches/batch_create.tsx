@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -191,7 +193,7 @@ export default function CreateBatch() {
       border: 1px solid #303030 !important;
     }
 
-    .ant-picker-content th, 
+    .ant-picker-content th,
     .ant-picker-content td {
       color: #e5e7eb !important;
     }
