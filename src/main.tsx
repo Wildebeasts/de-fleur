@@ -6,6 +6,7 @@ import { AuthProvider } from './lib/context/AuthContext'
 import { Toaster } from 'sonner'
 import './index.css'
 import CanvasCursor from './components/CanvasCursor'
+import ChatwootManager from './components/ChatwootManager'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -41,6 +42,7 @@ function App() {
           </main>
           <Toaster position="bottom-right" richColors />
           <CanvasCursor />
+          <ChatwootManager />
         </DeliveryProvider>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
