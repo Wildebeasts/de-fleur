@@ -597,20 +597,27 @@ export default function AdminDashboard() {
         revenueTrend = Math.round(((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
       }
       
-      // Update revenue state
+      // Calculate total revenue for display
+      const totalRevenue = completedOrders.reduce((total, order) => 
+        total + (order.totalPrice || 0), 0
+      )
+      
+      console.log('Real order revenue data:', {
+        currentMonthRevenue,
+        totalRevenue, 
+        revenueTrend,
+        revenueByMonth
+      })
+      
+      // Update revenue state - make sure this is fully replacing the revenue object
       setStats(prev => ({
         ...prev,
         revenue: {
-          value: currentMonthRevenue,
+          value: totalRevenue, // Use totalRevenue instead of just current month
           trend: revenueTrend,
           history: revenueData
         }
       }))
-      
-      // Also update total revenue in quick stats if needed
-      const totalRevenue = completedOrders.reduce((total, order) => total + (order.totalPrice || 0), 0)
-      
-      // You could add more stats based on orders here
     }
   }, [ordersData])
 
