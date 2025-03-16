@@ -18,6 +18,7 @@ import { Route as ShopImport } from './routes/shop'
 import { Route as SalesCustomerInsightsImport } from './routes/sales-customer-insights'
 import { Route as ReviewImport } from './routes/review'
 import { Route as ReturnImport } from './routes/return'
+import { Route as ResetpasswordImport } from './routes/reset_password'
 import { Route as RegisterImport } from './routes/register'
 import { Route as QuizresultImport } from './routes/quiz_result'
 import { Route as QuizImport } from './routes/quiz'
@@ -102,6 +103,12 @@ const ReviewRoute = ReviewImport.update({
 const ReturnRoute = ReturnImport.update({
   id: '/return',
   path: '/return',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ResetpasswordRoute = ResetpasswordImport.update({
+  id: '/reset_password',
+  path: '/reset_password',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -511,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegisterImport
       parentRoute: typeof rootRoute
     }
+    '/reset_password': {
+      id: '/reset_password'
+      path: '/reset_password'
+      fullPath: '/reset_password'
+      preLoaderRoute: typeof ResetpasswordImport
+      parentRoute: typeof rootRoute
+    }
     '/return': {
       id: '/return'
       path: '/return'
@@ -782,6 +796,7 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/reset_password': typeof ResetpasswordRoute
   '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
@@ -833,6 +848,7 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/reset_password': typeof ResetpasswordRoute
   '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
@@ -886,6 +902,7 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/reset_password': typeof ResetpasswordRoute
   '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
@@ -940,6 +957,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/reset_password'
     | '/return'
     | '/review'
     | '/sales-customer-insights'
@@ -990,6 +1008,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/reset_password'
     | '/return'
     | '/review'
     | '/sales-customer-insights'
@@ -1041,6 +1060,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/reset_password'
     | '/return'
     | '/review'
     | '/sales-customer-insights'
@@ -1094,6 +1114,7 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
+  ResetpasswordRoute: typeof ResetpasswordRoute
   ReturnRoute: typeof ReturnRoute
   ReviewRoute: typeof ReviewRoute
   SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
@@ -1126,6 +1147,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
+  ResetpasswordRoute: ResetpasswordRoute,
   ReturnRoute: ReturnRoute,
   ReviewRoute: ReviewRoute,
   SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
@@ -1167,6 +1189,7 @@ export const routeTree = rootRoute
         "/quiz",
         "/quiz_result",
         "/register",
+        "/reset_password",
         "/return",
         "/review",
         "/sales-customer-insights",
@@ -1261,6 +1284,9 @@ export const routeTree = rootRoute
     },
     "/register": {
       "filePath": "register.tsx"
+    },
+    "/reset_password": {
+      "filePath": "reset_password.tsx"
     },
     "/return": {
       "filePath": "return.tsx"
