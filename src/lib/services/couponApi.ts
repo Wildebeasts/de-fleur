@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import axiosClient from '../api/axiosClient'
 import { ApiResponse } from '../types/base/Api'
 import {

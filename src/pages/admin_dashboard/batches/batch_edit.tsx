@@ -51,7 +51,6 @@ const MotionCard = motion(Card)
 export default function EditBatch() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  // @ts-expect-error -- TODO: fix this
   const params = useParams({ from: '/admin/batches/$batchId/edit' })
   const batchId = params.batchId
   const [form] = Form.useForm()
@@ -107,7 +106,6 @@ export default function EditBatch() {
       message.success('Batch updated successfully')
       queryClient.invalidateQueries({ queryKey: ['batches'] })
       queryClient.invalidateQueries({ queryKey: ['batch', batchId] })
-      // @ts-expect-error -- TODO: fix this
       navigate({ to: '/admin/batches' })
     },
     onError: (error) => {
@@ -223,12 +221,12 @@ export default function EditBatch() {
       border-top-color: #303030 !important;
     }
     /* Add these styles for disabled inputs */
-    .ant-input[disabled], 
-    .ant-input-number-input[disabled], 
+    .ant-input[disabled],
+    .ant-input-number-input[disabled],
     .ant-picker-input > input[disabled] {
       color: #9ca3af !important;
     }
-    
+
     .ant-picker-disabled .ant-picker-input > input {
       color: #9ca3af !important;
     }
@@ -266,7 +264,6 @@ export default function EditBatch() {
                 <Button
                   icon={<ArrowLeftOutlined />}
                   type="text"
-                  // @ts-expect-error -- TODO: fix this
                   onClick={() => navigate({ to: '/admin/batches' })}
                 />
                 <span className="text-lg font-semibold">
@@ -361,7 +358,6 @@ export default function EditBatch() {
                 <Button
                   type="default"
                   className="mr-4"
-                  // @ts-expect-error -- TODO: fix this
                   onClick={() => navigate({ to: '/admin/batches' })}
                 >
                   Cancel

@@ -506,7 +506,6 @@ export default function CouponList() {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    // @ts-expect-error -- TODO: fix this
                     onClick={() => navigate({ to: '/admin/coupons/create' })}
                   >
                     Create Coupon
