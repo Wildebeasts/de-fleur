@@ -97,13 +97,66 @@ export default function EditCoupon() {
       return couponApi.updateCoupon(couponUpdate)
     },
     onSuccess: () => {
-      message.success('Coupon updated successfully')
+      message.success(
+        `Coupon "${form.getFieldValue('code')}" updated successfully`
+      )
       queryClient.invalidateQueries({ queryKey: ['coupons'] })
       navigate({ to: '/admin/coupons' })
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error updating coupon:', error)
-      message.error('Failed to update coupon')
+
+      // Check for specific error types and provide detailed messages
+      if (error.response) {
+        const errorData = error.response.data
+
+        if (errorData.errors) {
+          // Handle validation errors from the server
+          const errorMessages = []
+
+          if (errorData.errors.Code) {
+            errorMessages.push(`Code: ${errorData.errors.Code.join(', ')}`)
+          }
+
+          if (errorData.errors.Discount) {
+            errorMessages.push(
+              `Discount: ${errorData.errors.Discount.join(', ')}`
+            )
+          }
+
+          if (errorData.errors.ExpiryDate) {
+            errorMessages.push(
+              `Expiry Date: ${errorData.errors.ExpiryDate.join(', ')}`
+            )
+          }
+
+          if (errorData.errors.UsageLimit) {
+            errorMessages.push(
+              `Usage Limit: ${errorData.errors.UsageLimit.join(', ')}`
+            )
+          }
+
+          if (errorMessages.length > 0) {
+            message.error(`Validation failed: ${errorMessages.join('; ')}`)
+          } else {
+            message.error(
+              errorData.message ||
+                'Failed to update coupon due to validation errors'
+            )
+          }
+        } else if (errorData.message) {
+          message.error(errorData.message)
+        } else {
+          message.error(
+            `Failed to update coupon: ${error.response.status} ${error.response.statusText}`
+          )
+        }
+      } else if (error.message) {
+        message.error(`Failed to update coupon: ${error.message}`)
+      } else {
+        message.error('Failed to update coupon due to an unknown error')
+      }
+
       setIsSubmitting(false)
     }
   })
@@ -288,14 +341,27 @@ export default function EditCoupon() {
                     />
                   </Form.Item>
 
-                  {/* Coupon Code */}
+                  {/* Coupon Code with enhanced validation */}
                   <Form.Item
                     label="Coupon Code"
                     name="code"
                     rules={[
                       {
                         required: true,
-                        message: 'Please enter a coupon code'
+                        message: 'Coupon code is required'
+                      },
+                      {
+                        min: 3,
+                        message: 'Coupon code must be at least 3 characters'
+                      },
+                      {
+                        max: 20,
+                        message: 'Coupon code cannot exceed 20 characters'
+                      },
+                      {
+                        pattern: /^[A-Z0-9_-]+$/,
+                        message:
+                          'Coupon code can only contain uppercase letters, numbers, underscores and hyphens'
                       }
                     ]}
                   >
@@ -306,14 +372,24 @@ export default function EditCoupon() {
                     />
                   </Form.Item>
 
-                  {/* Discount Percentage */}
+                  {/* Discount Percentage with enhanced validation */}
                   <Form.Item
                     label="Discount (%)"
                     name="discount"
                     rules={[
                       {
                         required: true,
-                        message: 'Please enter the discount percentage'
+                        message: 'Discount percentage is required'
+                      },
+                      {
+                        type: 'number',
+                        min: 1,
+                        message: 'Discount must be at least 1%'
+                      },
+                      {
+                        type: 'number',
+                        max: 100,
+                        message: 'Discount cannot exceed 100%'
                       }
                     ]}
                   >
@@ -328,14 +404,24 @@ export default function EditCoupon() {
                     />
                   </Form.Item>
 
-                  {/* Expiry Date */}
+                  {/* Expiry Date with enhanced validation */}
                   <Form.Item
                     label="Expiry Date"
                     name="expiryDate"
                     rules={[
                       {
                         required: true,
-                        message: 'Please select an expiry date'
+                        message: 'Expiry date is required'
+                      },
+                      {
+                        validator: (_, value) => {
+                          if (value && value.isBefore(dayjs())) {
+                            return Promise.reject(
+                              'Expiry date cannot be in the past'
+                            )
+                          }
+                          return Promise.resolve()
+                        }
                       }
                     ]}
                   >
@@ -344,23 +430,37 @@ export default function EditCoupon() {
                       showTime
                       format="YYYY-MM-DD HH:mm:ss"
                       placeholder="Select expiry date and time"
+                      disabledDate={(current) =>
+                        current && current < dayjs().startOf('day')
+                      }
                     />
                   </Form.Item>
 
-                  {/* Usage Limit */}
+                  {/* Usage Limit with enhanced validation */}
                   <Form.Item
                     label="Usage Limit"
                     name="usageLimit"
                     rules={[
                       {
                         required: true,
-                        message: 'Please enter the usage limit'
+                        message: 'Usage limit is required'
+                      },
+                      {
+                        type: 'number',
+                        min: 1,
+                        message: 'Usage limit must be at least 1'
+                      },
+                      {
+                        type: 'number',
+                        max: 1000,
+                        message: 'Usage limit cannot exceed 1000'
                       }
                     ]}
                     tooltip="How many times this coupon can be used"
                   >
                     <InputNumber
                       min={1}
+                      max={1000}
                       className="w-full rounded-lg"
                       placeholder="Enter usage limit"
                       prefix={
