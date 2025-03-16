@@ -13,7 +13,7 @@ import {
   Spin
 } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useQueryClient, useMutation, useQuery } from '@tanstack/react-query'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import batchApi from '@/lib/services/batchApi'
@@ -24,6 +24,7 @@ import weekday from 'dayjs/plugin/weekday'
 import localeData from 'dayjs/plugin/localeData'
 import weekOfYear from 'dayjs/plugin/weekOfYear'
 import advancedFormat from 'dayjs/plugin/advancedFormat'
+import { Route as BatchEditRoute } from '@/routes/admin/batches/$batchId/edit'
 
 // Register the plugins
 dayjs.extend(weekday)
@@ -51,9 +52,7 @@ const MotionCard = motion(Card)
 export default function EditBatch() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  // @ts-expect-error -- TODO: fix this
-  const params = useParams({ from: '/admin/batches/$batchId/edit' })
-  const batchId = params.batchId
+  const { batchId } = BatchEditRoute.useParams()
   const [form] = Form.useForm()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -107,7 +106,6 @@ export default function EditBatch() {
       message.success('Batch updated successfully')
       queryClient.invalidateQueries({ queryKey: ['batches'] })
       queryClient.invalidateQueries({ queryKey: ['batch', batchId] })
-      // @ts-expect-error -- TODO: fix this
       navigate({ to: '/admin/batches' })
     },
     onError: (error) => {
@@ -266,7 +264,6 @@ export default function EditBatch() {
                 <Button
                   icon={<ArrowLeftOutlined />}
                   type="text"
-                  // @ts-expect-error -- TODO: fix this
                   onClick={() => navigate({ to: '/admin/batches' })}
                 />
                 <span className="text-lg font-semibold">
@@ -361,7 +358,6 @@ export default function EditBatch() {
                 <Button
                   type="default"
                   className="mr-4"
-                  // @ts-expect-error -- TODO: fix this
                   onClick={() => navigate({ to: '/admin/batches' })}
                 >
                   Cancel
