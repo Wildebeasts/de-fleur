@@ -17,6 +17,7 @@ import { FaGoogle, FaApple } from 'react-icons/fa'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
 import { toast } from 'sonner'
+import { handleAxiosError } from '@/lib/api/axiosErrorHandler'
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -76,7 +77,7 @@ export const RegisterPage: React.FC = () => {
       toast.success('Registration successful!')
       navigate({ to: '/' })
     } catch (err) {
-      toast.error('Registration failed. Please try again.')
+      handleAxiosError(err)
     }
   }
 

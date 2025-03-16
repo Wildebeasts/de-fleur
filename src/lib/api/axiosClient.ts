@@ -1,5 +1,6 @@
 import axios from 'axios'
 import authApi from '../services/authApi'
+import { handleAxiosError } from './axiosErrorHandler'
 
 const axiosClient = axios.create({
   baseURL: 'https://api.pak160404.click/api', // Change to your backend URL
@@ -76,6 +77,14 @@ axiosClient.interceptors.response.use(
       }
     }
 
+    return Promise.reject(error)
+  }
+)
+
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    handleAxiosError(error) // Automatically show Sonner toast
     return Promise.reject(error)
   }
 )

@@ -134,13 +134,12 @@ export const LoginPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="h-auto p-0 text-rose-500 hover:text-rose-600"
+                    <Link
+                      to="/forgot_password"
+                      className="text-rose-500 hover:text-rose-600"
                     >
-                      Forgot password?
-                    </Button>
+                      Forgot your password?
+                    </Link>
                   </div>
                   <Input
                     id="password"
