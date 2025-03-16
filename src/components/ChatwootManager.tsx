@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 declare global {
   interface Window {
@@ -10,75 +10,116 @@ declare global {
 }
 
 export default function ChatwootManager() {
-  const [isAdminRoute, setIsAdminRoute] = useState(false)
+  const observerRef = useRef<MutationObserver | null>(null)
+  const checkIntervalRef = useRef<number | null>(null)
 
   useEffect(() => {
-    // Check if the current path includes admin
-    const checkIfAdminPage = () => {
-      return window.location.pathname.includes('/admin')
+    const BASE_URL = 'https://chat.pak160404.click'
+    const WIDGET_TOKEN = 'xeGPt87yu1imoruSAdPWZ5mZ'
+
+    // Check if current page is admin
+    const isAdminPage = () => window.location.pathname.includes('/admin')
+
+    // More aggressive removal of Chatwoot elements
+    const removeChatwootElements = () => {
+      // Find and remove all possible Chatwoot elements
+      const selectors = [
+        '.woot--bubble-holder',
+        '.woot--widget-holder',
+        '.woot--notification',
+        '#chatwoot_live_chat_widget',
+        '[data-chatwoot-widget]',
+        'iframe[src*="chatwoot"]'
+      ]
+
+      selectors.forEach((selector) => {
+        const elements = document.querySelectorAll(selector)
+        elements.forEach((el) => el.remove())
+      })
+
+      // Also try to use the toggle API if available
+      if (window.chatwootSDK?.toggle) {
+        try {
+          window.chatwootSDK.toggle(false)
+        } catch (e) {
+          console.log('Chatwoot toggle failed', e)
+        }
+      }
     }
 
-    // Set initial state
-    setIsAdminRoute(checkIfAdminPage())
-
-    // Update state when location changes
-    const handleLocationChange = () => {
-      setIsAdminRoute(checkIfAdminPage())
-    }
-
-    // Listen for location changes
-    window.addEventListener('popstate', handleLocationChange)
-    
-    // Function to initialize Chatwoot if not already initialized
-    const initChatwoot = () => {
+    // Initialize Chatwoot for non-admin pages
+    const initializeChatwoot = () => {
       if (!window.chatwootSDK) {
-        const BASE_URL = 'https://chat.pak160404.click'
         const script = document.createElement('script')
-        script.src = BASE_URL + '/packs/js/sdk.js'
+        script.src = `${BASE_URL}/packs/js/sdk.js`
         script.defer = true
         script.async = true
         script.onload = function () {
           window.chatwootSDK?.run({
-            websiteToken: 'xeGPt87yu1imoruSAdPWZ5mZ',
+            websiteToken: WIDGET_TOKEN,
             baseUrl: BASE_URL
           })
         }
         document.head.appendChild(script)
-      }
-    }
-
-    // Function to remove Chatwoot widget container if it exists
-    const removeChatwootWidget = () => {
-      const chatwootWidget = document.querySelector('.woot--bubble-holder')
-      if (chatwootWidget) {
-        chatwootWidget.remove()
-      }
-      const chatwootIframe = document.getElementById(
-        'chatwoot_live_chat_widget'
-      )
-      if (chatwootIframe) {
-        chatwootIframe.remove()
-      }
-    }
-
-    if (isAdminRoute) {
-      // Hide Chatwoot on admin routes
-      if (window.chatwootSDK?.toggle) {
-        window.chatwootSDK.toggle(false)
-      }
-      removeChatwootWidget()
-    } else {
-      // Show and ensure Chatwoot is initialized on non-admin routes
-      initChatwoot()
-      if (window.chatwootSDK?.toggle) {
+      } else if (window.chatwootSDK?.toggle) {
         window.chatwootSDK.toggle(true)
       }
     }
 
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange)
+    // Setup mutation observer to catch dynamically added Chatwoot elements
+    const setupObserver = () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+
+      observerRef.current = new MutationObserver((mutations) => {
+        if (isAdminPage()) {
+          removeChatwootElements()
+        }
+      })
+
+      observerRef.current.observe(document.body, {
+        childList: true,
+        subtree: true
+      })
     }
-  }, [isAdminRoute])
+
+    // Handle route change
+    const handleRouteChange = () => {
+      if (isAdminPage()) {
+        removeChatwootElements()
+      } else {
+        initializeChatwoot()
+      }
+    }
+
+    // Initial check
+    handleRouteChange()
+
+    // Setup periodic check as a fallback
+    checkIntervalRef.current = window.setInterval(() => {
+      handleRouteChange()
+    }, 1000) as unknown as number
+
+    // Listen for route changes
+    window.addEventListener('popstate', handleRouteChange)
+
+    // Setup observer for dynamic elements
+    setupObserver()
+
+    // Cleanup
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current)
+      }
+
+      window.removeEventListener('popstate', handleRouteChange)
+    }
+  }, [])
 
   return null
 }
