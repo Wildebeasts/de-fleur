@@ -55,8 +55,10 @@ import { Route as AdminCosmeticsCreateImport } from './routes/admin/cosmetics/cr
 import { Route as AdminCosmeticsCosmetictypeImport } from './routes/admin/cosmetics/cosmetic_type'
 import { Route as AdminCosmeticsBrandlistImport } from './routes/admin/cosmetics/brand_list'
 import { Route as AdminBlogsAddImport } from './routes/admin/blogs/add'
+import { Route as AdminBatchesCreateImport } from './routes/admin/batches/create'
 import { Route as AdminCouponsEditIdImport } from './routes/admin/coupons/edit/$id'
 import { Route as AdminCosmeticsCosmeticIdEditImport } from './routes/admin/cosmetics/$cosmeticId/edit'
+import { Route as AdminBatchesBatchIdEditImport } from './routes/admin/batches/$batchId/edit'
 
 // Create/Update Routes
 
@@ -326,6 +328,12 @@ const AdminBlogsAddRoute = AdminBlogsAddImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 
+const AdminBatchesCreateRoute = AdminBatchesCreateImport.update({
+  id: '/batches/create',
+  path: '/batches/create',
+  getParentRoute: () => AdminRoute,
+} as any)
+
 const AdminCouponsEditIdRoute = AdminCouponsEditIdImport.update({
   id: '/coupons/edit/$id',
   path: '/coupons/edit/$id',
@@ -338,6 +346,12 @@ const AdminCosmeticsCosmeticIdEditRoute =
     path: '/cosmetics/$cosmeticId/edit',
     getParentRoute: () => AdminRoute,
   } as any)
+
+const AdminBatchesBatchIdEditRoute = AdminBatchesBatchIdEditImport.update({
+  id: '/batches/$batchId/edit',
+  path: '/batches/$batchId/edit',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -546,6 +560,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffIndexImport
       parentRoute: typeof rootRoute
     }
+    '/admin/batches/create': {
+      id: '/admin/batches/create'
+      path: '/batches/create'
+      fullPath: '/admin/batches/create'
+      preLoaderRoute: typeof AdminBatchesCreateImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/blogs/add': {
       id: '/admin/blogs/add'
       path: '/blogs/add'
@@ -651,6 +672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersIndexImport
       parentRoute: typeof AdminImport
     }
+    '/admin/batches/$batchId/edit': {
+      id: '/admin/batches/$batchId/edit'
+      path: '/batches/$batchId/edit'
+      fullPath: '/admin/batches/$batchId/edit'
+      preLoaderRoute: typeof AdminBatchesBatchIdEditImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/cosmetics/$cosmeticId/edit': {
       id: '/admin/cosmetics/$cosmeticId/edit'
       path: '/cosmetics/$cosmeticId/edit'
@@ -672,6 +700,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminBatchesCreateRoute: typeof AdminBatchesCreateRoute
   AdminBlogsAddRoute: typeof AdminBlogsAddRoute
   AdminCosmeticsBrandlistRoute: typeof AdminCosmeticsBrandlistRoute
   AdminCosmeticsCosmetictypeRoute: typeof AdminCosmeticsCosmetictypeRoute
@@ -687,12 +716,14 @@ interface AdminRouteChildren {
   AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
   AdminReportsIndexRoute: typeof AdminReportsIndexRoute
   AdminUsersIndexRoute: typeof AdminUsersIndexRoute
+  AdminBatchesBatchIdEditRoute: typeof AdminBatchesBatchIdEditRoute
   AdminCosmeticsCosmeticIdEditRoute: typeof AdminCosmeticsCosmeticIdEditRoute
   AdminCouponsEditIdRoute: typeof AdminCouponsEditIdRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminBatchesCreateRoute: AdminBatchesCreateRoute,
   AdminBlogsAddRoute: AdminBlogsAddRoute,
   AdminCosmeticsBrandlistRoute: AdminCosmeticsBrandlistRoute,
   AdminCosmeticsCosmetictypeRoute: AdminCosmeticsCosmetictypeRoute,
@@ -708,6 +739,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminOrdersIndexRoute: AdminOrdersIndexRoute,
   AdminReportsIndexRoute: AdminReportsIndexRoute,
   AdminUsersIndexRoute: AdminUsersIndexRoute,
+  AdminBatchesBatchIdEditRoute: AdminBatchesBatchIdEditRoute,
   AdminCosmeticsCosmeticIdEditRoute: AdminCosmeticsCosmeticIdEditRoute,
   AdminCouponsEditIdRoute: AdminCouponsEditIdRoute,
 }
@@ -744,6 +776,7 @@ export interface FileRoutesByFullPath {
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
   '/staff': typeof StaffIndexRoute
+  '/admin/batches/create': typeof AdminBatchesCreateRoute
   '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
@@ -759,6 +792,7 @@ export interface FileRoutesByFullPath {
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/reports': typeof AdminReportsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/batches/$batchId/edit': typeof AdminBatchesBatchIdEditRoute
   '/admin/cosmetics/$cosmeticId/edit': typeof AdminCosmeticsCosmeticIdEditRoute
   '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
 }
@@ -792,6 +826,7 @@ export interface FileRoutesByTo {
   '/testimonials': typeof TestimonialsRoute
   '/admin': typeof AdminIndexRoute
   '/staff': typeof StaffIndexRoute
+  '/admin/batches/create': typeof AdminBatchesCreateRoute
   '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
@@ -807,6 +842,7 @@ export interface FileRoutesByTo {
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/reports': typeof AdminReportsIndexRoute
   '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/batches/$batchId/edit': typeof AdminBatchesBatchIdEditRoute
   '/admin/cosmetics/$cosmeticId/edit': typeof AdminCosmeticsCosmeticIdEditRoute
   '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
 }
@@ -842,6 +878,7 @@ export interface FileRoutesById {
   '/testimonials': typeof TestimonialsRoute
   '/admin/': typeof AdminIndexRoute
   '/staff/': typeof StaffIndexRoute
+  '/admin/batches/create': typeof AdminBatchesCreateRoute
   '/admin/blogs/add': typeof AdminBlogsAddRoute
   '/admin/cosmetics/brand_list': typeof AdminCosmeticsBrandlistRoute
   '/admin/cosmetics/cosmetic_type': typeof AdminCosmeticsCosmetictypeRoute
@@ -857,6 +894,7 @@ export interface FileRoutesById {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/reports/': typeof AdminReportsIndexRoute
   '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/batches/$batchId/edit': typeof AdminBatchesBatchIdEditRoute
   '/admin/cosmetics/$cosmeticId/edit': typeof AdminCosmeticsCosmeticIdEditRoute
   '/admin/coupons/edit/$id': typeof AdminCouponsEditIdRoute
 }
@@ -893,6 +931,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/admin/'
     | '/staff'
+    | '/admin/batches/create'
     | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
@@ -908,6 +947,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/reports'
     | '/admin/users'
+    | '/admin/batches/$batchId/edit'
     | '/admin/cosmetics/$cosmeticId/edit'
     | '/admin/coupons/edit/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -940,6 +980,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/admin'
     | '/staff'
+    | '/admin/batches/create'
     | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
@@ -955,6 +996,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/reports'
     | '/admin/users'
+    | '/admin/batches/$batchId/edit'
     | '/admin/cosmetics/$cosmeticId/edit'
     | '/admin/coupons/edit/$id'
   id:
@@ -988,6 +1030,7 @@ export interface FileRouteTypes {
     | '/testimonials'
     | '/admin/'
     | '/staff/'
+    | '/admin/batches/create'
     | '/admin/blogs/add'
     | '/admin/cosmetics/brand_list'
     | '/admin/cosmetics/cosmetic_type'
@@ -1003,6 +1046,7 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/reports/'
     | '/admin/users/'
+    | '/admin/batches/$batchId/edit'
     | '/admin/cosmetics/$cosmeticId/edit'
     | '/admin/coupons/edit/$id'
   fileRoutesById: FileRoutesById
@@ -1123,6 +1167,7 @@ export const routeTree = rootRoute
       "filePath": "admin.tsx",
       "children": [
         "/admin/",
+        "/admin/batches/create",
         "/admin/blogs/add",
         "/admin/cosmetics/brand_list",
         "/admin/cosmetics/cosmetic_type",
@@ -1138,6 +1183,7 @@ export const routeTree = rootRoute
         "/admin/orders/",
         "/admin/reports/",
         "/admin/users/",
+        "/admin/batches/$batchId/edit",
         "/admin/cosmetics/$cosmeticId/edit",
         "/admin/coupons/edit/$id"
       ]
@@ -1218,6 +1264,10 @@ export const routeTree = rootRoute
     "/staff/": {
       "filePath": "staff/index.tsx"
     },
+    "/admin/batches/create": {
+      "filePath": "admin/batches/create.tsx",
+      "parent": "/admin"
+    },
     "/admin/blogs/add": {
       "filePath": "admin/blogs/add.tsx",
       "parent": "/admin"
@@ -1276,6 +1326,10 @@ export const routeTree = rootRoute
     },
     "/admin/users/": {
       "filePath": "admin/users/index.tsx",
+      "parent": "/admin"
+    },
+    "/admin/batches/$batchId/edit": {
+      "filePath": "admin/batches/$batchId/edit.tsx",
       "parent": "/admin"
     },
     "/admin/cosmetics/$cosmeticId/edit": {

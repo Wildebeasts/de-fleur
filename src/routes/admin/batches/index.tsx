@@ -9,7 +9,6 @@ function RouteComponent() {
   return (
     <>
       <BatchesPage />
-      <h1>Hello</h1>
     </>
   )
 }

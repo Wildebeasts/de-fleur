@@ -9,12 +9,18 @@ import {
   Input,
   Card
 } from 'antd'
-import { DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import {
+  DeleteOutlined,
+  SearchOutlined,
+  PlusOutlined,
+  EditOutlined
+} from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import { Package as LucidePackage } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 
 import batchApi from '@/lib/services/batchApi'
 import cosmeticApi from '@/lib/services/cosmeticApi'
@@ -31,6 +37,7 @@ export default function BatchList() {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const navigate = useNavigate()
 
   // Fetch batches data
   const { data: batchesData, isLoading } = useQuery({
@@ -125,11 +132,14 @@ export default function BatchList() {
       title: 'Actions',
       key: 'actions',
       render: (_: unknown, record: BatchWithDetails) => (
-        <Button
-          icon={<DeleteOutlined />}
-          danger
-          onClick={() => handleDelete(record)}
-        />
+        <div className="flex items-center">
+          <Button
+            type="text"
+            className="flex size-9 items-center justify-center rounded-full text-blue-500 transition-all hover:bg-blue-500/10 hover:text-blue-600"
+            onClick={() => navigate({ to: `/admin/batches/${record.id}/edit` })}
+            icon={<EditOutlined className="text-lg" />}
+          />
+        </div>
       )
     }
   ]
@@ -195,7 +205,10 @@ export default function BatchList() {
         colorTextTertiary: '#6b7280',
         colorIcon: '#9ca3af',
         colorBorderSecondary: '#303030',
-        colorSplit: '#303030'
+        colorSplit: '#303030',
+        colorBgTextHover: 'rgba(30, 41, 59, 0.4)',
+        colorBgTextActive: 'rgba(34, 197, 94, 0.08)',
+        colorBgTextSelectedHover: 'rgba(34, 197, 94, 0.12)'
       },
       Button: {
         colorPrimary: '#3b82f6',
@@ -253,8 +266,91 @@ export default function BatchList() {
     }
   }
 
+  // Update the additional styles section to include proper checkbox styling and more subtle hues
+  const additionalStyles = `
+    /* Make selected rows have a more subtle green background */
+    .ant-table-row.ant-table-row-selected > td {
+      background-color: rgba(34, 197, 94, 0.08) !important;
+      transition: background-color 0.3s ease;
+    }
+
+    .ant-table-row:hover > td {
+      background-color: rgba(30, 41, 59, 0.4) !important;
+    }
+
+    .ant-table-row.ant-table-row-selected:hover > td {
+      background-color: rgba(34, 197, 94, 0.12) !important;
+    }
+
+    /* Style for the checkboxes - make them green */
+    .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner,
+    .ant-table-thead .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner,
+    .ant-table-tbody .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+      background-color: rgba(34, 197, 94, 0.7) !important;
+      border-color: #22c55e !important;
+    }
+    
+    /* Style for indeterminate checkboxes */
+    .ant-checkbox-indeterminate .ant-checkbox-inner {
+      background-color: rgba(34, 197, 94, 0.3) !important;
+      border-color: #22c55e !important;
+    }
+    
+    /* Make checkbox borders more visible in unchecked state */
+    .ant-checkbox-wrapper .ant-checkbox-inner {
+      border-color: rgba(34, 197, 94, 0.5) !important;
+    }
+    
+    /* Checkbox hover effect */
+    .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+      border-color: #22c55e !important;
+    }
+    
+    /* Remove the highlight effect on the header row - it's too bright */
+    .ant-table-thead > tr > th:first-child::after {
+      display: none;
+    }
+
+    /* Style for action buttons */
+    .ant-btn-dangerous.ant-btn-primary {
+      background-color: #ef4444 !important;
+      border-color: #ef4444 !important;
+    }
+
+    .ant-btn-dangerous.ant-btn-primary:hover {
+      background-color: #dc2626 !important;
+      border-color: #dc2626 !important;
+    }
+
+    /* Make header checkbox (select all) less bright */
+    .ant-table-thead .ant-checkbox-wrapper .ant-checkbox-inner {
+      border-color: rgba(34, 197, 94, 0.3) !important;
+      background-color: transparent !important;
+    }
+
+    .ant-table-thead .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+      border-color: rgba(34, 197, 94, 0.5) !important;
+    }
+
+    .ant-table-thead .ant-checkbox-wrapper .ant-checkbox-checked .ant-checkbox-inner {
+      background-color: rgba(34, 197, 94, 0.5) !important;
+      border-color: rgba(34, 197, 94, 0.4) !important;
+    }
+
+    .ant-table-thead .ant-checkbox-wrapper .ant-checkbox-indeterminate .ant-checkbox-inner {
+      background-color: rgba(34, 197, 94, 0.2) !important;
+      border-color: rgba(34, 197, 94, 0.4) !important;
+    }
+
+    /* Checkbox checkmark color */
+    .ant-checkbox-checked .ant-checkbox-inner::after {
+      border-color: rgba(255, 255, 255, 0.9) !important;
+    }
+  `
+
   return (
     <ConfigProvider theme={tableTheme}>
+      <style>{additionalStyles}</style>
       <BreadcrumbUpdater
         items={['Admin Dashboard', 'Batches', 'All Batches']}
         previousItems={['Admin Dashboard']}
@@ -283,34 +379,48 @@ export default function BatchList() {
           <Card
             className="rounded-xl border border-gray-100/10 bg-[#1a1b24]"
             title={
-              <div className="my-4 flex items-center gap-3">
-                <div className="rounded-lg bg-[#282d35] p-2">
-                  <LucidePackage className="size-5 text-blue-400" />
+              <div className="my-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg bg-[#282d35] p-2">
+                    <LucidePackage className="size-5 text-blue-400" />
+                  </div>
+                  <span className="text-lg font-semibold text-white">
+                    All Batches
+                  </span>
                 </div>
-                <span className="text-lg font-semibold text-white">
-                  All Batches
-                </span>
+                <div className="flex space-x-2">
+                  {selectedRowKeys.length > 0 && (
+                    <Button
+                      type="primary"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={handleBulkDelete}
+                      className="bg-red-500 hover:bg-red-600"
+                    >
+                      Delete Selected ({selectedRowKeys.length})
+                    </Button>
+                  )}
+                  <Button
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => navigate({ to: '/admin/batches/create' })}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    Create Batch
+                  </Button>
+                </div>
               </div>
             }
           >
-            <div className="mb-4 flex items-center justify-between">
+            <motion.div variants={itemVariants} className="mb-6">
               <Input
-                prefix={<SearchOutlined className="text-gray-400" />}
                 placeholder="Search batches..."
-                className="w-64"
+                prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
+                className="w-64"
               />
-              <Button
-                type="primary"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={handleBulkDelete}
-                disabled={selectedRowKeys.length === 0}
-              >
-                Delete Selected
-              </Button>
-            </div>
+            </motion.div>
 
             <Table
               columns={columns}
@@ -321,19 +431,14 @@ export default function BatchList() {
                 onChange: setSelectedRowKeys
               }}
               pagination={{
-                current: currentPage,
                 pageSize: pageSize,
+                current: currentPage,
                 onChange: (page, pageSize) => {
                   setCurrentPage(page)
-                  setPageSize(pageSize)
+                  setPageSize(pageSize || 10)
                 },
-                showSizeChanger: true,
-                pageSizeOptions: ['10', '20', '50', '100'],
-                showTotal: (total) => `Total ${total} batches`
+                showSizeChanger: true
               }}
-              scroll={{ x: 1000, y: 700 }}
-              // eslint-disable-next-line tailwindcss/no-custom-classname
-              className="custom-dark-table"
             />
           </Card>
         </motion.div>

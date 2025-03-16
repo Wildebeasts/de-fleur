@@ -58,6 +58,11 @@ export default function CreateReport() {
     return date.toISOString()
   }
 
+  // Disable future dates
+  const disableFutureDates = (current: dayjs.Dayjs) => {
+    return current && current > dayjs().endOf('day')
+  }
+
   // Create report mutation
   const createReportMutation = useMutation({
     mutationFn: (values: any) => {
@@ -292,6 +297,7 @@ export default function CreateReport() {
                     showTime
                     format="YYYY-MM-DD HH:mm:ss"
                     placeholder="Select start date and time"
+                    disabledDate={disableFutureDates}
                   />
                 </Form.Item>
 
@@ -312,6 +318,7 @@ export default function CreateReport() {
                     showTime
                     format="YYYY-MM-DD HH:mm:ss"
                     placeholder="Select end date and time"
+                    disabledDate={disableFutureDates}
                   />
                 </Form.Item>
 
