@@ -242,6 +242,32 @@ const OrderCard = ({ order }: { order: Order }) => {
 const OrderHistoryPage: React.FC = () => {
   const navigate = useNavigate()
 
+  // Add this effect to listen for the refresh event
+  useEffect(() => {
+    // Function to handle the refresh event
+    const handleOrderRefresh = () => {
+      console.log('Order refresh event received')
+      // Call your function to fetch orders here
+      fetchOrders()
+    }
+
+    // Check if we need to refresh on mount
+    const needsRefresh = localStorage.getItem('refreshOrders') === 'true'
+    if (needsRefresh) {
+      console.log('Refreshing orders from localStorage flag')
+      fetchOrders()
+      localStorage.removeItem('refreshOrders')
+    }
+
+    // Add event listener
+    window.addEventListener('order-refresh-needed', handleOrderRefresh)
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('order-refresh-needed', handleOrderRefresh)
+    }
+  }, [])
+
   // Fetch orders using the API
   const {
     data: ordersData,
@@ -257,6 +283,10 @@ const OrderHistoryPage: React.FC = () => {
       throw new Error(response.data.message || 'Failed to fetch orders')
     }
   })
+
+  const fetchOrders = async () => {
+    // Your existing code to fetch orders
+  }
 
   if (isLoading) {
     return (

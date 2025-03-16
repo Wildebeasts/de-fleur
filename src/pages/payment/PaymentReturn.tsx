@@ -7,6 +7,15 @@ import { Loader2 } from 'lucide-react'
 import orderApi from '@/lib/services/orderApi'
 import { Button } from '@/components/ui/button'
 
+// Create a custom event for order refresh
+const ORDER_REFRESH_EVENT = 'order-refresh-needed'
+
+// Function to dispatch the refresh event
+const triggerOrderRefresh = () => {
+  const event = new CustomEvent(ORDER_REFRESH_EVENT)
+  window.dispatchEvent(event)
+}
+
 interface VNPayReturnParams {
   vnp_Amount: string
   vnp_BankCode: string
@@ -120,6 +129,10 @@ const PaymentReturn: React.FC = () => {
 
         if (response.data.isSuccess) {
           setIsSuccess(true)
+          // Set a flag in localStorage to indicate orders need refreshing
+          localStorage.setItem('refreshOrders', 'true')
+          // Trigger the refresh event
+          triggerOrderRefresh()
         } else {
           setIsSuccess(false)
           setErrorMessage(
@@ -138,6 +151,15 @@ const PaymentReturn: React.FC = () => {
 
     processPayment()
   }, [])
+
+  const handleViewOrders = () => {
+    // Set the refresh flag before navigating
+    localStorage.setItem('refreshOrders', 'true')
+    // Trigger the refresh event
+    triggerOrderRefresh()
+    // Navigate to order history
+    navigate({ to: '/order_history' })
+  }
 
   if (isProcessing) {
     return (
@@ -186,7 +208,7 @@ const PaymentReturn: React.FC = () => {
             <div className="space-y-3">
               <Button
                 className="w-full bg-[#3A4D39] hover:bg-[#4A5D49]"
-                onClick={() => navigate({ to: '/order_history' })}
+                onClick={handleViewOrders}
               >
                 View Orders
               </Button>
