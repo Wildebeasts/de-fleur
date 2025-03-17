@@ -1,5 +1,5 @@
 import orderApi from '@/lib/services/orderApi'
-import { OrderResponse } from '@/lib/types/order'
+import { OrderItemResponse, OrderResponse } from '@/lib/types/order'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import {
@@ -23,6 +23,11 @@ import { Input } from '../ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Loader2 } from 'lucide-react'
 import { Card } from '../ui/card'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '../ui/collapsible'
 
 const getStatusStyles = (status: string) => {
   switch (status) {
@@ -68,6 +73,9 @@ const OrderTracking = () => {
   const [updating, setUpdating] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('ALL')
+  const [openCollapsibleId, setOpenCollapsibleId] = useState<string | null>(
+    null
+  ) // Track which collapsible is open
 
   useEffect(() => {
     fetchOrders()
@@ -149,134 +157,219 @@ const OrderTracking = () => {
               </Card>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Coupon</TableHead>
-                  <TableHead>Subtotal</TableHead>
-                  <TableHead>Total Price</TableHead>
-                  <TableHead>Order Date</TableHead>
-                  <TableHead>Shipping Address</TableHead>
-                  <TableHead>Billing Address</TableHead>
-                  <TableHead>Tracking Number</TableHead>
-                  <TableHead>ETA</TableHead>
-                  <TableHead>Delivery Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.id}</TableCell>
-                    <TableCell>
-                      <div>
-                        <span>{order.customerUserName || 'Walk-in'}</span>
-                        {order.customerEmail && (
-                          <p className="text-xs text-gray-500">
-                            {order.customerEmail}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <span>{order.couponName || 'N/A'}</span>
-                        {order.couponId && (
-                          <p className="text-xs text-gray-500">
-                            {order.couponId}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Intl.NumberFormat('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                      }).format(order.subTotal!)}
-                    </TableCell>
-                    <TableCell>
-                      {new Intl.NumberFormat('vi-VN', {
-                        style: 'currency',
-                        currency: 'VND',
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                      }).format(order.totalPrice!)}
-                    </TableCell>
-                    <TableCell>
-                      {formatDateVN(order.orderDate!) || 'N/A'}
-                    </TableCell>
-                    <TableCell>{order.shippingAddress || 'N/A'}</TableCell>
-                    <TableCell>{order.billingAddress || 'N/A'}</TableCell>
-                    <TableCell>{order.trackingNumber || 'Walk-In'}</TableCell>
-                    <TableCell>{formatDateVN(order.eta!)}</TableCell>
-                    <TableCell>
-                      {formatDateVN(order.deliveryDate!) || 'N/A'}
-                    </TableCell>
-                    <TableCell>
-                      <div
-                        className={cn(
-                          'rounded-md px-2 py-1 text-sm font-medium',
-                          getStatusStyles(order.status!)
-                        )}
-                      >
-                        {order.status?.replace(/_/g, ' ') || 'Unknown'}
-                      </div>
-                      <Select
-                        defaultValue={order.status}
-                        onValueChange={(value) =>
-                          handleStatusChange(order.id!, value)
-                        }
-                        disabled={
-                          updating === order.id ||
-                          order.status === 'COMPLETED' ||
-                          order.status === 'CANCELLED'
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="PENDING_PAYMENT">
-                            Pending
-                          </SelectItem>
-                          <SelectItem value="CONFIRMED">Confirmed</SelectItem>
-                          <SelectItem value="PROCESSING">Processing</SelectItem>
-                          <SelectItem value="DELIVERY">Delivery</SelectItem>
-                          <SelectItem value="COMPLETED">Completed</SelectItem>
-                          <SelectItem value="REFUNDED" disabled>
-                            Refunded
-                          </SelectItem>
-                          <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                          <SelectItem value="PAYMENT_FAILED" disabled>
-                            Failed
-                          </SelectItem>
-                          <SelectItem value="EXPIRED" disabled>
-                            Expired
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        onClick={() =>
-                          handleStatusChange(order.id!, 'COMPLETED')
-                        }
-                        disabled={
-                          updating === order.id || order.status === 'COMPLETED'
-                        }
-                      >
-                        Mark as Completed
-                      </Button>
-                    </TableCell>
+            <div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Coupon</TableHead>
+                    <TableHead>Subtotal</TableHead>
+                    <TableHead>Total Price</TableHead>
+                    <TableHead>Order Date</TableHead>
+                    <TableHead>Shipping Address</TableHead>
+                    <TableHead>Billing Address</TableHead>
+                    <TableHead>Tracking Number</TableHead>
+                    <TableHead>ETA</TableHead>
+                    <TableHead>Delivery Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredOrders.map((order) => (
+                    <Collapsible
+                      key={order.id}
+                      open={openCollapsibleId === order.id}
+                      onOpenChange={(isOpen) =>
+                        setOpenCollapsibleId(isOpen ? order.id! : null)
+                      }
+                      asChild
+                    >
+                      <>
+                        <TableRow>
+                          <TableCell>
+                            <CollapsibleTrigger asChild>
+                              <div>{order.id}</div>
+                            </CollapsibleTrigger>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <span>{order.customerUserName || 'Walk-in'}</span>
+                              {order.customerEmail && (
+                                <p className="text-xs text-gray-500">
+                                  {order.customerEmail}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <span>{order.couponName || 'N/A'}</span>
+                              {order.couponId && (
+                                <p className="text-xs text-gray-500">
+                                  {order.couponId}
+                                </p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
+                            }).format(order.subTotal!)}
+                          </TableCell>
+                          <TableCell>
+                            {new Intl.NumberFormat('vi-VN', {
+                              style: 'currency',
+                              currency: 'VND',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0
+                            }).format(order.totalPrice!)}
+                          </TableCell>
+                          <TableCell>
+                            {formatDateVN(order.orderDate!) || 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {order.shippingAddress || 'N/A'}
+                          </TableCell>
+                          <TableCell>{order.billingAddress || 'N/A'}</TableCell>
+                          <TableCell>
+                            {order.trackingNumber || 'Walk-In'}
+                          </TableCell>
+                          <TableCell>
+                            {order.eta ? formatDateVN(order.eta!) : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            {order.deliveryDate
+                              ? formatDateVN(order.deliveryDate!)
+                              : 'N/A'}
+                          </TableCell>
+                          <TableCell>
+                            <div
+                              className={cn(
+                                'rounded-md px-2 py-1 text-sm font-medium',
+                                getStatusStyles(order.status!)
+                              )}
+                            >
+                              {order.status?.replace(/_/g, ' ') || 'Unknown'}
+                            </div>
+                            <Select
+                              defaultValue={order.status}
+                              onValueChange={(value) =>
+                                handleStatusChange(order.id!, value)
+                              }
+                              disabled={
+                                updating === order.id ||
+                                order.status === 'COMPLETED' ||
+                                order.status === 'CANCELLED'
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PENDING_PAYMENT">
+                                  Pending
+                                </SelectItem>
+                                <SelectItem value="CONFIRMED">
+                                  Confirmed
+                                </SelectItem>
+                                <SelectItem value="PROCESSING">
+                                  Processing
+                                </SelectItem>
+                                <SelectItem value="DELIVERY">
+                                  Delivery
+                                </SelectItem>
+                                <SelectItem value="COMPLETED">
+                                  Completed
+                                </SelectItem>
+                                <SelectItem value="REFUNDED" disabled>
+                                  Refunded
+                                </SelectItem>
+                                <SelectItem value="CANCELLED">
+                                  Cancelled
+                                </SelectItem>
+                                <SelectItem value="PAYMENT_FAILED" disabled>
+                                  Failed
+                                </SelectItem>
+                                <SelectItem value="EXPIRED" disabled>
+                                  Expired
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              onClick={() =>
+                                handleStatusChange(order.id!, 'COMPLETED')
+                              }
+                              disabled={
+                                updating === order.id ||
+                                order.status === 'COMPLETED'
+                              }
+                            >
+                              Mark as Completed
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        <CollapsibleContent asChild>
+                          <TableRow>
+                            <TableCell colSpan={13}>
+                              <div className="p-4">
+                                <h4 className="font-semibold">Order Items</h4>
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead>Cosmetic ID</TableHead>
+                                      <TableHead>Quantity</TableHead>
+                                      <TableHead>Selling Price</TableHead>
+                                      <TableHead>Subtotal</TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {order.orderItems?.map(
+                                      (item: OrderItemResponse) => (
+                                        <TableRow key={item.cosmeticId}>
+                                          <TableCell>
+                                            {item.cosmeticId}
+                                          </TableCell>
+                                          <TableCell>{item.quantity}</TableCell>
+                                          <TableCell>
+                                            {new Intl.NumberFormat('vi-VN', {
+                                              style: 'currency',
+                                              currency: 'VND',
+                                              minimumFractionDigits: 0,
+                                              maximumFractionDigits: 0
+                                            }).format(item.sellingPrice)}
+                                          </TableCell>
+                                          <TableCell>
+                                            {new Intl.NumberFormat('vi-VN', {
+                                              style: 'currency',
+                                              currency: 'VND',
+                                              minimumFractionDigits: 0,
+                                              maximumFractionDigits: 0
+                                            }).format(
+                                              item.sellingPrice * item.quantity
+                                            )}
+                                          </TableCell>
+                                        </TableRow>
+                                      )
+                                    )}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        </CollapsibleContent>
+                      </>
+                    </Collapsible>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </TabsContent>
       </Tabs>
