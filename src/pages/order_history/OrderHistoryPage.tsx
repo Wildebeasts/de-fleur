@@ -19,6 +19,7 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import { OrderStatus, OrderStatusType } from '@/lib/constants/orderStatus'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import userApi, { UserProfile } from '@/lib/services/userService'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -56,13 +57,13 @@ interface Order {
 
 // Helper function to normalize status case and ensure type safety
 const normalizeStatus = (status: string): OrderStatusType => {
-  if (!status) return OrderStatus.PENDING;
-  return status.toUpperCase() as OrderStatusType;
+  if (!status) return OrderStatus.PENDING
+  return status.toUpperCase() as OrderStatusType
 }
 
 // Helper function to get status color
 const getStatusColor = (status: string) => {
-  const normalizedStatus = normalizeStatus(status);
+  const normalizedStatus = normalizeStatus(status)
 
   switch (normalizedStatus) {
     case OrderStatus.CONFIRMED:
@@ -241,6 +242,20 @@ const OrderCard = ({ order }: { order: Order }) => {
 
 const OrderHistoryPage: React.FC = () => {
   const navigate = useNavigate()
+  const [userInfo, setUserInfo] = useState<UserProfile>()
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const profile = await userApi.getUserProfile()
+        setUserInfo(profile)
+      } catch (error) {
+        console.error('Failed to fetch user profile', error)
+      }
+    }
+
+    fetchUserProfile()
+  }, [])
 
   // Add this effect to listen for the refresh event
   useEffect(() => {
@@ -314,6 +329,9 @@ const OrderHistoryPage: React.FC = () => {
     )
   }
 
+  // Check if the user is a staff member
+  const isStaff = userInfo?.roles?.includes('Staff')
+
   return (
     <motion.div
       initial="hidden"
@@ -330,11 +348,19 @@ const OrderHistoryPage: React.FC = () => {
           >
             Account Settings
           </Button>
-          <Button
-            className="bg-orange-500 text-white hover:bg-orange-600"
-          >
+          <Button className="bg-orange-500 text-white hover:bg-orange-600">
             Order History
           </Button>
+          {isStaff && (
+            <Button
+              variant="outline"
+              value="staff"
+              className="border-rose-200 bg-white"
+              onClick={() => navigate({ to: '/staff' })}
+            >
+              Staff Dashboard
+            </Button>
+          )}
         </div>
       </div>
 
@@ -362,7 +388,7 @@ const OrderHistoryPage: React.FC = () => {
                     orderDate: order.orderDate || '',
                     status: order.status || '',
                     totalPrice: order.totalPrice || 0,
-                    orderItems: (order.orderItems || []).map(item => ({
+                    orderItems: (order.orderItems || []).map((item) => ({
                       cosmeticId: item.cosmeticId || '',
                       quantity: item.quantity || 0,
                       sellingPrice: item.sellingPrice || 0,
@@ -387,8 +413,8 @@ const OrderHistoryPage: React.FC = () => {
                 No Orders Yet
               </h2>
               <p className="mb-6 text-[#3A4D39]/70">
-                You haven&apos;t placed any orders yet. Start shopping to see your
-                orders here.
+                You haven&apos;t placed any orders yet. Start shopping to see
+                your orders here.
               </p>
               <Button
                 className="bg-[#3A4D39] hover:bg-[#4A5D49]"
