@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/lib/context/AuthContext'
+import userApi, { UserProfile } from '@/lib/services/userService'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -31,6 +33,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
   const navigate = useNavigate()
   const routerState = useRouterState()
   const currentPath = routerState.location.pathname
+  const [userInfo, setUserInfo] = useState<UserProfile>()
 
   const handleTabChange = (value: string) => {
     if (value === 'account') {
@@ -39,6 +42,22 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
       navigate({ to: '/order_history' })
     }
   }
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const profile = await userApi.getUserProfile()
+        setUserInfo(profile)
+      } catch (error) {
+        console.error('Failed to fetch user profile', error)
+      }
+    }
+
+    fetchUserProfile()
+  }, [])
+
+  // Check if the user is a staff member
+  const isStaff = userInfo?.roles?.includes('Staff')
 
   return (
     <motion.div
@@ -63,9 +82,21 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
             onValueChange={handleTabChange}
             className="w-full"
           >
-            <TabsList className="mb-6 grid w-full grid-cols-2">
+            <TabsList
+              className={`mb-6 grid w-full ${
+                isStaff ? 'grid-cols-3' : 'grid-cols-2'
+              }`}
+            >
               <TabsTrigger value="account">Account Settings</TabsTrigger>
               <TabsTrigger value="orders">Order History</TabsTrigger>
+              {isStaff && (
+                <TabsTrigger
+                  value="staff"
+                  onClick={() => navigate({ to: '/staff' })}
+                >
+                  Staff
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
         </motion.div>
