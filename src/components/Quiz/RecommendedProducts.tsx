@@ -62,7 +62,7 @@ export const RecommendedProducts: React.FC = () => {
       }
     } catch (error) {
       console.error('Error adding to cart:', error)
-      toast.error('Không thể thêm vào giỏ hàng')
+      toast.error('Unable to add to cart')
     } finally {
       setIsAddingToCart(false)
     }
