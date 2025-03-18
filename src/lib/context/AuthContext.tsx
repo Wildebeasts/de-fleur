@@ -29,10 +29,10 @@ interface AuthContextType {
   register: (creadentials: RegisterRequest) => Promise<LoginApiResponse>
   forgotPassword: (
     credentials: ForgotPasswordRequest
-  ) => Promise<ApiResponse<string>>
+  ) => Promise<ApiResponse<null>>
   resetPassword: (
     creadentials: ResetPasswordRequest
-  ) => Promise<ApiResponse<string>>
+  ) => Promise<ApiResponse<null>>
   logout: () => void
   redirectBasedOnRole: () => string | null
 }
@@ -105,8 +105,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const forgotPassword = async (credentials: ForgotPasswordRequest) => {
     try {
-      const response: ApiResponse<string> =
-        await forgotMutation.mutateAsync(credentials)
+      const response: ApiResponse<null> = await forgotMutation.mutateAsync(
+        credentials.email
+      )
       console.log('Forgot password response:', response) // Debug log
 
       return response // Return the response for the component to use
@@ -118,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (credentials: ResetPasswordRequest) => {
     try {
-      const response: ApiResponse<string> =
+      const response: ApiResponse<null> =
         await resetMutation.mutateAsync(credentials)
       console.log('Reset password response:', response) // Debug log
 
