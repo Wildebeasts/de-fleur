@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Card,
@@ -13,10 +12,23 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { FaGoogle, FaApple } from 'react-icons/fa'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
 import { toast } from 'sonner'
+
+// Define interfaces for error handling
+interface ApiError {
+  code: string
+  description: string
+}
+
+interface ApiErrorResponse {
+  isSuccess: boolean
+  data: null
+  message: string
+  errors: ApiError[]
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -75,7 +87,40 @@ export const RegisterPage: React.FC = () => {
       })
       toast.success('Registration successful!')
       navigate({ to: '/' })
-    } catch (err) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: ApiErrorResponse } }
+
+      if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors
+
+        // Check for password too short error
+        const passwordTooShortError = errors.find(
+          (error: ApiError) => error.code === 'PasswordTooShort'
+        )
+
+        if (passwordTooShortError) {
+          toast.error(
+            passwordTooShortError.description ||
+              'Passwords must be at least 5 characters.'
+          )
+          return
+        }
+
+        // Check for duplicate username error
+        const duplicateUserError = errors.find(
+          (error: ApiError) => error.code === 'AuthErrors.DuplicateUserName'
+        )
+
+        if (duplicateUserError) {
+          toast.error(
+            duplicateUserError.description ||
+              'This username has already been taken.'
+          )
+          return
+        }
+      }
+
+      // Default error message
       toast.error('Registration failed. Please try again.')
     }
   }
@@ -105,30 +150,6 @@ export const RegisterPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-6">
-              <motion.div variants={itemVariants} className="flex gap-4">
-                <Button
-                  variant="outline"
-                  className="flex-1 border-rose-200 hover:bg-rose-50"
-                >
-                  <FaGoogle className="mr-2" />
-                  Google
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1 border-rose-200 hover:bg-rose-50"
-                >
-                  <FaApple className="mr-2" />
-                  Apple
-                </Button>
-              </motion.div>
-
-              <div className="relative">
-                <Separator />
-                <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-gray-500">
-                  or continue with email
-                </span>
-              </div>
-
               <motion.div variants={itemVariants} className="space-y-4">
                 <div className="flex gap-4">
                   <div className="flex-1 space-y-2">
@@ -224,7 +245,7 @@ export const RegisterPage: React.FC = () => {
                     className="border-rose-200 focus-visible:ring-rose-300"
                   />
                   <p className="text-xs text-gray-500">
-                    Must be at least 8 characters long
+                    Must be at least 5 characters long
                   </p>
                 </div>
 

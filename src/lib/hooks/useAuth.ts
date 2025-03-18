@@ -55,6 +55,43 @@ async function refreshTokenRequest(
   return response.data
 }
 
+async function forgotPasswordRequest(
+  email: string
+): Promise<ApiResponse<null>> {
+  const response = await axiosClient.post<ApiResponse<null>>(
+    '/auth/forgot-password',
+    { email }
+  )
+
+  if (!response.data.isSuccess) {
+    throw new Error(response.data.message || 'Password reset request failed')
+  }
+
+  return response.data
+}
+
+interface ResetPasswordRequest {
+  email: string
+  accessToken: string
+  password: string
+  passwordConfirmation: string
+}
+
+async function resetPasswordRequest(
+  data: ResetPasswordRequest
+): Promise<ApiResponse<null>> {
+  const response = await axiosClient.post<ApiResponse<null>>(
+    '/auth/reset-password',
+    data
+  )
+
+  if (!response.data.isSuccess) {
+    throw new Error(response.data.message || 'Password reset failed')
+  }
+
+  return response.data
+}
+
 export function useLogin() {
   return useMutation({
     mutationFn: loginRequest
@@ -70,5 +107,17 @@ export function useRegister() {
 export function useRefreshToken() {
   return useMutation({
     mutationFn: refreshTokenRequest
+  })
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: forgotPasswordRequest
+  })
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: resetPasswordRequest
   })
 }

@@ -18,6 +18,7 @@ import { Route as ShopImport } from './routes/shop'
 import { Route as SalesCustomerInsightsImport } from './routes/sales-customer-insights'
 import { Route as ReviewImport } from './routes/review'
 import { Route as ReturnImport } from './routes/return'
+import { Route as ResetpasswordImport } from './routes/reset_password'
 import { Route as RegisterImport } from './routes/register'
 import { Route as QuizresultImport } from './routes/quiz_result'
 import { Route as QuizImport } from './routes/quiz'
@@ -27,6 +28,7 @@ import { Route as OrderhistoryImport } from './routes/order_history'
 import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
 import { Route as GlossaryImport } from './routes/glossary'
+import { Route as ForgotpasswordImport } from './routes/forgot_password'
 import { Route as FeedbackImport } from './routes/feedback'
 import { Route as FaqImport } from './routes/faq'
 import { Route as CollectionsImport } from './routes/collections'
@@ -104,6 +106,12 @@ const ReturnRoute = ReturnImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const ResetpasswordRoute = ResetpasswordImport.update({
+  id: '/reset_password',
+  path: '/reset_password',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const RegisterRoute = RegisterImport.update({
   id: '/register',
   path: '/register',
@@ -155,6 +163,12 @@ const JournalRoute = JournalImport.update({
 const GlossaryRoute = GlossaryImport.update({
   id: '/glossary',
   path: '/glossary',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ForgotpasswordRoute = ForgotpasswordImport.update({
+  id: '/forgot_password',
+  path: '/forgot_password',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -434,6 +448,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FeedbackImport
       parentRoute: typeof rootRoute
     }
+    '/forgot_password': {
+      id: '/forgot_password'
+      path: '/forgot_password'
+      fullPath: '/forgot_password'
+      preLoaderRoute: typeof ForgotpasswordImport
+      parentRoute: typeof rootRoute
+    }
     '/glossary': {
       id: '/glossary'
       path: '/glossary'
@@ -495,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/register'
       fullPath: '/register'
       preLoaderRoute: typeof RegisterImport
+      parentRoute: typeof rootRoute
+    }
+    '/reset_password': {
+      id: '/reset_password'
+      path: '/reset_password'
+      fullPath: '/reset_password'
+      preLoaderRoute: typeof ResetpasswordImport
       parentRoute: typeof rootRoute
     }
     '/return': {
@@ -758,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/collections': typeof CollectionsRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot_password': typeof ForgotpasswordRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
@@ -767,6 +796,7 @@ export interface FileRoutesByFullPath {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/reset_password': typeof ResetpasswordRoute
   '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
@@ -808,6 +838,7 @@ export interface FileRoutesByTo {
   '/collections': typeof CollectionsRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot_password': typeof ForgotpasswordRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
@@ -817,6 +848,7 @@ export interface FileRoutesByTo {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/reset_password': typeof ResetpasswordRoute
   '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
@@ -860,6 +892,7 @@ export interface FileRoutesById {
   '/collections': typeof CollectionsRoute
   '/faq': typeof FaqRoute
   '/feedback': typeof FeedbackRoute
+  '/forgot_password': typeof ForgotpasswordRoute
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
@@ -869,6 +902,7 @@ export interface FileRoutesById {
   '/quiz': typeof QuizRoute
   '/quiz_result': typeof QuizresultRoute
   '/register': typeof RegisterRoute
+  '/reset_password': typeof ResetpasswordRoute
   '/return': typeof ReturnRoute
   '/review': typeof ReviewRoute
   '/sales-customer-insights': typeof SalesCustomerInsightsRoute
@@ -913,6 +947,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/faq'
     | '/feedback'
+    | '/forgot_password'
     | '/glossary'
     | '/journal'
     | '/login'
@@ -922,6 +957,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/reset_password'
     | '/return'
     | '/review'
     | '/sales-customer-insights'
@@ -962,6 +998,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/faq'
     | '/feedback'
+    | '/forgot_password'
     | '/glossary'
     | '/journal'
     | '/login'
@@ -971,6 +1008,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/reset_password'
     | '/return'
     | '/review'
     | '/sales-customer-insights'
@@ -1012,6 +1050,7 @@ export interface FileRouteTypes {
     | '/collections'
     | '/faq'
     | '/feedback'
+    | '/forgot_password'
     | '/glossary'
     | '/journal'
     | '/login'
@@ -1021,6 +1060,7 @@ export interface FileRouteTypes {
     | '/quiz'
     | '/quiz_result'
     | '/register'
+    | '/reset_password'
     | '/return'
     | '/review'
     | '/sales-customer-insights'
@@ -1064,6 +1104,7 @@ export interface RootRouteChildren {
   CollectionsRoute: typeof CollectionsRoute
   FaqRoute: typeof FaqRoute
   FeedbackRoute: typeof FeedbackRoute
+  ForgotpasswordRoute: typeof ForgotpasswordRoute
   GlossaryRoute: typeof GlossaryRoute
   JournalRoute: typeof JournalRoute
   LoginRoute: typeof LoginRoute
@@ -1073,6 +1114,7 @@ export interface RootRouteChildren {
   QuizRoute: typeof QuizRoute
   QuizresultRoute: typeof QuizresultRoute
   RegisterRoute: typeof RegisterRoute
+  ResetpasswordRoute: typeof ResetpasswordRoute
   ReturnRoute: typeof ReturnRoute
   ReviewRoute: typeof ReviewRoute
   SalesCustomerInsightsRoute: typeof SalesCustomerInsightsRoute
@@ -1095,6 +1137,7 @@ const rootRouteChildren: RootRouteChildren = {
   CollectionsRoute: CollectionsRoute,
   FaqRoute: FaqRoute,
   FeedbackRoute: FeedbackRoute,
+  ForgotpasswordRoute: ForgotpasswordRoute,
   GlossaryRoute: GlossaryRoute,
   JournalRoute: JournalRoute,
   LoginRoute: LoginRoute,
@@ -1104,6 +1147,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuizRoute: QuizRoute,
   QuizresultRoute: QuizresultRoute,
   RegisterRoute: RegisterRoute,
+  ResetpasswordRoute: ResetpasswordRoute,
   ReturnRoute: ReturnRoute,
   ReviewRoute: ReviewRoute,
   SalesCustomerInsightsRoute: SalesCustomerInsightsRoute,
@@ -1135,6 +1179,7 @@ export const routeTree = rootRoute
         "/collections",
         "/faq",
         "/feedback",
+        "/forgot_password",
         "/glossary",
         "/journal",
         "/login",
@@ -1144,6 +1189,7 @@ export const routeTree = rootRoute
         "/quiz",
         "/quiz_result",
         "/register",
+        "/reset_password",
         "/return",
         "/review",
         "/sales-customer-insights",
@@ -1209,6 +1255,9 @@ export const routeTree = rootRoute
     "/feedback": {
       "filePath": "feedback.tsx"
     },
+    "/forgot_password": {
+      "filePath": "forgot_password.tsx"
+    },
     "/glossary": {
       "filePath": "glossary.tsx"
     },
@@ -1235,6 +1284,9 @@ export const routeTree = rootRoute
     },
     "/register": {
       "filePath": "register.tsx"
+    },
+    "/reset_password": {
+      "filePath": "reset_password.tsx"
     },
     "/return": {
       "filePath": "return.tsx"
