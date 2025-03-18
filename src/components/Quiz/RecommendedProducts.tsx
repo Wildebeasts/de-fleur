@@ -76,20 +76,23 @@ export const RecommendedProducts: React.FC = () => {
         new Map(products.map((p) => [p.cosmeticId, p])).values()
       )
 
-      // Call API for all products in parallel
-      const responses = await Promise.all(
-        uniqueProducts.map((product) =>
-          cartApi.addToCart(product.cosmeticId, 1)
-        )
-      )
+      // Process products sequentially with delay
+      const results = []
+      for (const product of uniqueProducts) {
+        // Add delay between requests
+        await new Promise((resolve) => setTimeout(resolve, 100)) // 100ms delay
 
-      // Check which requests were successful
-      const successfulProducts = uniqueProducts.filter(
-        (_, index) => responses[index].data.isSuccess
-      )
-      const failedProducts = uniqueProducts.filter(
-        (_, index) => !responses[index].data.isSuccess
-      )
+        try {
+          const response = await cartApi.addToCart(product.cosmeticId, 1)
+          results.push({ product, success: response.data.isSuccess })
+        } catch (error) {
+          results.push({ product, success: false })
+        }
+      }
+
+      // Count successes and failures
+      const successfulProducts = results.filter((r) => r.success)
+      const failedProducts = results.filter((r) => !r.success)
 
       if (successfulProducts.length > 0) {
         toast.success(`Added ${successfulProducts.length} products to cart!`)
