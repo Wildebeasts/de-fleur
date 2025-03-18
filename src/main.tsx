@@ -5,7 +5,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { AuthProvider } from './lib/context/AuthContext'
 import { Toaster } from 'sonner'
 import './index.css'
-import CanvasCursor from './components/CanvasCursor'
+//import CanvasCursor from './components/CanvasCursor'
 import ChatwootManager from './components/ChatwootManager'
 
 // Import the generated route tree
@@ -41,7 +41,7 @@ function App() {
             <RouterProvider router={router} />
           </main>
           <Toaster position="bottom-right" richColors />
-          <CanvasCursor />
+          {/* <CanvasCursor /> */}
           <ChatwootManager />
         </DeliveryProvider>
       </AuthProvider>
