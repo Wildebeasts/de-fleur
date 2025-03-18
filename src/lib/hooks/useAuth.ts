@@ -1,9 +1,11 @@
 import { useMutation } from '@tanstack/react-query'
 import type {
+  ForgotPasswordRequest,
   LoginRequest,
   LoginResponse,
   RefreshTokenRequest,
-  RegisterRequest
+  RegisterRequest,
+  ResetPasswordRequest
 } from '../types/auth'
 import axiosClient from '../api/axiosClient'
 import { ApiResponse } from '../types/base/Api'
@@ -30,6 +32,36 @@ async function registerRequest(
 ): Promise<ApiResponse<LoginResponse>> {
   const response = await axiosClient.post<ApiResponse<LoginResponse>>(
     '/auth/register',
+    data
+  )
+
+  if (!response.data.isSuccess) {
+    throw new Error(response.data.message || 'Register failed')
+  }
+
+  return response.data
+}
+
+async function forgotPasswordRequest(
+  data: ForgotPasswordRequest
+): Promise<ApiResponse<string>> {
+  const response = await axiosClient.post<ApiResponse<string>>(
+    '/auth/forgot-password',
+    data
+  )
+
+  if (!response.data.isSuccess) {
+    throw new Error(response.data.message || 'Register failed')
+  }
+
+  return response.data
+}
+
+async function resetPasswordRequest(
+  data: ResetPasswordRequest
+): Promise<ApiResponse<string>> {
+  const response = await axiosClient.post<ApiResponse<string>>(
+    '/auth/reset-password',
     data
   )
 
@@ -101,6 +133,18 @@ export function useLogin() {
 export function useRegister() {
   return useMutation({
     mutationFn: registerRequest
+  })
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: forgotPasswordRequest
+  })
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: resetPasswordRequest
   })
 }
 
