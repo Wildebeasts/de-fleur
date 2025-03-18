@@ -60,11 +60,11 @@ export default function EditCoupon() {
 
       // If not found in cache, you might need a getCouponById endpoint
       // This is a fallback in case the coupon isn't in the cache
-      const response = await couponApi.getCoupons()
+      const response = await couponApi.getById(id)
       if (!response.data.isSuccess || !response.data) {
         throw new Error(response.data.message || 'Failed to fetch coupon')
       }
-      return response.data.data!.find((coupon) => coupon.id === id)
+      return response.data.data
     },
     enabled: !!id
   })
@@ -87,14 +87,15 @@ export default function EditCoupon() {
       console.log('Updating coupon data:', values) // Debug log
 
       const couponUpdate: CouponUpdateRequest = {
-        id: id,
         code: values.code,
         discount: values.discount,
         expiryDate: values.expiryDate.toISOString(),
-        usageLimit: values.usageLimit
+        usageLimit: values.usageLimit,
+        minimumOrderPrice: values.minimumOrderPrice,
+        maxDiscountAmount: values.maxDiscountAmount
       }
 
-      return couponApi.updateCoupon(couponUpdate)
+      return couponApi.update(id, couponUpdate)
     },
     onSuccess: () => {
       message.success(

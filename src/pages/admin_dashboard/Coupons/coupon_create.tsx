@@ -50,15 +50,17 @@ export default function CreateCoupon() {
       console.log('Submitting coupon data:', values) // Debug log
 
       const couponCreate: CouponCreateRequest = {
-        name: '',
+        name: values.name,
         code: values.code,
         discount: values.discount,
         expiryDate: values.expiryDate.toISOString(),
-        usageLimit: values.usageLimit
+        usageLimit: values.usageLimit,
+        minimumOrderPrice: values.minimumOrderPrice,
+        maxDiscountAmount: values.maxDiscountAmount
       }
 
       // Ensure correct data format for API
-      return couponApi.createCoupon(couponCreate)
+      return couponApi.create(couponCreate)
     },
     onSuccess: (data) => {
       console.log('Coupon created successfully:', data) // Debug log

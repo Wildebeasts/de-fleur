@@ -28,11 +28,13 @@ import {
 
 const CouponCreation: React.FC = () => {
   const [couponDetails, setCouponDetails] = useState<CouponCreateRequest>({
-    name: '',
     code: '',
+    name: '',
     discount: 0,
+    maxDiscountAmount: 0,
+    minimumOrderPrice: 0,
     expiryDate: new Date(),
-    usageLimit: 0 // Fixed typo from 'uasgeLimit' to 'usageLimit'
+    usageLimit: 0
   })
 
   const [coupons, setCoupons] = useState<CouponResponse[]>([])
@@ -43,7 +45,7 @@ const CouponCreation: React.FC = () => {
   const fetchCoupons = async () => {
     setLoading(true)
     try {
-      const response = await couponApi.getCoupons()
+      const response = await couponApi.getAll()
       if (response.data.isSuccess) {
         setCoupons(response.data.data!)
       } else {
@@ -67,7 +69,12 @@ const CouponCreation: React.FC = () => {
     setCouponDetails((prev) => ({
       ...prev,
       [name]:
-        name === 'discount' || name === 'usageLimit' ? Number(value) : value
+        name === 'discount' ||
+        name === 'usageLimit' ||
+        name === 'maxDiscountAmount' ||
+        name === 'minimumOrderPrice'
+          ? Number(value)
+          : value
     }))
   }
 
@@ -82,18 +89,7 @@ const CouponCreation: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0) // Normalize today's date
-    const minExpiryDate = new Date(today)
-    minExpiryDate.setDate(minExpiryDate.getDate() + 1) // Minimum expiry should be tomorrow
-
-    const expiryDate = new Date(couponDetails.expiryDate)
-
     // Validation
-    if (!couponDetails.name.trim()) {
-      toast.error('Coupon name is required.')
-      return
-    }
     if (!couponDetails.code.trim()) {
       toast.error('Coupon code is required.')
       return
@@ -102,12 +98,12 @@ const CouponCreation: React.FC = () => {
       toast.error('Discount must be between 1 and 100.')
       return
     }
-    if (!couponDetails.expiryDate || isNaN(expiryDate.getTime())) {
-      toast.error('A valid expiry date is required.')
+    if (couponDetails.maxDiscountAmount <= 0) {
+      toast.error('Maximum discount amount must be greater than 0.')
       return
     }
-    if (expiryDate < minExpiryDate) {
-      toast.error('Expiry date must be at least 1 day from today.')
+    if (couponDetails.minimumOrderPrice < 0) {
+      toast.error('Minimum order price cannot be negative.')
       return
     }
     if (couponDetails.usageLimit <= 0) {
@@ -117,16 +113,16 @@ const CouponCreation: React.FC = () => {
 
     try {
       if (editingCouponId) {
-        // Update existing coupon
         const updateCoupon: CouponUpdateRequest = {
-          id: editingCouponId,
           code: couponDetails.code,
           discount: couponDetails.discount,
+          maxDiscountAmount: couponDetails.maxDiscountAmount,
+          minimumOrderPrice: couponDetails.minimumOrderPrice,
           expiryDate: couponDetails.expiryDate,
           usageLimit: couponDetails.usageLimit
         }
 
-        const response = await couponApi.updateCoupon(updateCoupon)
+        const response = await couponApi.update(editingCouponId, updateCoupon)
         if (response.data.isSuccess) {
           toast.success('Coupon updated successfully!')
           setEditingCouponId(null)
@@ -135,8 +131,7 @@ const CouponCreation: React.FC = () => {
           return
         }
       } else {
-        // Create new coupon
-        const response = await couponApi.createCoupon(couponDetails)
+        const response = await couponApi.create(couponDetails)
         if (response.data.isSuccess) {
           toast.success('Coupon created successfully!')
         } else {
@@ -145,14 +140,17 @@ const CouponCreation: React.FC = () => {
         }
       }
 
+      // Reset form
       setCouponDetails({
-        name: '',
         code: '',
         discount: 0,
+        maxDiscountAmount: 0,
+        minimumOrderPrice: 0,
         expiryDate: new Date(),
-        usageLimit: 0
+        usageLimit: 0,
+        name: ''
       })
-      fetchCoupons() // Refresh list
+      fetchCoupons()
     } catch (error) {
       console.error('Error saving coupon:', error)
       toast.error('An error occurred while saving the coupon')
@@ -163,9 +161,11 @@ const CouponCreation: React.FC = () => {
   const handleEdit = (coupon: CouponResponse) => {
     setEditingCouponId(coupon.id)
     setCouponDetails({
-      name: coupon.name,
       code: coupon.code,
+      name: coupon.name,
       discount: coupon.discount,
+      maxDiscountAmount: coupon.maxDiscountAmount,
+      minimumOrderPrice: coupon.minimumOrderPrice,
       expiryDate: new Date(coupon.expiryDate),
       usageLimit: coupon.usageLimit
     })
@@ -174,7 +174,7 @@ const CouponCreation: React.FC = () => {
   // Delete a coupon
   const handleDelete = async (id: string) => {
     try {
-      const response = await couponApi.deleteCoupon(id)
+      const response = await couponApi.delete(id)
       if (response.data.isSuccess) {
         toast.success('Coupon deleted successfully')
         fetchCoupons() // Refresh list
@@ -200,14 +200,6 @@ const CouponCreation: React.FC = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
-              <Label htmlFor="couponName">Coupon Name</Label>
-              <Input
-                id="couponName"
-                name="name"
-                value={couponDetails.name}
-                onChange={handleCouponChange}
-                required
-              />
               <Label htmlFor="couponCode">Coupon Code</Label>
               <Input
                 id="couponCode"
@@ -216,12 +208,30 @@ const CouponCreation: React.FC = () => {
                 onChange={handleCouponChange}
                 required
               />
-              <Label htmlFor="discountValue">Discount Value</Label>
+              <Label htmlFor="discountValue">Discount Percentage (%)</Label>
               <Input
                 id="discountValue"
                 name="discount"
                 type="number"
                 value={couponDetails.discount}
+                onChange={handleCouponChange}
+                required
+              />
+              <Label htmlFor="maxDiscountAmount">Maximum Discount Amount</Label>
+              <Input
+                id="maxDiscountAmount"
+                name="maxDiscountAmount"
+                type="number"
+                value={couponDetails.maxDiscountAmount}
+                onChange={handleCouponChange}
+                required
+              />
+              <Label htmlFor="minimumOrderPrice">Minimum Order Price</Label>
+              <Input
+                id="minimumOrderPrice"
+                name="minimumOrderPrice"
+                type="number"
+                value={couponDetails.minimumOrderPrice}
                 onChange={handleCouponChange}
                 required
               />
@@ -241,10 +251,13 @@ const CouponCreation: React.FC = () => {
                 type="number"
                 value={couponDetails.usageLimit}
                 onChange={handleCouponChange}
+                required
               />
             </div>
             <CardFooter className="flex justify-end">
-              <Button type="submit">Save Coupon</Button>
+              <Button type="submit">
+                {editingCouponId ? 'Update Coupon' : 'Create Coupon'}
+              </Button>
             </CardFooter>
           </form>
         </CardContent>
@@ -263,32 +276,51 @@ const CouponCreation: React.FC = () => {
             <p>No coupons available</p>
           ) : (
             <div className="max-h-[300px] overflow-auto">
-              <Table className="w-full text-sm">
+              <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-left">Name</TableHead>
-                    <TableHead className="text-left">Code</TableHead>
-                    <TableHead className="text-left">Discount</TableHead>
-                    <TableHead className="text-left">Start</TableHead>
-                    <TableHead className="text-left">Expiry</TableHead>
-                    <TableHead className="text-left">Usage Limit</TableHead>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Discount</TableHead>
+                    <TableHead>Max Discount</TableHead>
+                    <TableHead>Min Order</TableHead>
+                    <TableHead>Expiry</TableHead>
+                    <TableHead>Usage Limit</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {coupons.map((coupon) => (
                     <TableRow key={coupon.id}>
-                      <TableCell>{coupon.name}</TableCell>
                       <TableCell>{coupon.code}</TableCell>
                       <TableCell>{coupon.discount}%</TableCell>
                       <TableCell>
-                        {new Date(coupon.startDate).toLocaleDateString()}
+                        {new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        }).format(coupon.maxDiscountAmount)}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0
+                        }).format(coupon.minimumOrderPrice)}
                       </TableCell>
                       <TableCell>
                         {new Date(coupon.expiryDate).toLocaleDateString()}
                       </TableCell>
                       <TableCell>{coupon.usageLimit} uses</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="space-x-2 text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(coupon)}
+                        >
+                          Edit
+                        </Button>
                         <Button
                           variant="destructive"
                           size="sm"
@@ -296,9 +328,6 @@ const CouponCreation: React.FC = () => {
                         >
                           Delete
                         </Button>
-                      </TableCell>
-                      <TableCell>
-                        <Button onClick={() => handleEdit(coupon)}>Edit</Button>
                       </TableCell>
                     </TableRow>
                   ))}

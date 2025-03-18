@@ -157,7 +157,7 @@ export default function CouponList() {
   const { data: coupons = [], isLoading } = useQuery({
     queryKey: ['coupons'], // Removed searchText from queryKey since backend doesn't handle search
     queryFn: async () => {
-      const response = await couponApi.getCoupons()
+      const response = await couponApi.getAll()
 
       // Check if data exists and is an array
       if (response.data.isSuccess && Array.isArray(response.data.data)) {
@@ -264,7 +264,7 @@ export default function CouponList() {
         cancelText: 'No',
         onOk: async () => {
           try {
-            await couponApi.deleteCoupon(record.id)
+            await couponApi.delete(record.id)
             message.success('Coupon deleted successfully')
             queryClient.invalidateQueries({ queryKey: ['coupons'] })
           } catch (error) {
