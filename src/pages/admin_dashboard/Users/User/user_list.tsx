@@ -21,7 +21,6 @@ import {
   SearchOutlined,
   EditOutlined,
   EllipsisOutlined,
-  PlusOutlined,
   CloseOutlined,
   MailFilled,
   StopOutlined,
@@ -339,14 +338,6 @@ export default function Users() {
                 description={
                   <div className="flex flex-col items-center gap-2">
                     <span className="text-gray-400">No users found</span>
-                    <Button
-                      type="primary"
-                      onClick={handleAdd}
-                      icon={<PlusOutlined />}
-                      className="mt-4 bg-blue-500 hover:bg-blue-600"
-                    >
-                      Add First User
-                    </Button>
                   </div>
                 }
                 className="text-gray-400"
