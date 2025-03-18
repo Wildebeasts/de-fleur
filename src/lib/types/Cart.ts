@@ -9,7 +9,7 @@ export interface CartCustomer {
 export interface CartItem {
   cosmeticId: string
   cosmeticName: string
-  cosmeticImage: string
+  thumbnailUrl: string
   price: number // Original price
   discountedPrice: number // Price after event discount
   discountPercentage: number // Event discount percentage

@@ -108,8 +108,8 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
     <div className="flex flex-col items-start justify-between gap-4 border-b border-gray-200 py-4 sm:flex-row sm:items-center">
       <div className="flex items-center">
         <img
-          src={item.cosmeticImage}
-          alt={item.cosmeticName}
+          src={item.thumbnailUrl}
+          alt={item.thumbnailUrl}
           className="size-20 rounded-md object-cover"
         />
         <div className="ml-4">
