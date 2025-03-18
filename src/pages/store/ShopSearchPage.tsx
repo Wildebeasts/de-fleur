@@ -7,7 +7,8 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import { CosmeticProvider } from '@/lib/context/CosmeticContext'
 import { CosmeticFilter } from '@/lib/types/CosmeticFilter'
 import Breadcrumb from '@/components/Store/Breadcrumb'
-import { useSearch } from '@tanstack/react-router'
+import { useSearch, useNavigate } from '@tanstack/react-router'
+import { debounce } from 'lodash'
 
 const ITEMS_PER_PAGE = 12
 
@@ -33,6 +34,8 @@ const ShopSearchPage: React.FC = () => {
   )
   const [selectedConcerns, setSelectedConcerns] = useState<string[]>([])
   const [priceRange, setPriceRange] = useState<number[]>([0, 4000000])
+  const [searchTerm, setSearchTerm] = useState(search.name || '')
+  const navigate = useNavigate()
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -114,6 +117,72 @@ const ShopSearchPage: React.FC = () => {
   const refreshCosmetics = useCallback(() => {
     refetch()
   }, [refetch])
+
+  // Handle input change
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchTerm(value)
+
+    // Only update URL on input change if you want real-time URL updates
+    // Otherwise, remove this section to only update URL on submit
+
+    // Use debounce for preview results if desired
+    debouncedSearch(value)
+  }
+
+  // Create a debounced search function for API calls
+  const debouncedSearch = useCallback(
+    debounce((term: string) => {
+      if (!term || term.trim() === '') {
+        fetchAllCosmetics()
+      } else {
+        searchCosmetics(term)
+      }
+    }, 500),
+    []
+  )
+
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+
+    // Cancel any pending debounced search
+    debouncedSearch.cancel()
+
+    // Check if search term is empty
+    if (!searchTerm || searchTerm.trim() === '') {
+      // For empty search, use window.history to directly modify URL
+      window.history.replaceState(null, '', '/shop')
+
+      // Then navigate to ensure router state is updated
+      navigate({
+        to: '/shop',
+        replace: true
+      })
+
+      // Fetch all products
+      fetchAllCosmetics()
+
+      console.log('Cleared search parameters, navigating to /shop')
+    } else {
+      // For non-empty search
+      navigate({
+        to: '/shop',
+        search: { q: searchTerm },
+        replace: true
+      })
+      searchCosmetics(searchTerm)
+    }
+  }
+
+  // Separate functions for API calls
+  const fetchAllCosmetics = () => {
+    // Your API call to get all cosmetics
+  }
+
+  const searchCosmetics = (term: string) => {
+    // Your API call to search cosmetics
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
