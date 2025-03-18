@@ -184,11 +184,23 @@ const CheckoutPage: React.FC = () => {
     )
     const maxLength = Math.max(...items.map((item: CartItem) => item.length))
     const maxWidth = Math.max(...items.map((item: CartItem) => item.width))
-    const maxHeight = Math.max(...items.map((item: CartItem) => item.height))
+    const totalHeight = items.reduce(
+      (sum: number, item: CartItem) => sum + item.height * item.quantity,
+      0
+    )
+
+    // Calculate total price with percentage discount
+    const cartTotal = Math.round(cartData?.totalPrice || 0)
+    const discountMultiplier = 1 - (couponDiscount || 0) / 100 // Convert percentage to multiplier
+    const finalTotal = Math.round(cartTotal * discountMultiplier)
+
+    console.log('Cart Total:', cartTotal)
+    console.log('Discount Multiplier:', discountMultiplier)
+    console.log('Final Total:', finalTotal)
 
     return {
-      from_district_id: 3695, // Your shop's district ID
-      from_ward_code: '90764', // Your shop's ward code
+      from_district_id: 3695,
+      from_ward_code: '90764',
       service_id: 0,
       service_type_id: 2,
       to_district_id: formData.districtId,
@@ -196,8 +208,8 @@ const CheckoutPage: React.FC = () => {
       weight: totalWeight,
       length: maxLength,
       width: maxWidth,
-      height: maxHeight,
-      insurance_value: cartData?.totalPrice || 1000000,
+      height: totalHeight,
+      insurance_value: finalTotal,
       cod_failed_amount: 0,
       coupon: null,
       items
