@@ -29,6 +29,11 @@ const AccountManagementPage: React.FC = () => {
   const { logout } = useAuth()
   const navigate = useNavigate()
 
+  // Check if user has admin privileges
+  const isAdmin = userInfo?.roles?.some(
+    (role) => role === 'Admin' || role === 'Administrator' || role === 'Manager'
+  )
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -45,6 +50,10 @@ const AccountManagementPage: React.FC = () => {
   const handleLogout = () => {
     logout()
     navigate({ to: '/' })
+  }
+
+  const navigateToAdmin = () => {
+    navigate({ to: '/admin' })
   }
 
   return (
@@ -72,12 +81,22 @@ const AccountManagementPage: React.FC = () => {
                     Change Photo
                   </Button>
                 </div>
-                <Button
-                  className="bg-red-500 text-white hover:bg-red-600"
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
+                <div className="flex gap-2">
+                  {isAdmin && (
+                    <Button
+                      className="bg-purple-600 text-white hover:bg-purple-700"
+                      onClick={navigateToAdmin}
+                    >
+                      Admin Dashboard
+                    </Button>
+                  )}
+                  <Button
+                    className="bg-red-500 text-white hover:bg-red-600"
+                    onClick={handleLogout}
+                  >
+                    Logout
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

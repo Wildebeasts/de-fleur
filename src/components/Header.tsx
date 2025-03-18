@@ -4,6 +4,7 @@ import { NavigationLink } from './NavigationLink'
 import { SearchBar } from './SearchBar'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
+import { Button } from '@/components/ui/button'
 
 interface NavigationItem {
   label: string
@@ -116,26 +117,57 @@ export default function Header() {
           >
             <SearchBar />
             <motion.div
-              className="flex gap-6"
+              className="flex gap-4"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <button
-                aria-label="User account"
-                className="text-gray-600"
-                onClick={() =>
-                  isAuthenticated
-                    ? navigate({ to: '/account_manage' })
-                    : navigate({
-                        to: '/login',
-                        search: {
-                          redirect: location.pathname
-                        }
-                      })
-                }
-              >
-                <UserIcon />
-              </button>
+              {isAuthenticated ? (
+                <button
+                  aria-label="User account"
+                  className="text-gray-600"
+                  onClick={() => navigate({ to: '/account_manage' })}
+                >
+                  <UserIcon />
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        navigate({
+                          to: '/login',
+                          search: {
+                            redirect: location.pathname
+                          }
+                        })
+                      }
+                      className="text-sm font-medium text-gray-700 hover:text-[#3A4D39]"
+                    >
+                      Login
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => navigate({ to: '/register' })}
+                      className="bg-[#3A4D39] text-sm font-medium text-white hover:bg-[#2C3C2A]"
+                    >
+                      Sign up
+                    </Button>
+                  </motion.div>
+                </div>
+              )}
+
               {isAuthenticated && (
                 <Link to="/cart" aria-label="Shopping cart">
                   <CartIcon />
