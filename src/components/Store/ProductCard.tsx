@@ -51,7 +51,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
       }
     } catch (error) {
       console.error('Error adding to cart:', error)
-      toast.error('Không thể thêm vào giỏ hàng')
+      toast.error('Unable to add to cart')
     } finally {
       setIsAddingToCart(false)
     }
@@ -180,7 +180,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
             onClick={handleAddToCart}
             disabled={isAddingToCart}
           >
-            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
+            {isAddingToCart ? 'Adding...' : 'Add to cart'}
           </motion.button>
         </div>
       </div>

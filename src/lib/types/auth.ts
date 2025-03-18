@@ -23,7 +23,10 @@ export interface RegisterRequest {
 }
 
 export interface ResetPasswordRequest {
+  accessToken: string
   email: string
+  password: string
+  passwordConfirmation: string
 }
 
 export interface ForgotPasswordRequest {

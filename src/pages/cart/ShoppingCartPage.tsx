@@ -32,7 +32,7 @@ const ShoppingCartPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching cart:', error)
-      toast.error('Không thể tải giỏ hàng')
+      toast.error('Could not load cart')
     } finally {
       setIsLoading(false)
     }
@@ -52,7 +52,7 @@ const ShoppingCartPage: React.FC = () => {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="mr-2 size-8 animate-spin text-[#3A4D39]" />
-        <span>Đang tải giỏ hàng...</span>
+        <span>Loading your cart...</span>
       </div>
     )
   }
@@ -61,22 +61,20 @@ const ShoppingCartPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <h1 className="mb-8 text-center text-3xl font-bold text-[#3A4D39]">
-          Giỏ hàng của bạn
+          Your Shopping Cart
         </h1>
 
         {cartItems.length === 0 ? (
           <div className="rounded-lg bg-white p-8 text-center shadow">
-            <h2 className="mb-4 text-xl font-semibold">
-              Giỏ hàng của bạn đang trống
-            </h2>
+            <h2 className="mb-4 text-xl font-semibold">Your cart is empty</h2>
             <p className="mb-6 text-gray-600">
-              Hãy thêm sản phẩm vào giỏ hàng để tiếp tục mua sắm
+              Add products to your cart to continue shopping
             </p>
             <button
               onClick={() => navigate({ to: '/shop' })}
               className="rounded-full bg-[#3A4D39] px-6 py-2 text-white transition-colors hover:bg-[#4A5D49]"
             >
-              Tiếp tục mua sắm
+              Continue Shopping
             </button>
           </div>
         ) : (

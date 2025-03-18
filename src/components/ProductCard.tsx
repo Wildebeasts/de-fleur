@@ -40,10 +40,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     try {
       setIsAddingToCart(true)
 
-      toast.success('Đã thêm vào giỏ hàng')
+      toast.success('Added to cart')
     } catch (error) {
       console.error('Error adding to cart:', error)
-      toast.error('Không thể thêm vào giỏ hàng')
+      toast.error('Unable to add to cart')
     } finally {
       setIsAddingToCart(false)
     }
@@ -115,7 +115,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </p>
         <div className="mt-auto flex w-full items-center justify-between">
           <p className="font-inter text-xl font-semibold text-[#3A4D39]">
-            {price.toLocaleString('vi-VN')}₫
+            ${price.toLocaleString('en-US')}
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -125,7 +125,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             onClick={handleAddToCart}
             disabled={isAddingToCart}
           >
-            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ'}
+            {isAddingToCart ? 'Adding...' : 'Add to cart'}
           </motion.button>
         </div>
       </div>

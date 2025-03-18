@@ -1,7 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useLogin, useRegister } from '../hooks/useAuth'
-import { LoginRequest, LoginResponse, RegisterRequest } from '../types/auth'
-import { LoginApiResponse } from '../types/base/Api'
+import {
+  useForgotPassword,
+  useLogin,
+  useRegister,
+  useResetPassword
+} from '../hooks/useAuth'
+import {
+  ForgotPasswordRequest,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  ResetPasswordRequest
+} from '../types/auth'
+import { ApiResponse, LoginApiResponse } from '../types/base/Api'
 import { jwtDecode } from 'jwt-decode'
 
 interface JwtPayload {
@@ -16,6 +27,12 @@ interface AuthContextType {
   user: LoginResponse | null
   login: (credentials: LoginRequest) => Promise<LoginApiResponse>
   register: (creadentials: RegisterRequest) => Promise<LoginApiResponse>
+  forgotPassword: (
+    credentials: ForgotPasswordRequest
+  ) => Promise<ApiResponse<null>>
+  resetPassword: (
+    creadentials: ResetPasswordRequest
+  ) => Promise<ApiResponse<null>>
   logout: () => void
   redirectBasedOnRole: () => string | null
 }
@@ -28,6 +45,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false)
   const loginMutation = useLogin()
   const registerMutation = useRegister()
+  const forgotMutation = useForgotPassword()
+  const resetMutation = useResetPassword()
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -80,6 +99,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return response // Return the response for the component to use
     } catch (error) {
       console.error('Register error:', error) // Debug log
+      throw error
+    }
+  }
+
+  const forgotPassword = async (credentials: ForgotPasswordRequest) => {
+    try {
+      const response: ApiResponse<null> = await forgotMutation.mutateAsync(
+        credentials.email
+      )
+      console.log('Forgot password response:', response) // Debug log
+
+      return response // Return the response for the component to use
+    } catch (error) {
+      console.error('Forgot password error:', error) // Debug log
+      throw error
+    }
+  }
+
+  const resetPassword = async (credentials: ResetPasswordRequest) => {
+    try {
+      const response: ApiResponse<null> =
+        await resetMutation.mutateAsync(credentials)
+      console.log('Reset password response:', response) // Debug log
+
+      return response // Return the response for the component to use
+    } catch (error) {
+      console.error('Reset password error:', error) // Debug log
       throw error
     }
   }
@@ -141,6 +187,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         login,
         register,
+        forgotPassword,
+        resetPassword,
         logout,
         redirectBasedOnRole
       }}
