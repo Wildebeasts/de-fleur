@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { useResetPassword } from '@/lib/hooks/useAuth'
 import { toast } from 'sonner'
 
@@ -46,7 +46,6 @@ const itemVariants = {
 
 export default function ResetPassword() {
   const navigate = useNavigate()
-  const search = useSearch({ from: '/reset_password' })
   const resetPassword = useResetPassword()
 
   const [formData, setFormData] = useState({

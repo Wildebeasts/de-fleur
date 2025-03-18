@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useRef } from 'react'
 
 declare global {
@@ -72,7 +73,7 @@ export default function ChatwootManager() {
         observerRef.current.disconnect()
       }
 
-      observerRef.current = new MutationObserver((mutations) => {
+      observerRef.current = new MutationObserver((_mutations) => {
         if (isAdminPage()) {
           removeChatwootElements()
         }
