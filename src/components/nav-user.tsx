@@ -85,7 +85,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Back to Learn
+              Back to Store
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
