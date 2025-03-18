@@ -155,8 +155,8 @@ export const LoginPage: React.FC = () => {
                       className="h-auto p-0 text-rose-500 hover:text-rose-600"
                       onClick={() => navigate({ to: '/forgot_password' })}
                     >
-                      Forgot your password?
-                    </Link>
+                      Forgot password?
+                    </Button>
                   </div>
                   <Input
                     id="password"
