@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { debounce } from 'lodash'
 import { Search } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface SearchBarProps {
   placeholder?: string
@@ -13,6 +14,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   const search = useSearch({ from: '/shop' })
   const [searchTerm, setSearchTerm] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [currentPlaceholder, setCurrentPlaceholder] = useState('')
+  const [showPlaceholder, setShowPlaceholder] = useState(true)
 
   const placeholders = [
     'Search for skincare products...',
@@ -22,21 +25,23 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
     'Find your perfect moisturizer'
   ]
 
-  // Randomly select a placeholder
-  const randomPlaceholder =
-    placeholder || placeholders[Math.floor(Math.random() * placeholders.length)]
+  // Set initial placeholder
+  useEffect(() => {
+    setCurrentPlaceholder(
+      placeholder ||
+        placeholders[Math.floor(Math.random() * placeholders.length)]
+    )
+  }, [placeholder])
 
   // Debounced search function
   const debouncedSearch = useCallback(
     debounce((term: string) => {
-      console.log('Debounced search with term:', term)
       if (term.trim()) {
         navigate({
           to: '/shop',
           search: { ...search, name: term.trim() }
         })
       } else {
-        console.log('Empty search term detected in debounce')
         navigate({
           to: '/shop',
           search: {}
@@ -48,10 +53,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
 
   // Effect to trigger debounced search when searchTerm changes
   useEffect(() => {
-    console.log('Search term changed:', searchTerm)
     debouncedSearch(searchTerm)
-
-    // Cleanup function to cancel debounced call if component unmounts
     return () => {
       debouncedSearch.cancel()
     }
@@ -60,10 +62,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted with term:', searchTerm)
 
     // Cancel any pending debounced searches
     debouncedSearch.cancel()
+
+    // Hide placeholder on submit
+    setShowPlaceholder(false)
 
     // Process the search
     if (searchTerm.trim()) {
@@ -72,11 +76,22 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
         search: { ...search, name: searchTerm.trim() }
       })
     } else {
-      console.log('Empty search term detected in submit')
       navigate({
         to: '/shop',
         search: {}
       })
+    }
+  }
+
+  // Reset placeholder when input is focused
+  const handleFocus = () => {
+    setIsFocused(true)
+    if (!searchTerm) {
+      setShowPlaceholder(true)
+      // Change placeholder on focus
+      const newPlaceholder =
+        placeholders[Math.floor(Math.random() * placeholders.length)]
+      setCurrentPlaceholder(newPlaceholder)
     }
   }
 
@@ -90,21 +105,40 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder }) => {
         `}
         >
           <Search className="mr-2 size-5 text-gray-400" />
-          <input
-            type="text"
-            className="vanish-input w-full bg-transparent outline-none placeholder:text-gray-400"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder={randomPlaceholder}
-          />
+
+          <div className="relative flex-1">
+            <input
+              type="text"
+              className="vanish-input w-full bg-transparent outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={handleFocus}
+              onBlur={() => setIsFocused(false)}
+              placeholder=""
+            />
+
+            <AnimatePresence>
+              {showPlaceholder && !searchTerm && (
+                <motion.span
+                  className="pointer-events-none absolute left-0 top-0 text-gray-400"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {currentPlaceholder}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+
           {searchTerm && (
             <button
               type="button"
               className="ml-2 text-gray-400 hover:text-gray-600"
               onClick={() => {
                 setSearchTerm('')
+                setShowPlaceholder(true)
                 navigate({
                   to: '/shop',
                   search: {}
