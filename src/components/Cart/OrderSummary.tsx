@@ -26,9 +26,60 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
+  // Get search params if in checkout page
   useEffect(() => {
-    fetchCartTotal()
-  }, [refreshTrigger])
+    if (isCheckoutPage) {
+      const searchParams = new URLSearchParams(window.location.search)
+      const urlCouponId = searchParams.get('couponId')
+      const urlCouponCode = searchParams.get('couponCode')
+      const urlCouponDiscount = searchParams.get('couponDiscount')
+        ? parseFloat(searchParams.get('couponDiscount')!)
+        : 0
+      const urlMaxDiscountAmount = searchParams.get('maxDiscountAmount')
+        ? parseFloat(searchParams.get('maxDiscountAmount')!)
+        : 0
+      const urlSubtotal = searchParams.get('subtotal')
+        ? parseFloat(searchParams.get('subtotal')!)
+        : 0
+
+      // Set the subtotal from URL if available
+      if (urlSubtotal) {
+        setTotal(urlSubtotal)
+      }
+
+      // Set the coupon code from URL if available
+      if (urlCouponCode) {
+        setCouponCode(urlCouponCode)
+      }
+
+      // Create a coupon object from URL parameters
+      if (urlCouponId && urlCouponDiscount) {
+        setCoupon({
+          id: urlCouponId,
+          code: urlCouponCode || '',
+          discount: urlCouponDiscount,
+          maxDiscountAmount: urlMaxDiscountAmount || 0,
+          minimumOrderPrice: 0,
+          expiryDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+          usageLimit: 1,
+          name: '',
+          startDate: new Date()
+        })
+
+        // Notify parent component about the coupon
+        if (onCouponApplied) {
+          onCouponApplied(urlCouponId, urlCouponDiscount)
+        }
+      }
+    }
+  }, [isCheckoutPage, onCouponApplied])
+
+  useEffect(() => {
+    // Only fetch cart total if not in checkout page or if no subtotal in URL
+    if (!isCheckoutPage) {
+      fetchCartTotal()
+    }
+  }, [refreshTrigger, isCheckoutPage])
 
   const fetchCartTotal = async () => {
     try {
@@ -134,14 +185,21 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         to: '/checkout',
         search: {
           couponId: coupon.id,
-          couponCode: couponCode,
+          couponCode: coupon.code,
           couponDiscount: coupon.discount,
           maxDiscountAmount: coupon.maxDiscountAmount,
-          subtotal: total
+          subtotal: total,
+          discountedAmount: getActualDiscountAmount(),
+          finalTotal: getFinalTotal()
         }
       })
     } else {
-      navigate({ to: '/checkout' })
+      navigate({
+        to: '/checkout',
+        search: {
+          subtotal: total
+        }
+      })
     }
   }
 

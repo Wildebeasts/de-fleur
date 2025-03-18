@@ -90,6 +90,7 @@ const CheckoutPage: React.FC = () => {
   const [maxDiscountAmount, setMaxDiscountAmount] = useState<number | null>(
     null
   )
+  const [subtotal, setSubtotal] = useState(0)
 
   // Form state
   const [formData, setFormData] = useState<ShippingForm>({
@@ -103,6 +104,39 @@ const CheckoutPage: React.FC = () => {
     currency: 'VND',
     provinceId: 0
   })
+
+  // Get search params from URL
+  const searchParams = new URLSearchParams(window.location.search)
+  const urlCouponId = searchParams.get('couponId')
+  const urlCouponCode = searchParams.get('couponCode')
+  const urlCouponDiscount = searchParams.get('couponDiscount')
+    ? parseFloat(searchParams.get('couponDiscount')!)
+    : 0
+  const urlMaxDiscountAmount = searchParams.get('maxDiscountAmount')
+    ? parseFloat(searchParams.get('maxDiscountAmount')!)
+    : 0
+  const urlSubtotal = searchParams.get('subtotal')
+    ? parseFloat(searchParams.get('subtotal')!)
+    : 0
+
+  // Initialize state with URL parameters
+  useEffect(() => {
+    if (urlCouponId && urlCouponCode) {
+      // Pre-fill the coupon code in the OrderSummary component
+      const orderSummaryInput = document.querySelector(
+        'input[placeholder="Enter coupon code"]'
+      ) as HTMLInputElement
+      if (orderSummaryInput) {
+        orderSummaryInput.value = urlCouponCode
+
+        // Trigger validation to apply the coupon
+        setTimeout(() => {
+          const event = new Event('input', { bubbles: true })
+          orderSummaryInput.dispatchEvent(event)
+        }, 500)
+      }
+    }
+  }, [urlCouponId, urlCouponCode])
 
   // Fetch cart data on component mount
   useEffect(() => {
@@ -222,21 +256,19 @@ const CheckoutPage: React.FC = () => {
   const handleCouponApplied = (
     id: string,
     discount: number,
-    maxDiscountAmount?: number
+    maxAmount?: number
   ) => {
     setCouponId(id)
     setCouponDiscount(discount)
+    if (maxAmount) {
+      setMaxDiscountAmount(maxAmount)
+    }
 
     // Update form data with coupon ID
     setFormData((prev) => ({
       ...prev,
       couponId: id
     }))
-
-    // Store the max discount amount if provided
-    if (maxDiscountAmount) {
-      setMaxDiscountAmount(maxDiscountAmount)
-    }
   }
 
   const calculateActualDiscount = () => {
