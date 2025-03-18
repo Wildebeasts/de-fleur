@@ -273,11 +273,6 @@ export default function Users() {
     }, 300)
   }, [])
 
-  const handleAdd = useCallback(() => {
-    // @ts-expect-error -- y e s
-    navigate({ to: '/admin/users/add' })
-  }, [navigate])
-
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, current: page }))
   }
@@ -327,17 +322,6 @@ export default function Users() {
                     )
                   }}
                 />
-              </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleAdd}
-                  className="whitespace-nowrap bg-blue-500 shadow-none hover:bg-blue-600"
-                  style={{ boxShadow: 'none' }}
-                >
-                  Add User
-                </Button>
               </div>
             </div>
           }
