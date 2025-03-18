@@ -77,11 +77,11 @@ const data = {
         {
           title: 'All Users',
           path: '/admin/users'
-        },
-        {
-          title: 'User Carts',
-          path: '/admin/users/carts'
         }
+        // {
+        //   title: 'User Carts',
+        //   path: '/admin/users/carts'
+        // }
       ]
     },
     {
