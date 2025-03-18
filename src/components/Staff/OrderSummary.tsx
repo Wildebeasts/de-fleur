@@ -167,28 +167,48 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     setIsValidatingCoupon(true)
 
     try {
-      // Call your API to validate the coupon code
-      const response = await couponApi.getCouponByCode(couponCode)
+      const response = await couponApi.getByCode(couponCode)
 
       if (response.data.isSuccess) {
-        // If the coupon is valid, set the CouponId in formData
+        const couponData = response.data.data!
+
+        // Check coupon validity
         if (
-          response.data.data!.usageLimit == 0 ||
-          new Date(response.data.data!.expiryDate) < new Date()
+          couponData.usageLimit === 0 ||
+          new Date(couponData.expiryDate) < new Date()
         ) {
           toast.error('Coupon is not available')
           setFormData((prev) => ({
             ...prev,
             CouponId: null
           }))
-        } else {
+          return
+        }
+
+        // Check minimum order price
+        if (total < couponData.minimumOrderPrice) {
+          toast.error(
+            `Order total must be at least ${new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(couponData.minimumOrderPrice)} to use this coupon`
+          )
           setFormData((prev) => ({
             ...prev,
-            CouponId: response.data.data!.id
+            CouponId: null
           }))
-          setCoupon(response.data.data!)
-          toast.success('Coupon applied successfully!')
+          return
         }
+
+        // Apply coupon if all checks pass
+        setFormData((prev) => ({
+          ...prev,
+          CouponId: couponData.id
+        }))
+        setCoupon(couponData)
+        toast.success('Coupon applied successfully!')
       } else {
         // If the coupon is invalid, display an error message
         setCoupon(null)

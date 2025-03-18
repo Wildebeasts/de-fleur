@@ -1,5 +1,4 @@
 export interface CreateOrderRequest {
-  cartId: string
   couponId?: string
   shippingAddress: string
   billingAddress: string

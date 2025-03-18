@@ -87,6 +87,9 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate()
   const [couponId, setCouponId] = useState<string | null>(null)
   const [couponDiscount, setCouponDiscount] = useState(0)
+  const [maxDiscountAmount, setMaxDiscountAmount] = useState<number | null>(
+    null
+  )
 
   // Form state
   const [formData, setFormData] = useState<ShippingForm>({
@@ -216,15 +219,34 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  const handleCouponApplied = (id: string, discount: number) => {
-    setCouponId(id || null)
+  const handleCouponApplied = (
+    id: string,
+    discount: number,
+    maxDiscountAmount?: number
+  ) => {
+    setCouponId(id)
     setCouponDiscount(discount)
 
     // Update form data with coupon ID
     setFormData((prev) => ({
       ...prev,
-      couponId: id || null
+      couponId: id
     }))
+
+    // Store the max discount amount if provided
+    if (maxDiscountAmount) {
+      setMaxDiscountAmount(maxDiscountAmount)
+    }
+  }
+
+  const calculateActualDiscount = () => {
+    const calculatedDiscount = cartData?.totalPrice * (couponDiscount / 100)
+
+    if (maxDiscountAmount && calculatedDiscount > maxDiscountAmount) {
+      return maxDiscountAmount
+    }
+
+    return calculatedDiscount
   }
 
   const handleCreateOrder = async () => {
@@ -246,7 +268,6 @@ const CheckoutPage: React.FC = () => {
       const fullAddress = `${formData.houseNumberStreet}, ${selectedWard}, ${selectedDistrict}, ${selectedProvince}`
 
       const orderRequest: CreateOrderRequest = {
-        cartId: cartData?.id,
         couponId: couponId || undefined,
         shippingAddress: fullAddress,
         billingAddress: fullAddress,
@@ -474,6 +495,21 @@ const CheckoutPage: React.FC = () => {
                 isCheckoutPage={true}
                 onCouponApplied={handleCouponApplied}
               />
+
+              {/* Display maximum discount note if applicable */}
+              {maxDiscountAmount &&
+                calculateActualDiscount() === maxDiscountAmount && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    *Maximum discount of{' '}
+                    {new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    }).format(maxDiscountAmount)}{' '}
+                    applied
+                  </div>
+                )}
             </motion.div>
           </div>
         </motion.div>

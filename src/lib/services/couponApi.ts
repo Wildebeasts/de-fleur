@@ -8,26 +8,22 @@ import {
 } from '../types/Coupon'
 
 const couponApi = {
-  getCoupons: (page = 1, pageSize = 10, searchText = '') =>
-    axiosClient.get<ApiResponse<CouponResponse[]>>('/coupon/get-all-coupons'),
-  getCouponByCode: (code: string) =>
-    axiosClient.get<ApiResponse<CouponResponse>>(
-      `/coupon/get-coupon-by-code/${code}`
-    ),
-  createCoupon: (request: CouponCreateRequest) =>
-    axiosClient.post<ApiResponse<CouponResponse>>(
-      '/coupon/create-coupon',
-      request
-    ),
-  updateCoupon: (request: CouponUpdateRequest) =>
-    axiosClient.put<ApiResponse<CouponResponse>>(
-      '/coupon/update-coupon',
-      request
-    ),
-  deleteCoupon: (id: string) =>
-    axiosClient.delete<ApiResponse<CouponResponse>>(
-      `/coupon/delete-coupon/${id}`
-    )
+  getAll: () => axiosClient.get<ApiResponse<CouponResponse[]>>('/coupons'),
+
+  getById: (id: string) =>
+    axiosClient.get<ApiResponse<CouponResponse>>(`/coupons/${id}`),
+
+  getByCode: (code: string) =>
+    axiosClient.get<ApiResponse<CouponResponse>>(`/coupons/code/${code}`),
+
+  create: (request: CouponCreateRequest) =>
+    axiosClient.post<ApiResponse<CouponResponse>>('/coupons', request),
+
+  update: (id: string, request: CouponUpdateRequest) =>
+    axiosClient.put<ApiResponse<CouponResponse>>(`/coupons/${id}`, request),
+
+  delete: (id: string) =>
+    axiosClient.delete<ApiResponse<CouponResponse>>(`/coupons/${id}`)
 }
 
 export default couponApi

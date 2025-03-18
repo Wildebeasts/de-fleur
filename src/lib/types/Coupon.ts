@@ -6,6 +6,8 @@ export interface CouponResponse {
   startDate: Date
   expiryDate: Date
   usageLimit: number
+  maxDiscountAmount: number
+  minimumOrderPrice: number
 }
 
 export interface CouponCreateRequest {
@@ -14,12 +16,15 @@ export interface CouponCreateRequest {
   discount: number
   expiryDate: Date
   usageLimit: number
+  maxDiscountAmount: number
+  minimumOrderPrice: number
 }
 
 export interface CouponUpdateRequest {
-  id: string
   code: string
   discount: number
   expiryDate: Date
   usageLimit: number
+  maxDiscountAmount: number
+  minimumOrderPrice: number
 }

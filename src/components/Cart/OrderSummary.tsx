@@ -1,350 +1,235 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useCallback } from 'react'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
-import { debounce } from 'lodash'
-import cartApi from '@/lib/services/cartApi'
+import debounce from 'lodash/debounce'
 import couponApi from '@/lib/services/couponApi'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useDelivery } from '@/lib/context/DeliveryContext'
-import { Loader2 } from 'lucide-react'
+import { CouponResponse } from '@/lib/types/Coupon'
+import cartApi from '@/lib/services/cartApi'
 
 interface OrderSummaryProps {
   refreshTrigger?: number
   isCheckoutPage?: boolean
-  initialCouponCode?: string
-  onCouponApplied?: (couponId: string, discount: number) => void
+  onCouponApplied?: (id: string, discount: number) => void
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
-  refreshTrigger = 0,
-  isCheckoutPage = false,
-  initialCouponCode = '',
+  refreshTrigger,
+  isCheckoutPage,
   onCouponApplied
 }) => {
-  const [isLoading, setIsLoading] = useState(true)
-  const [cartData, setCartData] = useState<any>(null)
-  const [couponCode, setCouponCode] = useState(initialCouponCode)
-  const [coupon, setCoupon] = useState<any>(null)
-  const [isCouponLoading, setIsCouponLoading] = useState(false)
-  const [isCouponValid, setIsCouponValid] = useState(true)
-  const { shippingFee } = useDelivery()
+  const [total, setTotal] = useState(0)
+  const [couponCode, setCouponCode] = useState('')
+  const [coupon, setCoupon] = useState<CouponResponse | null>(null)
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
   const navigate = useNavigate()
 
-  // Initialize coupon code from URL or localStorage
   useEffect(() => {
-    // If initialCouponCode is provided, use it
-    if (initialCouponCode) {
-      setCouponCode(initialCouponCode)
-      // Validate the initial coupon code
-      debouncedCheckCoupon(initialCouponCode)
-    } else {
-      // Try to get from localStorage
-      const savedCoupon = localStorage.getItem('cartCoupon')
-      if (savedCoupon) {
-        try {
-          const { code, data } = JSON.parse(savedCoupon)
-          setCouponCode(code)
-          setCoupon(data)
-          setIsCouponValid(true)
+    fetchCartTotal()
+  }, [refreshTrigger])
 
-          // Notify parent component if we're on checkout page
-          if (isCheckoutPage && onCouponApplied && data) {
-            onCouponApplied(data.id, data.discount)
-          }
-        } catch (e) {
-          localStorage.removeItem('cartCoupon')
-        }
+  const fetchCartTotal = async () => {
+    try {
+      const response = await cartApi.getCurrentCart()
+      if (response.data.isSuccess && response.data.data) {
+        const cartTotal = response.data.data.items.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        )
+        setTotal(cartTotal)
       }
+    } catch (error) {
+      console.error('Error fetching cart total:', error)
     }
-  }, [initialCouponCode, isCheckoutPage, onCouponApplied])
+  }
 
-  // Fetch cart data directly from API
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        setIsLoading(true)
-        const response = await cartApi.getCurrentCart()
-        if (response.data.isSuccess) {
-          setCartData(response.data.data)
-        }
-      } catch (error) {
-        console.error('Error fetching cart:', error)
-        toast.error('Không thể tải thông tin giỏ hàng')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchCart()
-  }, [refreshTrigger]) // Refetch when refreshTrigger changes
-
-  // Debounced function to check coupon validity
-  const debouncedCheckCoupon = useCallback(
+  const debouncedValidateCoupon = useCallback(
     debounce(async (code: string) => {
-      if (!code.trim()) {
-        setCoupon(null)
-        setIsCouponValid(true)
-        localStorage.removeItem('cartCoupon')
-        if (isCheckoutPage && onCouponApplied) {
-          onCouponApplied('', 0)
-        }
-        return
-      }
+      if (!code) return
 
+      setIsValidatingCoupon(true)
       try {
-        setIsCouponLoading(true)
-        const response = await couponApi.getCouponByCode(code)
+        const response = await couponApi.getByCode(code)
 
-        if (response.data.isSuccess && response.data.data) {
-          const couponData = response.data.data
+        if (response.data.isSuccess) {
+          const couponData = response.data.data!
+
+          if (total < couponData.minimumOrderPrice) {
+            toast.error(
+              `Order total must be at least ${new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              }).format(couponData.minimumOrderPrice)}`
+            )
+            setCoupon(null)
+            inputRef.current?.focus()
+            return
+          }
+
           setCoupon(couponData)
-          setIsCouponValid(true)
-
-          // Save to localStorage for persistence between pages
-          localStorage.setItem(
-            'cartCoupon',
-            JSON.stringify({
-              code,
-              data: couponData
-            })
-          )
-
-          // Notify parent component if we're on checkout page
-          if (isCheckoutPage && onCouponApplied) {
+          toast.success('Coupon applied successfully!')
+          if (onCouponApplied) {
             onCouponApplied(couponData.id, couponData.discount)
           }
-
-          toast.success('Mã giảm giá hợp lệ')
         } else {
+          toast.error(response.data.message || 'Invalid coupon code')
           setCoupon(null)
-          setIsCouponValid(false)
-          localStorage.removeItem('cartCoupon')
-
-          if (isCheckoutPage && onCouponApplied) {
-            onCouponApplied('', 0)
-          }
-
-          toast.error('Mã giảm giá không hợp lệ')
+          inputRef.current?.focus()
         }
       } catch (error) {
         console.error('Error validating coupon:', error)
+        toast.error('Error validating coupon')
         setCoupon(null)
-        setIsCouponValid(false)
-        localStorage.removeItem('cartCoupon')
-
-        if (isCheckoutPage && onCouponApplied) {
-          onCouponApplied('', 0)
-        }
-
-        toast.error('Không thể kiểm tra mã giảm giá')
+        inputRef.current?.focus()
       } finally {
-        setIsCouponLoading(false)
+        setIsValidatingCoupon(false)
       }
-    }, 800),
-    [isCheckoutPage, onCouponApplied]
+    }, 2000),
+    [total, onCouponApplied]
   )
 
-  // Handle coupon input change
-  const handleCouponChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setCouponCode(value)
+  const handleCouponCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const code = e.target.value.toUpperCase()
+    setCouponCode(code)
+    if (code.length >= 3) {
+      debouncedValidateCoupon(code)
+    }
+  }
 
-    if (value.trim()) {
-      setIsCouponLoading(true)
-      debouncedCheckCoupon(value)
+  const getDiscountedAmount = () => {
+    if (!coupon) return 0
+
+    const calculatedDiscount = total * (coupon.discount / 100)
+    const maxDiscount = coupon.maxDiscountAmount || Infinity
+
+    // Return the calculated discount (for display)
+    return calculatedDiscount
+  }
+
+  const getActualDiscountAmount = () => {
+    if (!coupon) return 0
+
+    const calculatedDiscount = total * (coupon.discount / 100)
+    const maxDiscount = coupon.maxDiscountAmount || Infinity
+
+    // Return the actual discount (capped at maximum)
+    return Math.min(calculatedDiscount, maxDiscount)
+  }
+
+  const getFinalTotal = () => total - getActualDiscountAmount()
+
+  useEffect(() => {
+    return () => {
+      debouncedValidateCoupon.cancel()
+    }
+  }, [debouncedValidateCoupon])
+
+  const handleProceedToCheckout = () => {
+    if (coupon) {
+      navigate({
+        to: '/checkout',
+        search: {
+          couponId: coupon.id,
+          couponCode: couponCode,
+          couponDiscount: coupon.discount,
+          maxDiscountAmount: coupon.maxDiscountAmount,
+          subtotal: total
+        }
+      })
     } else {
-      setCoupon(null)
-      setIsCouponValid(true)
-      localStorage.removeItem('cartCoupon')
-
-      if (isCheckoutPage && onCouponApplied) {
-        onCouponApplied('', 0)
-      }
+      navigate({ to: '/checkout' })
     }
-  }
-
-  const handleCheckout = () => {
-    navigate({ to: '/checkout' })
-  }
-
-  // Calculate cart totals
-  const getSubtotal = () => {
-    if (!cartData || !cartData.items || !cartData.items.length) return 0
-    return (
-      cartData.originalTotalPrice ||
-      cartData.items.reduce(
-        (total: number, item: any) => total + item.price * item.quantity,
-        0
-      )
-    )
-  }
-
-  // Get event discount amount
-  const getEventDiscount = () => {
-    if (!cartData || !cartData.eventDiscountTotal) return 0
-    return cartData.eventDiscountTotal
-  }
-
-  // Get coupon discount amount
-  const getCouponDiscount = () => {
-    if (!coupon || !isCouponValid) return 0
-
-    // Calculate based on coupon type (percentage or fixed amount)
-    const subtotalAfterEventDiscount = getSubtotal() - getEventDiscount()
-
-    if (coupon.discount) {
-      // Assuming discount is a percentage
-      return Math.round(subtotalAfterEventDiscount * (coupon.discount / 100))
-    }
-
-    return 0
-  }
-
-  // You can add shipping calculation logic here if needed
-  const getShipping = () => {
-    return shippingFee?.total || 0 // Free shipping or calculate based on your business logic
-  }
-
-  const getTotal = () => {
-    // Start with the cart total (after event discounts)
-    let total = 0
-
-    // If we have the new totalPrice that includes event discounts, use it
-    if (cartData && cartData.totalPrice) {
-      total = cartData.totalPrice
-    } else {
-      // Otherwise fall back to the old calculation
-      total = getSubtotal() - getEventDiscount()
-    }
-
-    // Apply coupon discount if valid
-    total -= getCouponDiscount()
-
-    // Add shipping
-    total += getShipping()
-
-    return total
-  }
-
-  if (isLoading) {
-    return (
-      <div className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
-        <div className="animate-pulse">
-          <div className="mb-4 h-4 w-full rounded bg-gray-200"></div>
-          <div className="mb-4 h-4 w-3/4 rounded bg-gray-200"></div>
-          <div className="mb-4 h-4 w-1/2 rounded bg-gray-200"></div>
-          <div className="mt-6 h-10 w-full rounded bg-gray-200"></div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!cartData || !cartData.items || cartData.items.length === 0) {
-    return (
-      <div className="rounded-lg bg-white p-6 shadow-sm">
-        <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
-        <p className="mb-4 text-gray-500">Your cart is empty</p>
-        <Button
-          className="w-full rounded-full bg-[#3A4D39] py-3 text-white hover:bg-[#4A5D49]"
-          onClick={() => navigate({ to: '/shop' })}
-        >
-          Continue Shopping
-        </Button>
-      </div>
-    )
   }
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-sm">
-      <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-lg bg-white p-6 shadow"
+    >
+      <h2 className="mb-4 text-lg font-semibold">Order Summary</h2>
 
-      <div className="space-y-3">
-        <div className="flex justify-between">
-          <span className="text-gray-600">Subtotal</span>
-          <span>{getSubtotal().toLocaleString('vi-VN')}₫</span>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Coupon Code</label>
+          <input
+            type="text"
+            placeholder="Enter coupon code"
+            value={couponCode}
+            onChange={handleCouponCodeChange}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm uppercase focus:border-[#3A4D39] focus:outline-none"
+            disabled={isValidatingCoupon}
+          />
+          {isValidatingCoupon && (
+            <div className="text-sm text-gray-500">Validating...</div>
+          )}
         </div>
 
-        {/* Add event discount section if there is a discount */}
-        {getEventDiscount() > 0 && (
-          <div className="flex justify-between text-red-600">
-            <span>Event Discount</span>
-            <span>-{getEventDiscount().toLocaleString('vi-VN')}₫</span>
-          </div>
-        )}
-
-        {/* Add coupon discount section if there is a valid coupon */}
-        {coupon && isCouponValid && getCouponDiscount() > 0 && (
-          <div className="flex justify-between text-red-600">
-            <span>Coupon Discount ({couponCode})</span>
-            <span>-{getCouponDiscount().toLocaleString('vi-VN')}₫</span>
-          </div>
-        )}
-
-        <div className="flex justify-between">
-          <span className="text-gray-600">Shipping</span>
-          <span>
-            {shippingFee
-              ? `${getShipping().toLocaleString('vi-VN')}₫`
-              : 'Calculating...'}
+        <div className="flex justify-between text-sm">
+          <span>Subtotal:</span>
+          <span className="font-semibold">
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(total)}
           </span>
         </div>
 
-        {/* Coupon input section */}
-        <div className="mt-4 border-t pt-4">
-          <div className="mb-2 text-sm font-medium">Coupon Code</div>
-          <div className="relative">
-            <Input
-              type="text"
-              placeholder="Enter coupon code"
-              value={couponCode}
-              onChange={handleCouponChange}
-              className={`pr-10 ${!isCouponValid && couponCode ? 'border-red-500' : ''}`}
-            />
-            {isCouponLoading && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="size-4 animate-spin text-gray-400" />
-              </div>
-            )}
+        {coupon && (
+          <div className="flex justify-between text-sm text-red-500">
+            <span>Discount ({coupon.discount}%):</span>
+            <span className="font-semibold">
+              -{' '}
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              }).format(getActualDiscountAmount())}
+            </span>
           </div>
-          {!isCouponValid && couponCode && (
-            <p className="mt-1 text-xs text-red-500">Invalid coupon code</p>
-          )}
-          {coupon && isCouponValid && (
-            <p className="mt-1 text-xs text-green-600">
-              Coupon applied: {coupon.discount}% off
-            </p>
-          )}
-        </div>
+        )}
 
-        <div className="border-t pt-3">
-          <div className="flex justify-between font-semibold">
-            <span>Total</span>
-            <span className="text-lg text-[#3A4D39]">
-              {getTotal().toLocaleString('vi-VN')}₫
+        {coupon && getDiscountedAmount() > (coupon.maxDiscountAmount || 0) && (
+          <div className="text-xs text-gray-500">
+            *Discount capped at maximum{' '}
+            {new Intl.NumberFormat('vi-VN', {
+              style: 'currency',
+              currency: 'VND',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(coupon.maxDiscountAmount)}
+          </div>
+        )}
+
+        <div className="border-t pt-4">
+          <div className="flex justify-between">
+            <span className="text-base font-semibold">Total:</span>
+            <span className="text-base font-bold">
+              {new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+              }).format(getFinalTotal())}
             </span>
           </div>
         </div>
-      </div>
 
-      {!isCheckoutPage && (
-        <Button
-          className="mt-6 w-full rounded-full bg-[#3A4D39] py-6 text-white hover:bg-[#4A5D49]"
-          onClick={handleCheckout}
-          disabled={
-            !cartData ||
-            !cartData.items ||
-            cartData.items.length === 0 ||
-            (couponCode.trim() !== '' && !isCouponValid) ||
-            isCouponLoading
-          }
+        <button
+          onClick={handleProceedToCheckout}
+          className="mt-4 w-full rounded-full bg-[#3A4D39] px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#4A5D49]"
         >
           Proceed to Checkout
-        </Button>
-      )}
-    </div>
+        </button>
+      </div>
+    </motion.div>
   )
 }
 
