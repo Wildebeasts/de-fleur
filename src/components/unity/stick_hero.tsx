@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUnityContext } from 'react-unity-webgl'
 import { Unity } from 'react-unity-webgl'
@@ -165,7 +166,7 @@ function StickHero() {
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <Button
-                    onClick={handleRestart}
+                    onClick={handleRefresh}
                     className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
                   >
                     Play Again
