@@ -23,7 +23,10 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
-    "src/routeTree.gen.ts"
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/routeTree.gen.ts",
+    "public/unity-build/**/*"
   ],
   "exclude": ["node_modules"]
 }

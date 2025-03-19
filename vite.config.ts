@@ -19,8 +19,20 @@ export default defineConfig({
   },
   server: {
     host: true, // Allows external access (e.g., from other devices or domains)
-    allowedHosts: ['web.pak160404.click'] // Allow this host
+    allowedHosts: ['web.pak160404.click'], // Allow this host
+    headers: {
+      'Cross-Origin-Embedder-Policy': 'credentialless',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Access-Control-Allow-Origin': '*'
+    }
   },
+  publicDir: 'public',
+  assetsInclude: [
+    '**/*.data',
+    '**/*.framework.js',
+    '**/*.loader.js',
+    '**/*.wasm'
+  ],
   test: {
     globals: true,
     environment: 'happy-dom',
