@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
@@ -92,7 +93,12 @@ export default function MyCoupons() {
   // Fetch user coupons
   const { data: userCouponsData, isLoading: userCouponsLoading } = useQuery({
     queryKey: ['user-coupons'],
-    queryFn: () => userApi.getUserCoupons(),
+    queryFn: () => {
+      return userApi.getUserCoupons().then(response => {
+        console.log('User Coupons Response:', response);
+        return response;
+      });
+    },
     enabled: !!userProfile
   })
 
@@ -167,66 +173,74 @@ export default function MyCoupons() {
                   </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2">
-                    {couponsData?.map((coupon: CouponResponse) => (
-                      <Card
-                        key={coupon.id}
-                        className="overflow-hidden border-gray-200"
-                      >
-                        <div className="border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-emerald-800">
-                              {coupon.name}
-                            </h3>
-                            <Badge variant="outline" className="bg-white">
-                              {coupon.discount}% OFF
-                            </Badge>
-                          </div>
-                          <p className="mt-1 text-xs text-gray-500">
-                            Code:{' '}
-                            <span className="font-mono font-medium">
-                              {coupon.code}
-                            </span>
-                          </p>
-                        </div>
-                        <div className="p-4">
-                          <div className="mb-3 flex items-center justify-between">
-                            <div className="flex items-center text-sm text-gray-500">
-                              <Clock className="mr-1 size-4" />
-                              Expires: {formatDate(coupon.expiryDate)}
+                    {couponsData?.map((coupon: CouponResponse) => {
+                      console.log(
+                        'Coupon:',
+                        coupon.name,
+                        'PointRequired:',
+                        coupon.pointRequired
+                      )
+                      return (
+                        <Card
+                          key={coupon.id}
+                          className="overflow-hidden border-gray-200"
+                        >
+                          <div className="border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-emerald-800">
+                                {coupon.name}
+                              </h3>
+                              <Badge variant="outline" className="bg-white">
+                                {coupon.discount}% OFF
+                              </Badge>
                             </div>
-                            <div className="flex items-center text-sm font-medium text-amber-600">
-                              <Coins className="mr-1 size-4" />
-                              {coupon.pointRequired} points
-                            </div>
-                          </div>
-                          {coupon.minimumOrderPrice > 0 && (
-                            <p className="mb-3 text-xs text-gray-500">
-                              Min. Order: ${coupon.minimumOrderPrice}
+                            <p className="mt-1 text-xs text-gray-500">
+                              Code:{' '}
+                              <span className="font-mono font-medium">
+                                {coupon.code}
+                              </span>
                             </p>
-                          )}
-                          <Button
-                            className="mt-2 w-full"
-                            variant={
-                              (userProfile?.point || 0) >=
-                              (coupon.pointRequired || 0)
-                                ? 'default'
-                                : 'outline'
-                            }
-                            disabled={
-                              !userProfile ||
-                              (userProfile.point || 0) <
+                          </div>
+                          <div className="p-4">
+                            <div className="mb-3 flex items-center justify-between">
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Clock className="mr-1 size-4" />
+                                Expires: {formatDate(coupon.expiryDate)}
+                              </div>
+                              <div className="flex items-center text-sm font-medium text-amber-600">
+                                <Coins className="mr-1 size-4" />
+                                {coupon.pointRequired} points
+                              </div>
+                            </div>
+                            {coupon.minimumOrderPrice > 0 && (
+                              <p className="mb-3 text-xs text-gray-500">
+                                Min. Order: ${coupon.minimumOrderPrice}
+                              </p>
+                            )}
+                            <Button
+                              className="mt-2 w-full"
+                              variant={
+                                (userProfile?.point || 0) >=
+                                  (coupon.pointRequired || 0)
+                                  ? 'default'
+                                  : 'outline'
+                              }
+                              disabled={
+                                !userProfile ||
+                                (userProfile.point || 0) <
                                 (coupon.pointRequired || 0) ||
-                              exchangeCouponMutation.isPending
-                            }
-                            onClick={() => handleExchangeCoupon(coupon)}
-                          >
-                            {exchangeCouponMutation.isPending
-                              ? 'Exchanging...'
-                              : 'Exchange Coupon'}
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
+                                exchangeCouponMutation.isPending
+                              }
+                              onClick={() => handleExchangeCoupon(coupon)}
+                            >
+                              {exchangeCouponMutation.isPending
+                                ? 'Exchanging...'
+                                : 'Exchange Coupon'}
+                            </Button>
+                          </div>
+                        </Card>
+                      )
+                    })}
                   </div>
                 )}
               </TabsContent>
