@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
 import CustomerOrderSummary from './CustomerOrderSummary'
-import CustomerCoupon from './CustomerCoupon'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import CustomerInfo from './CustomerInfo'
-import { CouponResponse } from '@/lib/types/Coupon'
 
 type Props = {
   selectedProducts: (CosmeticResponse & { quantity: number })[]
-  coupon: CouponResponse | null
   customerName: string
   phoneNumber: string
   onClose: () => void
@@ -16,7 +13,6 @@ type Props = {
 
 const CustomerScreen: React.FC<Props> = ({
   selectedProducts,
-  coupon,
   customerName,
   phoneNumber,
   onClose
@@ -62,12 +58,7 @@ const CustomerScreen: React.FC<Props> = ({
         (sum, item) => sum + item.price * item.quantity,
         0
       )
-      let total = 0
-      if (coupon) {
-        total = subtotal - (subtotal * coupon.discount) / 100
-      } else {
-        total = subtotal
-      }
+      const total = subtotal
 
       // eslint-disable-next-line react/no-deprecated
       ReactDOM.render(
@@ -89,7 +80,6 @@ const CustomerScreen: React.FC<Props> = ({
                 customerName={customerName}
                 phoneNumber={phoneNumber}
               />
-              <CustomerCoupon coupon={coupon} />
             </div>
           </div>
 
@@ -101,13 +91,7 @@ const CustomerScreen: React.FC<Props> = ({
             </div>
             <div className="flex justify-between text-lg text-red-600">
               <span>Discount:</span>
-              {coupon ? (
-                <span>
-                  - {((subtotal * coupon!.discount) / 100).toLocaleString()} VND
-                </span>
-              ) : (
-                <span>- {0} VND</span>
-              )}
+              <span>- {0} VND</span>
             </div>
             <hr className="my-2 border-gray-300" />
             <div className="flex justify-between text-xl font-bold text-gray-900">
@@ -119,7 +103,7 @@ const CustomerScreen: React.FC<Props> = ({
         customerWindow.document.getElementById('customer-root')
       )
     }
-  }, [selectedProducts, customerWindow, coupon, customerName, phoneNumber])
+  }, [selectedProducts, customerWindow, customerName, phoneNumber])
 
   return null
 }

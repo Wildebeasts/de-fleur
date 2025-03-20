@@ -10,7 +10,6 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import Breadcrumb from '../Store/Breadcrumb'
 import CosmeticSearch from './CosmeticSearch'
 import CustomerScreen from './CustomerScreen'
-import { CouponResponse } from '@/lib/types/Coupon'
 import { motion } from 'framer-motion'
 
 const ITEMS_PER_PAGE = 12
@@ -26,7 +25,6 @@ const ProductSelectionAndOrder = () => {
   const handleCloseCustomerScreen = () => {
     setCustomerViewOpen(false) // Allow reopening the window
   }
-  const [coupon, setCoupon] = useState<CouponResponse | null>(null)
   const [customerName, setCustomerName] = useState<string>('')
   const [customerPhoneNumber, setPhoneNumber] = useState<string>('')
 
@@ -193,8 +191,6 @@ const ProductSelectionAndOrder = () => {
                 onIncreaseQuantity={handleAddToOrder}
                 onDecreaseQuantity={handleDecreaseQuantity}
                 onRemoveProduct={handleRemoveFromOrder}
-                coupon={coupon}
-                setCoupon={setCoupon}
                 setCustomerName={setCustomerName}
                 setCustomerPhoneNumber={setPhoneNumber}
               />
@@ -203,7 +199,6 @@ const ProductSelectionAndOrder = () => {
 
           {customerViewOpen && (
             <CustomerScreen
-              coupon={coupon}
               customerName={customerName}
               phoneNumber={customerPhoneNumber}
               selectedProducts={selectedProducts}
