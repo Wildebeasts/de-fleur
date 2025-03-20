@@ -234,8 +234,8 @@ export default function CouponList() {
       const expiryDateString =
         typeof coupon.expiryDate === 'string'
           ? coupon.expiryDate
-          : coupon.expiryDate instanceof Date
-            ? coupon.expiryDate.toISOString()
+          : typeof coupon.expiryDate === 'object' && coupon.expiryDate !== null
+            ? new Date(coupon.expiryDate).toISOString()
             : String(coupon.expiryDate)
 
       if (isExpired(expiryDateString)) {

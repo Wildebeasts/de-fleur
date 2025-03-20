@@ -60,10 +60,13 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           discount: urlCouponDiscount,
           maxDiscountAmount: urlMaxDiscountAmount || 0,
           minimumOrderPrice: 0,
-          expiryDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+          expiryDate: new Date(
+            new Date().setDate(new Date().getDate() + 1)
+          ).toISOString(),
           usageLimit: 1,
           name: '',
-          startDate: new Date()
+          startDate: new Date().toISOString(),
+          pointRequired: 0
         })
 
         // Notify parent component about the coupon
