@@ -4,9 +4,7 @@ import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import { Cosmetics, OrderWalkInRequest } from '@/lib/types/order'
 import { Minus, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import couponApi from '@/lib/services/couponApi'
 import orderApi from '@/lib/services/orderApi'
-import { CouponResponse } from '@/lib/types/Coupon'
 
 interface OrderSummaryProps {
   selectedProducts: CosmeticResponse[]
@@ -14,8 +12,6 @@ interface OrderSummaryProps {
   onIncreaseQuantity: (product: CosmeticResponse) => void
   onDecreaseQuantity: (productId: string) => void
   onRemoveProduct: (productId: string) => void
-  coupon: CouponResponse | null
-  setCoupon: (coupon: CouponResponse | null) => void
   setCustomerName: (customerName: string) => void
   setCustomerPhoneNumber: (customerPhoneNumber: string) => void
 }
@@ -26,13 +22,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   onIncreaseQuantity,
   onDecreaseQuantity,
   onRemoveProduct,
-  coupon,
-  setCoupon,
   setCustomerName,
   setCustomerPhoneNumber
 }) => {
-  const [couponCode, setCouponCode] = useState('') // State for coupon code input
-  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false) // Loading state for coupon validation
   const [isSubmitting, setIsSubmitting] = useState(false) // Spinner state
   // Form state
   const [formData, setFormData] = useState<OrderWalkInRequest>({
@@ -99,9 +91,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       Cosmetics: cosmeticsPayload,
       FirstName: formData.FirstName,
       LastName: formData.LastName,
-      CustomerPhoneNumber: formData.CustomerPhoneNumber, // Replace with actual input value
-      CouponId: formData.CouponId, // or actual coupon ID if applied
-      PaymentMethod: formData.PaymentMethod // or 'Credit Card' based on selection
+      CustomerPhoneNumber: formData.CustomerPhoneNumber,
+      CouponId: null, // No coupon support for walk-in orders
+      PaymentMethod: formData.PaymentMethod
     }
 
     console.log(orderRequest) // For debugging before sending
@@ -144,7 +136,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         setSelectedProducts([])
         setCustomerName('')
         setCustomerPhoneNumber('')
-        setCoupon(null)
       } else {
         // Handle API error
         toast.error(response.data.message || 'Failed to create order')
@@ -158,78 +149,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     }
   }
 
-  const validateCoupon = async () => {
-    if (!couponCode) {
-      toast.error('Please enter a coupon code')
-      return
-    }
-
-    setIsValidatingCoupon(true)
-
-    try {
-      const response = await couponApi.getByCode(couponCode)
-
-      if (response.data.isSuccess) {
-        const couponData = response.data.data!
-
-        // Check coupon validity
-        if (
-          couponData.usageLimit === 0 ||
-          new Date(couponData.expiryDate) < new Date()
-        ) {
-          toast.error('Coupon is not available')
-          setFormData((prev) => ({
-            ...prev,
-            CouponId: null
-          }))
-          return
-        }
-
-        // Check minimum order price
-        if (total < couponData.minimumOrderPrice) {
-          toast.error(
-            `Order total must be at least ${new Intl.NumberFormat('vi-VN', {
-              style: 'currency',
-              currency: 'VND',
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 0
-            }).format(couponData.minimumOrderPrice)} to use this coupon`
-          )
-          setFormData((prev) => ({
-            ...prev,
-            CouponId: null
-          }))
-          return
-        }
-
-        // Apply coupon if all checks pass
-        setFormData((prev) => ({
-          ...prev,
-          CouponId: couponData.id
-        }))
-        setCoupon(couponData)
-        toast.success('Coupon applied successfully!')
-      } else {
-        // If the coupon is invalid, display an error message
-        setCoupon(null)
-        toast.error(response.data.message || 'Invalid coupon code')
-        setFormData((prev) => ({
-          ...prev,
-          CouponId: null
-        }))
-      }
-    } catch (error) {
-      console.error('Error validating coupon:', error)
-      toast.error('Failed to validate coupon')
-      setFormData((prev) => ({
-        ...prev,
-        CouponId: null
-      }))
-    } finally {
-      setIsValidatingCoupon(false)
-    }
-  }
-
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
@@ -238,19 +157,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     (sum, product) => sum + product.price * product.quantity,
     0
   )
-
-  const calculateDiscount = () => {
-    if (!coupon) return 0
-
-    // Calculate percentage discount
-    const percentageDiscount = total * (coupon.discount / 100)
-
-    // Apply maximum discount cap if needed
-    return coupon.maxDiscountAmount &&
-      percentageDiscount > coupon.maxDiscountAmount
-      ? coupon.maxDiscountAmount
-      : percentageDiscount
-  }
 
   return (
     <motion.div
@@ -356,30 +262,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             />
           </div>
 
-          {/* Coupon Code Input */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Coupon Code</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter coupon code"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-[#c183de] focus:outline-none"
-              />
-              <button
-                type="button"
-                onClick={validateCoupon}
-                disabled={isValidatingCoupon}
-                className="rounded-lg bg-[#c183de] px-4 py-2 text-sm font-medium text-white hover:bg-[#482daa] disabled:opacity-50"
-              >
-                {isValidatingCoupon ? 'Validating...' : 'Apply'}
-              </button>
-            </div>
-          </div>
-
           <div className="flex justify-between pt-4 text-sm font-semibold text-gray-500">
-            <span>Sub Total:</span>
+            <span>Total:</span>
             <span className="font-bold text-gray-500">
               {new Intl.NumberFormat('vi-VN', {
                 style: 'currency',
@@ -387,40 +271,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
               }).format(total)}
-            </span>
-          </div>
-
-          <div className="flex justify-between pt-2 text-sm font-semibold text-red-500">
-            <span>Discount:</span>
-            <span className="font-bold text-red-500">
-              -{' '}
-              {coupon
-                ? new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(calculateDiscount())
-                : '0 ₫'}
-            </span>
-          </div>
-
-          <div className="mt-4 flex justify-between border-t pt-2 text-sm font-semibold text-black">
-            <span>Total:</span>
-            <span className="font-bold text-black">
-              {coupon
-                ? new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(total - calculateDiscount())
-                : new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(total)}
             </span>
           </div>
 
