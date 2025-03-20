@@ -9,6 +9,7 @@ import { RefreshCw, Trophy, Coins } from 'lucide-react'
 import couponApi from '@/lib/services/couponApi'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/context/AuthContext'
+import { useRouter } from '@tanstack/react-router'
 
 declare global {
   interface Window {
@@ -22,6 +23,7 @@ function StickHero() {
   const [score, setScore] = useState(0)
   const [pointsEarned, setPointsEarned] = useState<number | null>(null)
   const { isAuthenticated } = useAuth()
+  const router = useRouter()
 
   // Keep Unity provider logic exactly the same
   const {
@@ -75,27 +77,30 @@ function StickHero() {
       }
     }
 
-    // Notify backend that game has started (if authenticated)
-    const notifyGameStart = async () => {
+    // Check if user can play
+    const checkGameAccess = async () => {
       if (isAuthenticated && isLoaded) {
         try {
           await couponApi.startGame()
         } catch (error: any) {
-          // Just log the error but don't prevent game from starting
-          console.error('Error notifying game start:', error)
+          setError('You have reached your daily game limit')
+          // Redirect to coupons page after 3 seconds
+          setTimeout(() => {
+            router.navigate({ to: '/my_coupons' })
+          }, 3000)
         }
       }
     }
 
     if (isLoaded) {
-      notifyGameStart()
+      checkGameAccess()
     }
 
     return () => {
       removeEventListener('error', handleError)
       delete window.onGameEnd
     }
-  }, [addEventListener, removeEventListener, isAuthenticated, isLoaded])
+  }, [addEventListener, removeEventListener, isAuthenticated, isLoaded, router])
 
   const handleRestart = () => {
     window.location.reload()
@@ -103,19 +108,9 @@ function StickHero() {
 
   if (error) {
     return (
-      <div className="container mx-auto my-12 flex flex-col items-center">
-        <div className="w-full max-w-3xl rounded-lg bg-white p-8 shadow-md">
-          <h1 className="mb-4 text-2xl font-bold text-red-600">
-            Error Loading Unity Game
-          </h1>
-          <p className="mb-4 text-gray-700">{error}</p>
-          <Button
-            onClick={handleRestart}
-            className="bg-red-600 text-white hover:bg-red-700"
-          >
-            Refresh Page
-          </Button>
-        </div>
+      <div className="container mx-auto p-4 text-center">
+        <h2 className="text-xl text-red-600">{error}</h2>
+        <p>Redirecting to your coupons...</p>
       </div>
     )
   }

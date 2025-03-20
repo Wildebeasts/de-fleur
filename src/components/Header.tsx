@@ -15,7 +15,8 @@ const navigationItems: NavigationItem[] = [
   { label: 'Shop', href: '/shop' },
   { label: 'Blog', href: '/blog' },
   { label: 'Collections', href: '/collections' },
-  { label: 'About', href: '/about' }
+  { label: 'About', href: '/about' },
+  { label: 'Play', href: '/unity_game' }
 ]
 
 const CartIcon = () => (
