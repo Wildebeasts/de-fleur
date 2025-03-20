@@ -6,24 +6,23 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import OrderSummary from '@/components/Cart/OrderSummary'
 import SecurityInfo from '@/components/Cart/SecurityInfo'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import vnpayLogo from '@/assets/vnpay.jpg'
-import paymentApi from '@/lib/services/paymentApi'
+
 import orderApi from '@/lib/services/orderApi'
 import { useNavigate } from '@tanstack/react-router'
-import { CreateOrderRequest } from '@/lib/types/order'
 import cartApi from '@/lib/services/cartApi'
 import { useDelivery } from '@/lib/context/DeliveryContext'
 import ComboBox from '@/components/ui/combobox'
 import { CalculateShippingFeeRequest } from '@/lib/types/delivery'
 import { CartItem } from '@/lib/types/Cart'
-import { CouponResponse } from '@/lib/types/Coupon'
+
 import couponApi from '@/lib/services/couponApi'
 import axios, { AxiosError } from 'axios'
+import CheckoutSummary from '@/components/Cart/CheckoutSummary'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -69,6 +68,12 @@ interface ShippingForm {
 }
 
 const CheckoutPage: React.FC = () => {
+  // Add these state variables with your other useState declarations
+  const [originalSubtotal, setOriginalSubtotal] = useState<number>(0)
+  const [finalSubtotal, setFinalSubtotal] = useState<number>(0)
+  const [discountAmount, setDiscountAmount] = useState<number>(0)
+
+  // Your existing state variables
   const [isLoading, setIsLoading] = useState(false)
   const [isCartLoading, setIsCartLoading] = useState(true)
   const [cartData, setCartData] = useState<any>(null)
@@ -91,6 +96,9 @@ const CheckoutPage: React.FC = () => {
     null
   )
   const [subtotal, setSubtotal] = useState(0)
+  const [minimumOrderPrice, setMinimumOrderPrice] = useState<number | null>(
+    null
+  )
 
   // Form state
   const [formData, setFormData] = useState<ShippingForm>({
@@ -246,7 +254,7 @@ const CheckoutPage: React.FC = () => {
       length: maxLength,
       width: maxWidth,
       height: totalHeight,
-      insurance_value: finalTotal,
+      insurance_value: cartTotal - discountAmount,
       cod_failed_amount: 0,
       coupon: null,
       items
@@ -256,12 +264,16 @@ const CheckoutPage: React.FC = () => {
   const handleCouponApplied = (
     id: string,
     discount: number,
-    maxAmount?: number
+    maxAmount?: number,
+    minOrderPrice?: number
   ) => {
     setCouponId(id)
     setCouponDiscount(discount)
     if (maxAmount) {
       setMaxDiscountAmount(maxAmount)
+    }
+    if (minOrderPrice) {
+      setMinimumOrderPrice(minOrderPrice)
     }
 
     // Update form data with coupon ID
@@ -281,10 +293,18 @@ const CheckoutPage: React.FC = () => {
     return calculatedDiscount
   }
 
-  const handleCreateOrder = async () => {
-    try {
-      setIsLoading(true)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
 
+    // Get couponId from URL parameters
+    const searchParams = new URLSearchParams(window.location.search)
+    const couponId =
+      searchParams.get('couponId')?.replace(/"/g, '') || undefined
+
+    // Log the couponId to verify
+    console.log('CouponId from URL:', couponId)
+
+    try {
       // Get the selected location names
       const selectedProvince = provinces.find(
         (p) => p.ProvinceID.toString() === formData.provinceId.toString()
@@ -299,17 +319,15 @@ const CheckoutPage: React.FC = () => {
       // Construct the full address
       const fullAddress = `${formData.houseNumberStreet}, ${selectedWard}, ${selectedDistrict}, ${selectedProvince}`
 
-      const orderRequest: CreateOrderRequest = {
-        couponId: couponId || undefined,
+      const orderRequest = {
+        ...formData,
         shippingAddress: fullAddress,
         billingAddress: fullAddress,
-        paymentMethod: formData.paymentMethod,
-        currency: formData.currency,
-        wardCode: formData.wardCode,
-        districtId: formData.districtId
+        couponId // Include couponId from URL
       }
 
-      console.log('Creating order with request:', orderRequest)
+      // Log the complete order request
+      console.log('Order request data:', orderRequest)
 
       const response = await orderApi.createOrder(orderRequest)
 
@@ -318,19 +336,20 @@ const CheckoutPage: React.FC = () => {
         localStorage.removeItem('cartCoupon')
 
         if (formData.paymentMethod === 'ONLINE') {
-          // Redirect to VNPay payment URL
+          // Redirect to payment URL
           window.location.href = response.data.data?.paymentUrl || ''
         } else if (formData.paymentMethod === 'COD') {
-          // For COD, simply show a confirmation and navigate as needed
+          // For COD, simply show a confirmation and navigate
           toast.success(
             'Đơn hàng đã được tạo. Bạn sẽ thanh toán khi nhận hàng.'
           )
-          navigate({ to: '/order_history' }) // or your desired order confirmation page
+          navigate({ to: '/order_history' })
         }
       } else {
-        toast.error(response.data.message)
+        toast.error(response.data.message || 'Failed to create order')
       }
     } catch (error) {
+      console.error('Error creating order:', error)
       if (axios.isAxiosError(error)) {
         const errorMessage =
           error.response?.data?.message || 'Something went wrong!'
@@ -338,8 +357,6 @@ const CheckoutPage: React.FC = () => {
       } else {
         toast.error('An unexpected error occurred!')
       }
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -359,6 +376,64 @@ const CheckoutPage: React.FC = () => {
       description: 'Thanh toán khi nhận hàng'
     }
   ]
+
+  // Add this function to calculate the final total after discount
+  const getFinalTotal = () => {
+    const discountAmount = calculateActualDiscount()
+    return cartData?.totalPrice - discountAmount
+  }
+
+  // In the useEffect or at the beginning of the component
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search)
+
+    // Parse values from URL, removing quotes and converting to numbers
+    const originalSubtotal =
+      Number(searchParams.get('originalSubtotal')?.replace(/"/g, '')) || 0
+    const finalSubtotal =
+      Number(searchParams.get('subtotal')?.replace(/"/g, '')) || 0
+    const discountAmount =
+      Number(searchParams.get('discountAmount')?.replace(/"/g, '')) || 0
+    const couponId =
+      searchParams.get('couponId')?.replace(/"/g, '') || undefined
+
+    console.log('URL Parameters:')
+    console.log('Original Subtotal:', originalSubtotal)
+    console.log('Final Subtotal:', finalSubtotal)
+    console.log('Discount Amount:', discountAmount)
+    console.log('Coupon ID:', couponId)
+
+    // Set state variables
+    setOriginalSubtotal(originalSubtotal)
+    setFinalSubtotal(finalSubtotal)
+    setDiscountAmount(discountAmount)
+
+    // If there's a coupon ID, fetch the coupon details
+    if (couponId) {
+      setCouponId(couponId)
+      setFormData((prev) => ({
+        ...prev,
+        couponId
+      }))
+
+      // Optionally fetch coupon details to get discount percentage, min order, etc.
+      const fetchCouponDetails = async () => {
+        try {
+          const response = await couponApi.getById(couponId)
+          if (response.data.isSuccess && response.data.data) {
+            const couponData = response.data.data
+            setCouponDiscount(couponData.discount)
+            setMaxDiscountAmount(couponData.maxDiscountAmount)
+            setMinimumOrderPrice(couponData.minimumOrderPrice)
+          }
+        } catch (error) {
+          console.error('Error fetching coupon details:', error)
+        }
+      }
+
+      fetchCouponDetails()
+    }
+  }, [])
 
   if (isCartLoading) {
     return (
@@ -469,7 +544,7 @@ const CheckoutPage: React.FC = () => {
 
                   <Button
                     disabled={isLoading}
-                    onClick={handleCreateOrder}
+                    onClick={handleSubmit}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
                     {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
@@ -523,25 +598,14 @@ const CheckoutPage: React.FC = () => {
             </motion.div>
 
             <motion.div variants={itemVariants} className="w-1/3 max-md:w-full">
-              <OrderSummary
-                isCheckoutPage={true}
-                onCouponApplied={handleCouponApplied}
+              <CheckoutSummary
+                originalSubtotal={originalSubtotal}
+                finalSubtotal={finalSubtotal}
+                discountAmount={discountAmount}
+                minimumOrderPrice={minimumOrderPrice}
+                couponDiscount={couponDiscount}
+                maxDiscountAmount={maxDiscountAmount}
               />
-
-              {/* Display maximum discount note if applicable */}
-              {maxDiscountAmount &&
-                calculateActualDiscount() === maxDiscountAmount && (
-                  <div className="mt-2 text-xs text-gray-500">
-                    *Maximum discount of{' '}
-                    {new Intl.NumberFormat('vi-VN', {
-                      style: 'currency',
-                      currency: 'VND',
-                      minimumFractionDigits: 0,
-                      maximumFractionDigits: 0
-                    }).format(maxDiscountAmount)}{' '}
-                    applied
-                  </div>
-                )}
             </motion.div>
           </div>
         </motion.div>

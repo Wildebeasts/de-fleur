@@ -239,6 +239,19 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
     0
   )
 
+  const calculateDiscount = () => {
+    if (!coupon) return 0
+
+    // Calculate percentage discount
+    const percentageDiscount = total * (coupon.discount / 100)
+
+    // Apply maximum discount cap if needed
+    return coupon.maxDiscountAmount &&
+      percentageDiscount > coupon.maxDiscountAmount
+      ? coupon.maxDiscountAmount
+      : percentageDiscount
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -387,7 +400,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                     currency: 'VND',
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
-                  }).format(total * (coupon!.discount / 100))
+                  }).format(calculateDiscount())
                 : '0 ₫'}
             </span>
           </div>
@@ -401,7 +414,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
                     currency: 'VND',
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0
-                  }).format(total - total * (coupon!.discount / 100))
+                  }).format(total - calculateDiscount())
                 : new Intl.NumberFormat('vi-VN', {
                     style: 'currency',
                     currency: 'VND',

@@ -4,7 +4,6 @@ import CustomerOrderSummary from './CustomerOrderSummary'
 import CustomerCoupon from './CustomerCoupon'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
 import CustomerInfo from './CustomerInfo'
-import CustomerQRCode from './CustomerQRCode'
 import { CouponResponse } from '@/lib/types/Coupon'
 
 type Props = {
@@ -91,9 +90,6 @@ const CustomerScreen: React.FC<Props> = ({
                 phoneNumber={phoneNumber}
               />
               <CustomerCoupon coupon={coupon} />
-              <div className="flex justify-center">
-                <CustomerQRCode totalAmount={total} />
-              </div>
             </div>
           </div>
 

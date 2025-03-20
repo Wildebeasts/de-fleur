@@ -5,47 +5,45 @@ import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 import CartItem from '@/components/Cart/CartItem'
-import OrderSummary from '@/components/Cart/OrderSummary'
+
 import cartApi from '@/lib/services/cartApi'
-import { CartItem as CartItemType } from '@/lib/types/Cart'
+import { CartItem as CartItemType, CartResponse } from '@/lib/types/Cart'
+import CartSummary from '@/components/Cart/CartSummary'
 
 const ShoppingCartPage: React.FC = () => {
-  const [cartItems, setCartItems] = useState<CartItemType[]>([])
-  const [cartId, setCartId] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [refreshTrigger, setRefreshTrigger] = useState(0)
   const navigate = useNavigate()
+  const [cart, setCart] = useState<CartResponse | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    id: string
+    discount: number
+    maxDiscountAmount: number | null
+  } | null>(null)
 
-  // Fetch cart data
   useEffect(() => {
     fetchCart()
-  }, [refreshTrigger])
+  }, [])
 
   const fetchCart = async () => {
+    setIsLoading(true)
     try {
-      setIsLoading(true)
       const response = await cartApi.getCurrentCart()
-
       if (response.data.isSuccess) {
-        setCartItems(response.data.data?.items || [])
-        setCartId(response.data.data?.id || null)
+        setCart(response.data.data || null)
       }
     } catch (error) {
       console.error('Error fetching cart:', error)
-      toast.error('Could not load cart')
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Refresh cart data
-  const refreshCart = () => {
-    setRefreshTrigger((prev) => prev + 1)
-  }
-
-  // Navigate to checkout
-  const handleCheckout = () => {
-    navigate({ to: '/checkout' })
+  const handleCouponApplied = (couponData: {
+    id: string
+    discount: number
+    maxDiscountAmount: number | null
+  }) => {
+    setAppliedCoupon(couponData)
   }
 
   if (isLoading) {
@@ -64,7 +62,9 @@ const ShoppingCartPage: React.FC = () => {
           Your Shopping Cart
         </h1>
 
-        {cartItems.length === 0 ? (
+        {isLoading ? (
+          <div>Loading cart...</div>
+        ) : !cart || cart.items.length === 0 ? (
           <div className="rounded-lg bg-white p-8 text-center shadow">
             <h2 className="mb-4 text-xl font-semibold">Your cart is empty</h2>
             <p className="mb-6 text-gray-600">
@@ -78,11 +78,11 @@ const ShoppingCartPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2">
+          <div className="grid gap-8 md:grid-cols-[1fr_400px]">
+            <div>
               <div className="rounded-lg bg-white p-6 shadow">
                 <div className="space-y-4">
-                  {cartItems.map((item) => (
+                  {cart.items.map((item) => (
                     <motion.div
                       key={item.cosmeticId}
                       initial={{ opacity: 0, y: 20 }}
@@ -92,8 +92,8 @@ const ShoppingCartPage: React.FC = () => {
                     >
                       <CartItem
                         item={item}
-                        allItems={cartItems}
-                        refreshCart={refreshCart}
+                        allItems={cart.items}
+                        refreshCart={fetchCart}
                       />
                     </motion.div>
                   ))}
@@ -102,7 +102,7 @@ const ShoppingCartPage: React.FC = () => {
             </div>
 
             <div>
-              <OrderSummary refreshTrigger={refreshTrigger} />
+              <CartSummary cart={cart} onCouponApplied={handleCouponApplied} />
             </div>
           </div>
         )}
