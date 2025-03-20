@@ -14,10 +14,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Switch } from '@/components/ui/switch'
-import userApi, { UserProfile } from '@/lib/services/userService'
+import userApi from '@/lib/services/userService'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
 import AccountLayout from '@/components/layouts/AccountLayout'
+import { UserProfile } from '@/lib/types/user'
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },

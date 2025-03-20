@@ -4,7 +4,10 @@ import { ApiResponse } from '../types/base/Api'
 import {
   CouponCreateRequest,
   CouponResponse,
-  CouponUpdateRequest
+  CouponUpdateRequest,
+  ExchangeCouponRequest,
+  GamePointRequest,
+  GamePointResponse
 } from '../types/Coupon'
 
 const couponApi = {
@@ -23,7 +26,25 @@ const couponApi = {
     axiosClient.put<ApiResponse<CouponResponse>>(`/coupons/${id}`, request),
 
   delete: (id: string) =>
-    axiosClient.delete<ApiResponse<CouponResponse>>(`/coupons/${id}`)
+    axiosClient.delete<ApiResponse<CouponResponse>>(`/coupons/${id}`),
+  // New game-related endpoints
+  exchangeCoupon: async (request: ExchangeCouponRequest) => {
+    return await axiosClient.post<ApiResponse<CouponResponse>>(
+      '/coupons/exchange',
+      request
+    )
+  },
+
+  startGame: async () => {
+    return await axiosClient.get<ApiResponse<string>>('/coupons/game')
+  },
+
+  processGamePoints: async (request: GamePointRequest) => {
+    return await axiosClient.post<ApiResponse<GamePointResponse>>(
+      '/coupons/game',
+      request
+    )
+  }
 }
 
 export default couponApi

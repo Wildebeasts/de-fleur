@@ -1,7 +1,7 @@
 import axiosClient from '@/lib/api/axiosClient'
 import { ApiResponse } from '@/lib/types/base/Api'
-import { SkinTypeResponse } from '../types/SkinType'
-import { CreateWalkInUserRequest } from '../types/user'
+import { CreateWalkInUserRequest, UserProfile } from '../types/user'
+import { UserCouponResponse } from '../types/Coupon'
 
 export interface UserDto {
   id: string
@@ -13,18 +13,6 @@ export interface UserDto {
   phoneNumber: string
   emailConfirmed: boolean
   createdDate: string
-  roles: string[]
-}
-
-export interface UserProfile {
-  id: string
-  username: string
-  email: string
-  firstName: string
-  lastName: string
-  avatarUrl: string
-  skinTypeId: string
-  skinType: SkinTypeResponse
   roles: string[]
 }
 
@@ -121,6 +109,15 @@ const userApi = {
     )
     if (!response.data.isSuccess || !response.data.data) {
       throw new Error(response.data.message || 'Failed to create user')
+    }
+    return response.data.data
+  },
+
+  getUserCoupons: async (): Promise<UserCouponResponse[]> => {
+    const response =
+      await axiosClient.get<ApiResponse<UserCouponResponse[]>>('/user/coupons')
+    if (!response.data.isSuccess || !response.data.data) {
+      throw new Error(response.data.message || 'Failed to fetch user coupons')
     }
     return response.data.data
   }

@@ -37,6 +37,8 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
       navigate({ to: '/account_manage' })
     } else if (value === 'orders') {
       navigate({ to: '/order_history' })
+    } else if (value === 'coupons') {
+      navigate({ to: '/my_coupons' })
     }
   }
 
@@ -63,9 +65,10 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({
             onValueChange={handleTabChange}
             className="w-full"
           >
-            <TabsList className="mb-6 grid w-full grid-cols-2">
+            <TabsList className="mb-6 grid w-full grid-cols-3">
               <TabsTrigger value="account">Account Settings</TabsTrigger>
               <TabsTrigger value="orders">Order History</TabsTrigger>
+              <TabsTrigger value="coupons">My Coupons</TabsTrigger>
             </TabsList>
           </Tabs>
         </motion.div>

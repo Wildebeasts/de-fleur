@@ -17,7 +17,7 @@ import { useNavigate } from '@tanstack/react-router'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
 import couponApi from '@/lib/services/couponApi'
-import { Percent, ShieldCheck } from 'lucide-react'
+import { Percent, ShieldCheck, DollarSign, Coins } from 'lucide-react'
 import dayjs from 'dayjs'
 import { CouponCreateRequest } from '@/lib/types/Coupon'
 
@@ -55,8 +55,9 @@ export default function CreateCoupon() {
         discount: values.discount,
         expiryDate: values.expiryDate.toISOString(),
         usageLimit: values.usageLimit,
-        minimumOrderPrice: values.minimumOrderPrice,
-        maxDiscountAmount: values.maxDiscountAmount
+        minimumOrderPrice: values.minimumOrderPrice || 0,
+        maxDiscountAmount: values.maxDiscountAmount || 0,
+        pointRequired: values.pointRequired || 0
       }
 
       // Ensure correct data format for API
@@ -236,10 +237,30 @@ export default function CreateCoupon() {
               initialValues={{
                 discount: 10,
                 usageLimit: 1,
-                expiryDate: dayjs().add(30, 'day')
+                expiryDate: dayjs().add(30, 'day'),
+                minimumOrderPrice: 0,
+                maxDiscountAmount: 0,
+                pointRequired: 0
               }}
             >
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Coupon Name */}
+                <Form.Item
+                  label="Coupon Name"
+                  name="name"
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Please enter a coupon name'
+                    }
+                  ]}
+                >
+                  <Input
+                    placeholder="Enter coupon name (e.g., Summer Sale)"
+                    className="rounded-lg"
+                  />
+                </Form.Item>
+
                 {/* Coupon Code */}
                 <Form.Item
                   label="Coupon Code"
@@ -316,6 +337,52 @@ export default function CreateCoupon() {
                     prefix={
                       <ShieldCheck className="mr-1 size-4 text-purple-500" />
                     }
+                  />
+                </Form.Item>
+
+                {/* Maximum Discount Amount */}
+                <Form.Item
+                  label="Maximum Discount Amount"
+                  name="maxDiscountAmount"
+                  tooltip="Maximum amount that can be discounted (0 for no limit)"
+                >
+                  <InputNumber
+                    min={0}
+                    className="w-full rounded-lg"
+                    placeholder="Enter maximum discount amount"
+                    prefix={
+                      <DollarSign className="mr-1 size-4 text-blue-500" />
+                    }
+                  />
+                </Form.Item>
+
+                {/* Minimum Order Price */}
+                <Form.Item
+                  label="Minimum Order Price"
+                  name="minimumOrderPrice"
+                  tooltip="Minimum order amount required to use this coupon"
+                >
+                  <InputNumber
+                    min={0}
+                    className="w-full rounded-lg"
+                    placeholder="Enter minimum order price"
+                    prefix={
+                      <DollarSign className="mr-1 size-4 text-amber-500" />
+                    }
+                  />
+                </Form.Item>
+
+                {/* Points Required */}
+                <Form.Item
+                  label="Points Required"
+                  name="pointRequired"
+                  tooltip="Points required for users to exchange for this coupon"
+                >
+                  <InputNumber
+                    min={0}
+                    className="w-full rounded-lg"
+                    placeholder="Enter points required"
+                    prefix={<Coins className="mr-1 size-4 text-yellow-500" />}
                   />
                 </Form.Item>
               </div>

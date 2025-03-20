@@ -26,6 +26,7 @@ import { Route as QuizImport } from './routes/quiz'
 import { Route as OrdertrackImport } from './routes/order_track'
 import { Route as OrderinstructImport } from './routes/order_instruct'
 import { Route as OrderhistoryImport } from './routes/order_history'
+import { Route as MycouponsImport } from './routes/my_coupons'
 import { Route as LoginImport } from './routes/login'
 import { Route as JournalImport } from './routes/journal'
 import { Route as GlossaryImport } from './routes/glossary'
@@ -152,6 +153,12 @@ const OrderinstructRoute = OrderinstructImport.update({
 const OrderhistoryRoute = OrderhistoryImport.update({
   id: '/order_history',
   path: '/order_history',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MycouponsRoute = MycouponsImport.update({
+  id: '/my_coupons',
+  path: '/my_coupons',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -483,6 +490,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginImport
       parentRoute: typeof rootRoute
     }
+    '/my_coupons': {
+      id: '/my_coupons'
+      path: '/my_coupons'
+      fullPath: '/my_coupons'
+      preLoaderRoute: typeof MycouponsImport
+      parentRoute: typeof rootRoute
+    }
     '/order_history': {
       id: '/order_history'
       path: '/order_history'
@@ -804,6 +818,7 @@ export interface FileRoutesByFullPath {
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
+  '/my_coupons': typeof MycouponsRoute
   '/order_history': typeof OrderhistoryRoute
   '/order_instruct': typeof OrderinstructRoute
   '/order_track': typeof OrdertrackRoute
@@ -857,6 +872,7 @@ export interface FileRoutesByTo {
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
+  '/my_coupons': typeof MycouponsRoute
   '/order_history': typeof OrderhistoryRoute
   '/order_instruct': typeof OrderinstructRoute
   '/order_track': typeof OrdertrackRoute
@@ -912,6 +928,7 @@ export interface FileRoutesById {
   '/glossary': typeof GlossaryRoute
   '/journal': typeof JournalRoute
   '/login': typeof LoginRoute
+  '/my_coupons': typeof MycouponsRoute
   '/order_history': typeof OrderhistoryRoute
   '/order_instruct': typeof OrderinstructRoute
   '/order_track': typeof OrdertrackRoute
@@ -968,6 +985,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/journal'
     | '/login'
+    | '/my_coupons'
     | '/order_history'
     | '/order_instruct'
     | '/order_track'
@@ -1020,6 +1038,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/journal'
     | '/login'
+    | '/my_coupons'
     | '/order_history'
     | '/order_instruct'
     | '/order_track'
@@ -1073,6 +1092,7 @@ export interface FileRouteTypes {
     | '/glossary'
     | '/journal'
     | '/login'
+    | '/my_coupons'
     | '/order_history'
     | '/order_instruct'
     | '/order_track'
@@ -1128,6 +1148,7 @@ export interface RootRouteChildren {
   GlossaryRoute: typeof GlossaryRoute
   JournalRoute: typeof JournalRoute
   LoginRoute: typeof LoginRoute
+  MycouponsRoute: typeof MycouponsRoute
   OrderhistoryRoute: typeof OrderhistoryRoute
   OrderinstructRoute: typeof OrderinstructRoute
   OrdertrackRoute: typeof OrdertrackRoute
@@ -1162,6 +1183,7 @@ const rootRouteChildren: RootRouteChildren = {
   GlossaryRoute: GlossaryRoute,
   JournalRoute: JournalRoute,
   LoginRoute: LoginRoute,
+  MycouponsRoute: MycouponsRoute,
   OrderhistoryRoute: OrderhistoryRoute,
   OrderinstructRoute: OrderinstructRoute,
   OrdertrackRoute: OrdertrackRoute,
@@ -1205,6 +1227,7 @@ export const routeTree = rootRoute
         "/glossary",
         "/journal",
         "/login",
+        "/my_coupons",
         "/order_history",
         "/order_instruct",
         "/order_track",
@@ -1289,6 +1312,9 @@ export const routeTree = rootRoute
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/my_coupons": {
+      "filePath": "my_coupons.tsx"
     },
     "/order_history": {
       "filePath": "order_history.tsx"

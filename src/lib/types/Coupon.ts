@@ -3,11 +3,12 @@ export interface CouponResponse {
   name: string
   code: string
   discount: number
-  startDate: Date
-  expiryDate: Date
+  startDate: string
+  expiryDate: string
   usageLimit: number
   maxDiscountAmount: number
   minimumOrderPrice: number
+  pointRequired?: number
 }
 
 export interface CouponCreateRequest {
@@ -18,6 +19,7 @@ export interface CouponCreateRequest {
   usageLimit: number
   maxDiscountAmount: number
   minimumOrderPrice: number
+  pointRequired: number
 }
 
 export interface CouponUpdateRequest {
@@ -25,6 +27,25 @@ export interface CouponUpdateRequest {
   discount: number
   expiryDate: Date
   usageLimit: number
-  maxDiscountAmount: number
-  minimumOrderPrice: number
+  maxDiscountAmount?: number
+  minimumOrderPrice?: number
+}
+
+export interface ExchangeCouponRequest {
+  couponId: string
+}
+
+export interface GamePointRequest {
+  points: number
+}
+
+export interface GamePointResponse {
+  userPoints: number
+}
+
+export interface UserCouponResponse {
+  userId: string
+  couponId: string
+  coupon: CouponResponse
+  quantity: number
 }
