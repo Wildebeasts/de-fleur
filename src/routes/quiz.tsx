@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import QuizPage from '@/pages/quiz/QuizPage'
+import { QuizResultProvider } from '@/lib/context/QuizResultContext'
 
 export const Route = createFileRoute('/quiz')({
   component: RouteComponent
@@ -7,8 +8,8 @@ export const Route = createFileRoute('/quiz')({
 
 function RouteComponent() {
   return (
-    <>
+    <QuizResultProvider>
       <QuizPage />
-    </>
+    </QuizResultProvider>
   )
 }

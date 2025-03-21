@@ -1,12 +1,20 @@
 import { createFileRoute } from '@tanstack/react-router'
-import SearchComponent from 'pages/store/SearchComponent'
-import ShopSearchPage from 'pages/store/ShopSearchPage'
+import MobileShop from '@/pages/store/MobileShop'
+import { useIsMobile } from '@/lib/hooks/use-mobile'
+import SearchComponent from '@/pages/store/SearchComponent'
+import ShopSearchPage from '@/pages/store/ShopSearchPage'
 
 export const Route = createFileRoute('/shop')({
-  component: ShopPage
+  component: ShopRoute
 })
 
-function ShopPage() {
+function ShopRoute() {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return <MobileShop />
+  }
+
   return (
     <>
       <SearchComponent />

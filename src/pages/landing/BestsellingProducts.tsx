@@ -7,6 +7,9 @@ import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
 import { Loader2 } from 'lucide-react'
 import { CosmeticResponse } from '@/lib/types/Cosmetic'
+import { useIsMobile } from '../../hooks/use-mobile'
+import { ChevronRight } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 
 // Fallback products in case API fails
 const fallbackProducts = [
@@ -61,6 +64,8 @@ const fallbackProducts = [
 ] as unknown as CosmeticResponse[]
 
 const BestsellingProducts: React.FC = () => {
+  const isMobile = useIsMobile()
+  const navigate = useNavigate()
   const {
     data: products,
     isLoading,
@@ -156,47 +161,94 @@ const BestsellingProducts: React.FC = () => {
   }
 
   return (
-    <section className="bg-[#F9F6F0] py-16">
-      <div className="container mx-auto px-4">
+    <section className={`bg-[#F9F6F0] ${isMobile ? 'py-8' : 'py-16'}`}>
+      <div className={isMobile ? 'px-4' : 'container mx-auto px-4'}>
         <motion.div
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-100px' }}
           variants={containerVariants}
-          className="mb-12 text-center"
+          className={isMobile ? 'mb-6' : 'mb-12 text-center'}
         >
-          <motion.h2
-            variants={itemVariants}
-            className="mb-4 font-inter text-3xl font-bold text-[#3A4D39] md:text-4xl"
-          >
-            Best Selling Products
-          </motion.h2>
-          <motion.p
-            variants={itemVariants}
-            className="mx-auto max-w-2xl text-[#3A4D39]/70"
-          >
-            Discover our most popular skincare solutions loved by customers
-          </motion.p>
+          <div className={isMobile ? 'flex items-center justify-between' : ''}>
+            <motion.h2
+              variants={itemVariants}
+              className={`font-inter font-bold text-[#3A4D39] ${
+                isMobile ? 'text-xl' : 'mb-4 text-3xl md:text-4xl'
+              }`}
+            >
+              Best Selling Products
+            </motion.h2>
+            
+            {isMobile && (
+              <motion.button
+                variants={itemVariants}
+                className="flex items-center text-sm text-[#3A4D39]"
+                onClick={() => navigate({ to: '/shop' })}
+              >
+                View All <ChevronRight className="size-4" />
+              </motion.button>
+            )}
+          </div>
+          
+          {!isMobile && (
+            <motion.p
+              variants={itemVariants}
+              className="mx-auto max-w-2xl text-[#3A4D39]/70"
+            >
+              Discover our most popular skincare solutions loved by customers
+            </motion.p>
+          )}
         </motion.div>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
-        >
-          {products.map((product) => (
-            <motion.div key={product.id} variants={itemVariants}>
-              <ProductCard
-                cosmetic={product}
-                selectedProducts={[]}
-                toggleCompare={() => { }}
-                isSelectedForComparison={false}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        {isMobile ? (
+          // Horizontal scrollable container for mobile
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            className="-mx-4 overflow-x-auto pb-4 pl-4"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <div className="flex gap-4">
+              {products.map((product) => (
+                <motion.div 
+                  key={product.id} 
+                  variants={itemVariants}
+                  className="w-[180px] shrink-0"
+                >
+                  <ProductCard
+                    cosmetic={product}
+                    selectedProducts={[]}
+                    toggleCompare={() => {}}
+                    isSelectedForComparison={false}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          // Desktop grid remains unchanged
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-50px' }}
+            className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4"
+          >
+            {products.map((product) => (
+              <motion.div key={product.id} variants={itemVariants}>
+                <ProductCard
+                  cosmetic={product}
+                  selectedProducts={[]}
+                  toggleCompare={() => {}}
+                  isSelectedForComparison={false}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
     </section>
   )

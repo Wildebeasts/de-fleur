@@ -1,0 +1,46 @@
+/* Mobile app-specific styles */
+@media (max-width: 768px) {
+  /* Remove default browser bounce/scroll effects for app-like feel */
+  html, body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbars but keep functionality */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Add tap highlight effect */
+  .tap-highlight {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+  }
+  
+  /* Add app-specific animations */
+  .page-transition-enter {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  
+  .page-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms, transform 300ms;
+  }
+  
+  /* Adjust page padding to account for fixed header and footer */
+  main {
+    padding-top: 56px; /* Height of mobile header */
+    padding-bottom: 64px; /* Height of bottom nav */
+  }
+  
+  /* Ensure pages that need to be full height take the navigation into account */
+  .min-h-screen {
+    min-height: calc(100vh - 120px); /* Adjust based on your header/footer size */
+  }
+} 
