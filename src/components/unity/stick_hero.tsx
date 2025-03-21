@@ -38,6 +38,35 @@ function StickHero() {
     codeUrl: 'unity-build/Build/Build_Stick.wasm'
   })
 
+  // Add state for responsive height
+  const [gameHeight, setGameHeight] = useState(600)
+
+  // Add useEffect for responsive sizing
+  useEffect(() => {
+    const handleResize = () => {
+      // Adjust height based on screen width
+      if (window.innerWidth < 640) {
+        // Mobile
+        setGameHeight(400)
+      } else if (window.innerWidth < 1024) {
+        // Tablet
+        setGameHeight(500)
+      } else {
+        // Desktop
+        setGameHeight(600)
+      }
+    }
+
+    // Set initial size
+    handleResize()
+
+    // Add event listener
+    window.addEventListener('resize', handleResize)
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   useEffect(() => {
     // Check daily limit immediately on mount
     const checkGameAccess = async () => {
@@ -112,13 +141,13 @@ function StickHero() {
   }
 
   return (
-    <div className="container mx-auto my-12 flex flex-col items-center">
+    <div className="container mx-auto my-4 flex flex-col items-center px-2 md:my-8 md:px-4 lg:my-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-3xl rounded-lg bg-white p-6 shadow-md"
+        className="w-full max-w-3xl rounded-lg bg-white p-3 shadow-md md:p-6"
       >
-        <h1 className="mb-6 text-center text-2xl font-bold text-[#3A4D39]">
+        <h1 className="mb-3 text-center text-xl font-bold text-[#3A4D39] md:mb-6 md:text-2xl">
           Stick Hero
         </h1>
 
@@ -142,7 +171,7 @@ function StickHero() {
 
         {/* Loading progress */}
         {!isLoaded && !isCheckingLimit && (
-          <div className="my-12 flex flex-col items-center">
+          <div className="my-6 flex flex-col items-center md:my-12">
             <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-gray-200">
               <motion.div
                 className="h-full rounded-full bg-[#3A4D39]"
@@ -159,8 +188,8 @@ function StickHero() {
         {!isCheckingLimit && (
           <Unity
             unityProvider={unityProvider}
-            style={{ width: '100%', height: '600px' }}
-            className="bg-gray-900"
+            style={{ width: '100%', height: `${gameHeight}px` }}
+            className="rounded-md bg-gray-900"
           />
         )}
 
@@ -174,14 +203,16 @@ function StickHero() {
             <motion.div
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
-              className="mx-4 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
+              className="mx-4 w-full max-w-sm rounded-lg bg-white p-4 shadow-xl md:p-6"
             >
-              <h2 className="mb-2 text-center text-2xl font-bold">
+              <h2 className="mb-2 text-center text-xl font-bold md:text-2xl">
                 Game Over!
               </h2>
               <p className="mb-2 text-center text-gray-700">
                 Your score:{' '}
-                <span className="text-xl font-bold text-blue-600">{score}</span>
+                <span className="text-lg font-bold text-blue-600 md:text-xl">
+                  {score}
+                </span>
               </p>
 
               {isAuthenticated &&
