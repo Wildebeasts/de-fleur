@@ -29,7 +29,8 @@ function StickHero() {
     isLoaded,
     loadingProgression,
     addEventListener,
-    removeEventListener
+    removeEventListener,
+    sendMessage
   } = useUnityContext({
     loaderUrl: 'unity-build/Build/Build_Stick.loader.js',
     dataUrl: 'unity-build/Build/Build_Stick.data',
@@ -47,7 +48,7 @@ function StickHero() {
         } catch (error) {
           setHasReachedDailyLimit(true)
           toast.warning(
-            'You’ve reached your daily game limit. You can still play, but won’t earn points.'
+            'You have reached your daily game limit. You can still play, but won&apos;t earn points.'
           )
         }
       }
@@ -84,7 +85,7 @@ function StickHero() {
         }
       } else if (isAuthenticated && hasReachedDailyLimit) {
         toast.info(
-          'You’ve reached your daily limit. No points earned this time.'
+          'You have reached your daily limit. No points earned this time.'
         )
       }
     }
@@ -96,7 +97,18 @@ function StickHero() {
   }, [isAuthenticated, addEventListener, removeEventListener])
 
   const handleRestart = () => {
-    window.location.reload()
+    if (isLoaded) {
+      // Reset React state
+      setGameOver(false)
+      setScore(0)
+      setPointsEarned(null)
+
+      // Send message to Unity to restart the game
+      // The first parameter is the GameObject name in Unity that has the script
+      // The second parameter is the method name in that script
+      // Adjust these names based on your Unity implementation
+      sendMessage('GameManager', 'RestartGame')
+    }
   }
 
   return (
@@ -122,8 +134,8 @@ function StickHero() {
         ) : hasReachedDailyLimit ? (
           <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800">
             <p>
-              You’ve reached your daily game limit. You can still play, but
-              won’t earn points.
+              You&apos;ve reached your daily game limit. You can still play, but
+              won&apos;t earn points.
             </p>
           </div>
         ) : null}
