@@ -9,7 +9,6 @@ import { RefreshCw, Trophy, Coins } from 'lucide-react'
 import couponApi from '@/lib/services/couponApi'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/context/AuthContext'
-import { useRouter } from '@tanstack/react-router'
 
 declare global {
   interface Window {
@@ -18,21 +17,19 @@ declare global {
 }
 
 function StickHero() {
-  const [error, setError] = useState<string | null>(null)
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
   const [pointsEarned, setPointsEarned] = useState<number | null>(null)
+  const [hasReachedDailyLimit, setHasReachedDailyLimit] = useState(false)
+  const [isCheckingLimit, setIsCheckingLimit] = useState(true) // New state to track limit check
   const { isAuthenticated } = useAuth()
-  const router = useRouter()
 
-  // Keep Unity provider logic exactly the same
   const {
     unityProvider,
     isLoaded,
     loadingProgression,
     addEventListener,
-    removeEventListener,
-    sendMessage
+    removeEventListener
   } = useUnityContext({
     loaderUrl: 'unity-build/Build/Build_Stick.loader.js',
     dataUrl: 'unity-build/Build/Build_Stick.data',
@@ -41,21 +38,32 @@ function StickHero() {
   })
 
   useEffect(() => {
-    const handleError = (errorMessage: any) => {
-      console.error('Unity error:', errorMessage)
-      setError(errorMessage)
+    // Check daily limit immediately on mount
+    const checkGameAccess = async () => {
+      if (isAuthenticated) {
+        try {
+          await couponApi.startGame()
+          setHasReachedDailyLimit(false)
+        } catch (error) {
+          setHasReachedDailyLimit(true)
+          toast.warning(
+            'You’ve reached your daily game limit. You can still play, but won’t earn points.'
+          )
+        }
+      }
+      setIsCheckingLimit(false) // Mark check as complete
     }
 
-    addEventListener('error', handleError)
+    checkGameAccess()
 
-    // Define the global function that Unity will call when the game ends
+    // Define game end handler
     window.onGameEnd = async (finalScore) => {
       console.log('Game ended with score:', finalScore)
       setGameOver(true)
       setScore(finalScore)
 
-      // Submit score to backend if user is authenticated
-      if (isAuthenticated) {
+      // Only process points if authenticated, limit not reached, and check is complete
+      if (isAuthenticated && !hasReachedDailyLimit && !isCheckingLimit) {
         try {
           const response = await couponApi.processGamePoints({
             points: finalScore
@@ -70,49 +78,25 @@ function StickHero() {
               response.data.message || 'Failed to process game points'
             )
           }
-        } catch (error: any) {
+        } catch (error) {
           console.error('Error submitting score:', error)
           toast.error('Failed to submit your score')
         }
+      } else if (isAuthenticated && hasReachedDailyLimit) {
+        toast.info(
+          'You’ve reached your daily limit. No points earned this time.'
+        )
       }
     }
 
-    // Check if user can play
-    const checkGameAccess = async () => {
-      if (isAuthenticated && isLoaded) {
-        try {
-          await couponApi.startGame()
-        } catch (error: any) {
-          setError('You have reached your daily game limit')
-          // Redirect to coupons page after 3 seconds
-          setTimeout(() => {
-            router.navigate({ to: '/my_coupons' })
-          }, 3000)
-        }
-      }
-    }
-
-    if (isLoaded) {
-      checkGameAccess()
-    }
-
+    // Cleanup
     return () => {
-      removeEventListener('error', handleError)
       delete window.onGameEnd
     }
-  }, [addEventListener, removeEventListener, isAuthenticated, isLoaded, router])
+  }, [isAuthenticated, addEventListener, removeEventListener])
 
   const handleRestart = () => {
     window.location.reload()
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto p-4 text-center">
-        <h2 className="text-xl text-red-600">{error}</h2>
-        <p>Redirecting to your coupons...</p>
-      </div>
-    )
   }
 
   return (
@@ -126,13 +110,26 @@ function StickHero() {
           Stick Hero
         </h1>
 
-        {!isAuthenticated && (
+        {/* Show message while checking limit */}
+        {isCheckingLimit ? (
+          <div className="mb-6 rounded-lg bg-gray-50 p-4 text-center text-gray-700">
+            <p>Checking daily game limit...</p>
+          </div>
+        ) : !isAuthenticated ? (
           <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800">
             <p>Please log in to earn points from playing the game.</p>
           </div>
-        )}
+        ) : hasReachedDailyLimit ? (
+          <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800">
+            <p>
+              You’ve reached your daily game limit. You can still play, but
+              won’t earn points.
+            </p>
+          </div>
+        ) : null}
 
-        {!isLoaded && (
+        {/* Loading progress */}
+        {!isLoaded && !isCheckingLimit && (
           <div className="my-12 flex flex-col items-center">
             <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-gray-200">
               <motion.div
@@ -143,50 +140,41 @@ function StickHero() {
             <p className="font-medium text-gray-700">
               Loading... {(loadingProgression * 100).toFixed(0)}%
             </p>
-            <p className="mt-1 text-sm text-gray-500">
-              {loadingProgression < 1
-                ? 'Loading Unity framework...'
-                : 'Initializing...'}
-            </p>
           </div>
         )}
 
         {/* Game Container */}
-        <div className="relative">
+        {!isCheckingLimit && (
           <Unity
             unityProvider={unityProvider}
             style={{ width: '100%', height: '600px' }}
             className="bg-gray-900"
           />
+        )}
 
-          {/* Game Over Overlay */}
-          {gameOver && (
+        {/* Game Over Overlay */}
+        {gameOver && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="mx-4 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
             >
-              <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                className="mx-4 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
-              >
-                <div className="mb-4 flex justify-center">
-                  <div className="rounded-full bg-yellow-100 p-3">
-                    <Trophy className="size-10 text-yellow-500" />
-                  </div>
-                </div>
-                <h2 className="mb-2 text-center text-2xl font-bold">
-                  Game Over!
-                </h2>
-                <p className="mb-2 text-center text-gray-700">
-                  Your score:{' '}
-                  <span className="text-xl font-bold text-blue-600">
-                    {score}
-                  </span>
-                </p>
+              <h2 className="mb-2 text-center text-2xl font-bold">
+                Game Over!
+              </h2>
+              <p className="mb-2 text-center text-gray-700">
+                Your score:{' '}
+                <span className="text-xl font-bold text-blue-600">{score}</span>
+              </p>
 
-                {isAuthenticated && pointsEarned !== null && (
+              {isAuthenticated &&
+                !hasReachedDailyLimit &&
+                pointsEarned !== null && (
                   <div className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-amber-50 p-3 text-amber-800">
                     <Coins className="size-5" />
                     <p>
@@ -196,30 +184,14 @@ function StickHero() {
                   </div>
                 )}
 
-                <Button
-                  onClick={handleRestart}
-                  className="w-full bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  <RefreshCw className="mr-2 size-4" /> Play Again
-                </Button>
-              </motion.div>
+              <Button
+                onClick={handleRestart}
+                className="w-full bg-blue-600 text-white hover:bg-blue-700"
+              >
+                <RefreshCw className="mr-2 size-4" /> Play Again
+              </Button>
             </motion.div>
-          )}
-        </div>
-
-        {/* Instructions */}
-        {isLoaded && (
-          <div className="border-t border-gray-200 bg-gray-50 p-4">
-            <p className="text-center text-sm text-gray-600">
-              Click and hold to extend the stick, then release to jump across
-              platforms.
-            </p>
-            {isAuthenticated && (
-              <p className="mt-2 text-center text-sm text-[#3A4D39]">
-                Earn points based on your score to exchange for coupons!
-              </p>
-            )}
-          </div>
+          </motion.div>
         )}
       </motion.div>
     </div>
