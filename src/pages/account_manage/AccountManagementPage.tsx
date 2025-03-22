@@ -44,6 +44,44 @@ const itemVariants = {
   visible: { opacity: 1, y: 0 }
 }
 
+// Mobile version account menu item component
+interface AccountMenuItemProps {
+  icon: React.ReactNode
+  title: string
+  description: string
+  onClick: () => void
+  delay?: number
+}
+
+const AccountMenuItem = ({
+  icon,
+  title,
+  description,
+  onClick,
+  delay = 0
+}: AccountMenuItemProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="overflow-hidden rounded-xl bg-white shadow-sm"
+      onClick={onClick}
+    >
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-[#E8F3D6]/50 p-2">{icon}</div>
+          <div>
+            <h3 className="font-medium text-gray-800">{title}</h3>
+            <p className="text-xs text-gray-500">{description}</p>
+          </div>
+        </div>
+        <ChevronRight className="size-5 text-gray-400" />
+      </div>
+    </motion.div>
+  )
+}
+
 const AccountManagementPage: React.FC = () => {
   const [userInfo, setUserInfo] = useState<UserProfile>()
   const { logout } = useAuth()
@@ -93,36 +131,6 @@ const AccountManagementPage: React.FC = () => {
 
   const navigateToAdmin = () => {
     navigate({ to: '/admin' })
-  }
-
-  // Mobile version account menu item component
-  const AccountMenuItem = ({
-    icon,
-    title,
-    description,
-    onClick,
-    delay = 0
-  }) => {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay }}
-        className="overflow-hidden rounded-xl bg-white shadow-sm"
-        onClick={onClick}
-      >
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-[#E8F3D6]/50 p-2">{icon}</div>
-            <div>
-              <h3 className="font-medium text-gray-800">{title}</h3>
-              <p className="text-xs text-gray-500">{description}</p>
-            </div>
-          </div>
-          <ChevronRight className="size-5 text-gray-400" />
-        </div>
-      </motion.div>
-    )
   }
 
   // Render mobile version when on small screens

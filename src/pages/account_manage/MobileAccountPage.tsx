@@ -4,8 +4,6 @@ import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
   User,
-  Mail,
-  Phone,
   MapPin,
   Settings,
   FileText,
@@ -22,15 +20,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useToast } from '@/components/ui/use-toast'
-import userApi from '@/lib/services/userApi'
-import authApi from '@/lib/services/authApi'
+import { toast } from 'sonner'
+import userApi from '@/lib/services/userService'
 import { useAuth } from '@/lib/context/AuthContext'
 
 const MobileAccountPage = () => {
   const navigate = useNavigate()
-  const { toast } = useToast()
-  const { clearTokens } = useAuth()
+  const { logout } = useAuth()
   const [activeTab, setActiveTab] = useState('profile')
   const [cartCount, setCartCount] = useState(0)
 
@@ -38,11 +34,8 @@ const MobileAccountPage = () => {
   const { data: userInfo, isLoading } = useQuery({
     queryKey: ['user-info'],
     queryFn: async () => {
-      const response = await userApi.getUserInfo()
-      if (response.data.isSuccess) {
-        return response.data.data
-      }
-      throw new Error('Failed to fetch user information')
+      const response = await userApi.getUserProfile()
+      return response
     }
   })
 
@@ -63,20 +56,15 @@ const MobileAccountPage = () => {
 
   const handleLogout = async () => {
     try {
-      await authApi.logout()
-      clearTokens()
-      toast({
-        title: 'Logged out successfully',
-        description: 'You have been logged out of your account.',
-        variant: 'default'
+      logout()
+      toast('Logged out successfully', {
+        description: 'You have been logged out of your account.'
       })
       navigate({ to: '/' })
     } catch (error) {
       console.error('Logout error:', error)
-      toast({
-        title: 'Logout failed',
-        description: 'Please try again later.',
-        variant: 'destructive'
+      toast.error('Logout failed', {
+        description: 'Please try again later.'
       })
     }
   }
@@ -129,19 +117,22 @@ const MobileAccountPage = () => {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <Avatar className="size-16 border-2 border-[#E8F3D6]">
-                  <AvatarImage src={userInfo?.profileImage} />
+                  <AvatarImage src={userInfo?.avatarUrl} />
                   <AvatarFallback className="bg-[#A7C4BC] text-white">
-                    {userInfo?.fullName?.substring(0, 2) || 'U'}
+                    {userInfo?.firstName?.substring(0, 1) || ''}
+                    {userInfo?.lastName?.substring(0, 1) || 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <h2 className="text-lg font-medium text-[#3A4D39]">
-                    {userInfo?.fullName || 'User'}
+                    {userInfo
+                      ? `${userInfo.firstName} ${userInfo.lastName}`
+                      : 'User'}
                   </h2>
                   <p className="text-sm text-gray-500">{userInfo?.email}</p>
                   <div className="mt-1">
                     <span className="inline-block rounded-full bg-[#E8F3D6] px-2 py-0.5 text-xs font-medium text-[#3A4D39]">
-                      {userInfo?.userType || 'Member'}
+                      {userInfo?.roles?.[0] || 'Member'}
                     </span>
                   </div>
                 </div>
