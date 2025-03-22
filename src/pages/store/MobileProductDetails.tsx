@@ -64,7 +64,10 @@ const MobileProductDetails: React.FC<MobileProductDetailsProps> = ({
 
       if (response.data.isSuccess) {
         toast.success(`${product.name} added to cart!`)
+        // Dispatch custom event to notify cart count should be updated
+        window.dispatchEvent(new Event('cart-updated'))
       } else {
+        console.error('Failed to add item to cart:', response.data.message)
         toast.error(response.data.message || 'Failed to add item to cart')
       }
     } catch (error) {

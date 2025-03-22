@@ -155,12 +155,12 @@ const CheckoutPage: React.FC = () => {
         if (response.data.isSuccess && response.data.data) {
           setCartData(response.data.data)
         } else {
-          toast.error('Giỏ hàng trống')
+          toast.error('Empty cart')
           navigate({ to: '/cart' })
         }
       } catch (error) {
         console.error('Error fetching cart:', error)
-        toast.error('Không thể tải thông tin giỏ hàng')
+        toast.error('Cannot load cart information')
         navigate({ to: '/cart' })
       } finally {
         setIsCartLoading(false)
@@ -341,7 +341,7 @@ const CheckoutPage: React.FC = () => {
         } else if (formData.paymentMethod === 'COD') {
           // For COD, simply show a confirmation and navigate
           toast.success(
-            'Đơn hàng đã được tạo. Bạn sẽ thanh toán khi nhận hàng.'
+            'Order created. You will pay when you receive the order.'
           )
           navigate({ to: '/order_history' })
         }
@@ -367,13 +367,13 @@ const CheckoutPage: React.FC = () => {
       id: 'ONLINE',
       name: 'ONLINE',
       icon: vnpayLogo,
-      description: 'Thanh toán nhanh chóng và an toàn với VNPay'
+      description: 'Quick and secure payment with VNPay'
     },
     {
       id: 'COD',
       name: 'COD',
       icon: '', // Add a cash icon if available or leave it blank
-      description: 'Thanh toán khi nhận hàng'
+      description: 'Pay when you receive the order'
     }
   ]
 
@@ -547,7 +547,7 @@ const CheckoutPage: React.FC = () => {
                     onClick={handleSubmit}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
-                    {isLoading ? 'Đang xử lý...' : 'Thanh toán'}
+                    {isLoading ? 'Processing...' : 'Pay'}
                   </Button>
                 </CardContent>
               </Card>

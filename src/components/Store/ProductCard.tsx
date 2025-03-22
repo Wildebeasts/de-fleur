@@ -51,7 +51,31 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
 
       if (response.data.isSuccess) {
         toast.success(`${cosmetic.name} added to cart!`)
+
+        // Dispatch custom event to notify cart count should be updated
+        // Use a more specific custom event with data
+        const event = new CustomEvent('cart-updated', {
+          detail: {
+            productId: cosmetic.id,
+            quantity: 1,
+            timestamp: Date.now()
+          },
+          bubbles: true
+        })
+        window.dispatchEvent(event)
+
+        // Force a direct update check - backup method
+        setTimeout(() => {
+          try {
+            // Try to manually trigger an update
+            const manualEvent = new Event('cart-updated')
+            window.dispatchEvent(manualEvent)
+          } catch (e) {
+            console.error('Backup cart update failed:', e)
+          }
+        }, 500)
       } else {
+        console.error('Failed to add item to cart:', response.data.message)
         toast.error(response.data.message || 'Failed to add item to cart')
       }
     } catch (error) {
@@ -168,7 +192,7 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
             onClick={(e) => {
               e.stopPropagation()
               // Add wishlist functionality
-              navigate({ to: '/wishlist' })
+              navigate({ to: '/account_manage' })
             }}
           >
             <Heart className="size-4 text-gray-600" />
@@ -231,9 +255,11 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
             <button
               className="rounded-full bg-[#3A4D39] p-2 text-white shadow-md"
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 handleAddToCart()
               }}
+              type="button"
             >
               <ShoppingBag className="size-4" />
             </button>
@@ -244,10 +270,12 @@ const ProductCard: React.FC<CosmeticCardProps> = ({
               className="rounded-full bg-[#3A4D39] px-4 py-2 text-sm font-medium text-white shadow-md transition-colors duration-300 hover:bg-[#4A5D49] disabled:opacity-50"
               aria-label={`Add ${cosmetic.name || 'product'} to cart`}
               onClick={(e) => {
+                e.preventDefault()
                 e.stopPropagation()
                 handleAddToCart()
               }}
               disabled={isAddingToCart}
+              type="button"
             >
               {isAddingToCart ? 'Adding...' : 'Add to cart'}
             </motion.button>

@@ -328,6 +328,34 @@ const OrderTrackingPage: React.FC = () => {
   const isLoading = isLoadingOrders && !!searchedOrder
   const error = searchedOrder && !orderData && !isLoading
 
+  // Query to get product details for ALL order items
+  const { data: cosmeticsData, isLoading: isLoadingCosmetics } = useQuery({
+    queryKey: ['order-cosmetics', orderData?.id],
+    queryFn: async () => {
+      if (!orderData?.orderItems || orderData.orderItems.length === 0) return {}
+      
+      // Create a map to store product details by ID
+      const productDetails: Record<string, any> = {}
+      
+      // Fetch details for each unique product in the order
+      const uniqueProductIds = [...new Set(orderData.orderItems.map(item => item.cosmeticId))]
+      
+      for (const id of uniqueProductIds) {
+        try {
+          const response = await cosmeticApi.getCosmeticById(id)
+          if (response.data.isSuccess) {
+            productDetails[id] = response.data.data
+          }
+        } catch (error) {
+          console.error(`Failed to fetch details for product ${id}`, error)
+        }
+      }
+      
+      return productDetails
+    },
+    enabled: !!orderData?.orderItems && orderData.orderItems.length > 0
+  })
+
   // Handle search button click
   const handleSearch = () => {
     if (!orderNumber.trim()) {
@@ -368,24 +396,6 @@ const OrderTrackingPage: React.FC = () => {
         return 'process'
     }
   }
-
-  // Add this query inside your component
-  const { data: cosmeticData } = useQuery({
-    queryKey: ['cosmetic', orderData?.orderItems?.[0]?.cosmeticId],
-    queryFn: async () => {
-      if (!orderData?.orderItems?.[0]?.cosmeticId) return null
-      const response = await cosmeticApi.getCosmeticById(
-        orderData.orderItems[0].cosmeticId
-      )
-      if (response.data.isSuccess) {
-        return response.data.data
-      }
-      throw new Error(
-        response.data.message || 'Failed to fetch cosmetic details'
-      )
-    },
-    enabled: !!orderData?.orderItems?.[0]?.cosmeticId
-  })
 
   // Inside the OrderTrackingPage component, before the return statement
   React.useEffect(() => {
@@ -586,29 +596,48 @@ const OrderTrackingPage: React.FC = () => {
                     Order Summary
                   </h3>
                   <div className="mt-8 space-y-4">
-                    {orderData.orderItems?.map((item: any, index: number) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between border-b border-[#3A4D39]/10 pb-4"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="size-12 rounded-md bg-[#D1E2C4]/30"></div>
-                          <div>
-                            <p className="font-medium text-[#3A4D39]">
-                              {cosmeticData
-                                ? cosmeticData.name
-                                : `Product ${index + 1}`}
-                            </p>
-                            <p className="text-sm text-[#3A4D39]/70">
-                              Qty: {item.quantity}
-                            </p>
+                    {orderData.orderItems?.map((item: any, index: number) => {
+                      // Get product details from the map
+                      const productData = cosmeticsData?.[item.cosmeticId]
+                      
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between border-b border-[#3A4D39]/10 pb-4"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="size-12 overflow-hidden rounded-md bg-[#D1E2C4]/30">
+                              {productData ? (
+                                <img
+                                  src={productData.thumbnailUrl || 
+                                    (productData.cosmeticImages && 
+                                     productData.cosmeticImages.length > 0 
+                                     ? productData.cosmeticImages[0].imageUrl 
+                                     : '')}
+                                  alt={productData.name}
+                                  className="size-full object-contain"
+                                />
+                              ) : (
+                                <Package className="m-auto size-6 text-[#3A4D39]/30" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-medium text-[#3A4D39]">
+                                {productData
+                                  ? productData.name
+                                  : `Product ${index + 1}`}
+                              </p>
+                              <p className="text-sm text-[#3A4D39]/70">
+                                Qty: {item.quantity}
+                              </p>
+                            </div>
                           </div>
+                          <span className="font-medium text-[#3A4D39]">
+                            {formatToVND(item.sellingPrice)}
+                          </span>
                         </div>
-                        <span className="font-medium text-[#3A4D39]">
-                          {formatToVND(item.sellingPrice)}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div className="flex justify-between pt-2 text-lg font-semibold text-[#3A4D39]">
                       <span>Total:</span>
                       <span>{formatToVND(orderData.totalPrice ?? 0)}</span>
@@ -626,7 +655,7 @@ const OrderTrackingPage: React.FC = () => {
                     >
                       <OrderFeedback
                         cosmeticId={orderData.orderItems[0].cosmeticId}
-                        cosmeticName={cosmeticData ? cosmeticData.name : `Product`}
+                        cosmeticName={cosmeticsData?.[orderData.orderItems[0].cosmeticId]?.name || "Product"}
                       />
                     </motion.div>
                   )}

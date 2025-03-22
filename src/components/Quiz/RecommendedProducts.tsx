@@ -57,6 +57,8 @@ export const RecommendedProducts: React.FC = () => {
 
       if (response.data.isSuccess) {
         toast.success(`${cosmetic.cosmeticName} added to cart!`)
+        // Notify other components about cart update
+        window.dispatchEvent(new Event('cart-updated'))
       } else {
         toast.error(response.data.message || 'Failed to add item to cart')
       }
@@ -96,6 +98,8 @@ export const RecommendedProducts: React.FC = () => {
 
       if (successfulProducts.length > 0) {
         toast.success(`Added ${successfulProducts.length} products to cart!`)
+        // Notify other components about cart update
+        window.dispatchEvent(new Event('cart-updated'))
       }
       if (failedProducts.length > 0) {
         toast.error(`Failed to add ${failedProducts.length} products.`)

@@ -326,13 +326,7 @@ const MobileShop: React.FC = () => {
             e.stopPropagation()
             handleAddToCart(product.id)
           }}
-        >
-          {isAddingToCart[product.id] ? (
-            <Loader2 className="size-4 animate-spin text-[#3A4D39]" />
-          ) : (
-            <PlusCircle className="size-4 text-[#3A4D39]" />
-          )}
-        </button>
+        ></button>
       </div>
 
       {/* Product info */}
@@ -378,13 +372,6 @@ const MobileShop: React.FC = () => {
             ) : (
               <h1 className="text-2xl font-bold text-[#3A4D39]">Shop</h1>
             )}
-
-            <button
-              onClick={() => navigate({ to: '/cart' })}
-              className="rounded-full p-1.5 active:bg-gray-100"
-            >
-              <ShoppingBag className="size-5 text-[#3A4D39]" />
-            </button>
           </div>
 
           <div className="relative mt-3">
@@ -594,22 +581,6 @@ const MobileShop: React.FC = () => {
           </div>
         )}
       </main>
-
-      {/* Floating action button for cart */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="fixed bottom-20 right-4 z-10"
-      >
-        <Button
-          size="lg"
-          className="size-12 rounded-full bg-[#3A4D39] p-0 shadow-lg"
-          onClick={() => navigate({ to: '/cart' })}
-        >
-          <ShoppingBag className="size-5 text-white" />
-        </Button>
-      </motion.div>
     </div>
   )
 }

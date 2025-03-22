@@ -6,6 +6,7 @@ import { Toaster } from 'sonner'
 import './index.css'
 //import CanvasCursor from './components/CanvasCursor'
 import ChatwootManager from './components/ChatwootManager'
+import { useIsMobile } from './hooks/use-mobile'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -32,6 +33,8 @@ declare module '@tanstack/react-router' {
 }
 
 function App() {
+  const isMobile = useIsMobile()
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -39,7 +42,10 @@ function App() {
           <main>
             <RouterProvider router={router} />
           </main>
-          <Toaster position="bottom-right" richColors />
+          <Toaster
+            position={isMobile ? 'top-center' : 'bottom-right'}
+            richColors
+          />
           {/* <CanvasCursor /> */}
           <ChatwootManager />
         </DeliveryProvider>

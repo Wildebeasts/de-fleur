@@ -46,6 +46,8 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
       // Update the entire cart with absolute quantities
       await cartApi.updateCart(updatedItems)
       refreshCart() // Refresh cart data after update
+      // Notify other components about cart update
+      window.dispatchEvent(new Event('cart-updated'))
     } catch (error) {
       // Revert local state if API call fails
       setLocalQuantity(item.quantity)
@@ -91,11 +93,15 @@ const CartItem: React.FC<CartItemProps> = ({ item, allItems, refreshCart }) => {
     }
   }
 
+  // Handle remove item
   const handleRemoveItem = async () => {
     try {
       setIsUpdating(true)
       await cartApi.removeCartItem(item.cosmeticId)
-      refreshCart() // Refresh cart data after removal
+      refreshCart()
+      toast.success('Item removed from cart')
+      // Notify other components about cart update
+      window.dispatchEvent(new Event('cart-updated'))
     } catch (error) {
       console.error('Error removing item:', error)
       toast.error('Không thể xóa sản phẩm')

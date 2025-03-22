@@ -1,10 +1,18 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { motion } from 'framer-motion'
-import { Home, ShoppingBag, Heart, User, Sparkles } from 'lucide-react'
-import { useNavigate, useLocation } from '@tanstack/react-router'
+import {
+  Home,
+  ShoppingBag,
+  Heart,
+  User,
+  Sparkles,
+  ShoppingCart
+} from 'lucide-react'
+import { useNavigate, useLocation, useMatches } from '@tanstack/react-router'
 import Header from './Header'
 import FooterWrapper from './index'
+import cartApi from '@/lib/services/cartApi'
 
 interface MobileWrapperProps {
   children: React.ReactNode
@@ -13,96 +21,174 @@ interface MobileWrapperProps {
 export default function MobileWrapper({ children }: MobileWrapperProps) {
   const isMobile = useIsMobile()
   const navigate = useNavigate()
-  const location = useLocation()
-  const currentPath = location.pathname
+  const { pathname: currentPath } = useLocation()
+  const matches = useMatches()
+  const isAdminRoute = matches.some((match) =>
+    match.pathname.startsWith('/admin')
+  )
+  const [cartCount, setCartCount] = useState(0)
 
-  // If not on mobile, render with header and footer
+  // Fetch cart count
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      // Check if user is authenticated before fetching cart
+      const accessToken = localStorage.getItem('accessToken')
+      const refreshToken = localStorage.getItem('refreshToken')
+
+      // Skip cart fetching if user is not authenticated
+      if (!accessToken && !refreshToken) {
+        setCartCount(0)
+        return
+      }
+
+      try {
+        const response = await cartApi.getCurrentCart()
+        if (response.data.isSuccess && response.data.data) {
+          // Calculate total items in cart
+          const totalItems = response.data.data.items.reduce(
+            (sum, item) => sum + item.quantity,
+            0
+          )
+          setCartCount(totalItems)
+        }
+      } catch (error) {
+        console.error('Error fetching cart:', error)
+        setCartCount(0)
+      }
+    }
+
+    // Initial fetch
+    fetchCartCount()
+
+    // Set up interval to refetch cart data every 30 seconds
+    const intervalId = setInterval(fetchCartCount, 30000)
+
+    // Listen for cart update events
+    const handleCartUpdate = () => {
+      fetchCartCount()
+    }
+
+    window.addEventListener('cart-updated', handleCartUpdate)
+
+    // Clean up on component unmount
+    return () => {
+      clearInterval(intervalId)
+      window.removeEventListener('cart-updated', handleCartUpdate)
+    }
+  }, [])
+
+  // For web version, render with standard header and footer
   if (!isMobile) {
     return (
       <>
-        <Header />
+        {!isAdminRoute && <Header />}
         <main>{children}</main>
-        <FooterWrapper />
+        {!isAdminRoute && <FooterWrapper />}
       </>
     )
   }
 
-  // Mobile app-like experience - no header but with bottom navigation
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* No header for mobile views */}
+    <div className="relative">
+      <div className="pb-16">{children}</div>
 
-      {/* Mobile app content */}
-      <main className="flex-1 pb-16">{children}</main>
+      {/* Floating Cart Button */}
+      {!isAdminRoute && !currentPath.includes('/quiz') && (
+        <motion.div
+          className="fixed bottom-20 right-4 z-50"
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate({ to: '/cart' })}
+        >
+          <div className="flex size-14 items-center justify-center rounded-full bg-[#3A4D39] shadow-lg">
+            <ShoppingCart className="size-6 text-white" />
+            {cartCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-white text-xs font-semibold text-[#3A4D39] shadow-sm">
+                {cartCount}
+              </span>
+            )}
+          </div>
+        </motion.div>
+      )}
 
-      {/* App-like bottom navigation bar */}
-      <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-gray-200 bg-white shadow-lg">
-        <div className="mx-auto flex h-16 max-w-md items-center justify-between px-6">
-          <TabButton
-            icon={<Home className="size-5" />}
-            label="Home"
-            isActive={currentPath === '/'}
-            onClick={() => navigate({ to: '/' })}
-          />
-          <TabButton
-            icon={<ShoppingBag className="size-5" />}
-            label="Shop"
-            isActive={
-              currentPath === '/shop' || currentPath.includes('/product')
-            }
-            onClick={() => navigate({ to: '/shop' })}
-          />
-          <TabButton
-            icon={<Sparkles className="size-5" />}
-            label="Results"
-            isActive={currentPath === '/quiz_result'}
+      {/* Bottom Navigation */}
+      <div className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-around border-t bg-white px-2">
+        {/* Home Tab */}
+        <NavButton
+          icon={<Home className="size-5" />}
+          label="Home"
+          to="/"
+          isActive={currentPath === '/'}
+          navigate={navigate}
+        />
+
+        {/* Shop Tab */}
+        <NavButton
+          icon={<ShoppingBag className="size-5" />}
+          label="Shop"
+          to="/shop"
+          isActive={currentPath.includes('/shop')}
+          navigate={navigate}
+        />
+
+        {/* Results Tab - Special Treatment */}
+        <div className="-mt-6 flex flex-col items-center">
+          <motion.div
+            whileTap={{ scale: 0.95 }}
+            className="flex size-14 items-center justify-center rounded-full bg-[#3A4D39] shadow-lg"
             onClick={() => navigate({ to: '/quiz_result' })}
-          />
-          <TabButton
-            icon={<Heart className="size-5" />}
-            label="Wishlist"
-            isActive={currentPath === '/wishlist'}
-            onClick={() => navigate({ to: '/wishlist' })}
-          />
-          <TabButton
-            icon={<User className="size-5" />}
-            label="Account"
-            isActive={currentPath.includes('/account_manage')}
-            onClick={() => navigate({ to: '/account_manage' })}
-          />
+          >
+            <Sparkles className="size-6 text-white" />
+          </motion.div>
+          <span
+            className={`mt-1 text-xs font-medium ${currentPath.includes('/quiz_result') ? 'text-[#3A4D39]' : 'text-gray-500'}`}
+          >
+            Results
+          </span>
         </div>
-      </nav>
+
+        {/* Unity Game Tab (formerly Wishlist) */}
+        <NavButton
+          icon={<Heart className="size-5" />}
+          label="Game"
+          to="/unity_game"
+          isActive={currentPath.includes('/unity_game')}
+          navigate={navigate}
+        />
+
+        {/* Account Tab */}
+        <NavButton
+          icon={<User className="size-5" />}
+          label="Account"
+          to="/account_manage"
+          isActive={currentPath.includes('/account_manage')}
+          navigate={navigate}
+        />
+      </div>
     </div>
   )
 }
 
-interface TabButtonProps {
+// Define the NavButton component properly
+interface NavButtonProps {
   icon: React.ReactNode
   label: string
+  to: string
   isActive: boolean
-  onClick: () => void
+  navigate: ReturnType<typeof useNavigate>
 }
 
-function TabButton({ icon, label, isActive, onClick }: TabButtonProps) {
-  return (
-    <button
-      className="flex flex-col items-center justify-center"
-      onClick={onClick}
+const NavButton = ({ icon, label, to, isActive, navigate }: NavButtonProps) => (
+  <button
+    className="flex flex-col items-center"
+    onClick={() => navigate({ to })}
+  >
+    <div className={`${isActive ? 'text-[#3A4D39]' : 'text-gray-500'}`}>
+      {icon}
+    </div>
+    <span
+      className={`mt-1 text-xs font-medium ${isActive ? 'text-[#3A4D39]' : 'text-gray-500'}`}
     >
-      <div className={`mb-1 ${isActive ? 'text-[#3A4D39]' : 'text-gray-400'}`}>
-        {icon}
-      </div>
-      <span
-        className={`text-xs ${isActive ? 'font-medium text-[#3A4D39]' : 'text-gray-500'}`}
-      >
-        {label}
-      </span>
-      {isActive && (
-        <motion.div
-          layoutId="active-tab"
-          className="absolute -top-1 h-1 w-5 rounded-b-full bg-[#3A4D39]"
-        />
-      )}
-    </button>
-  )
-}
+      {label}
+    </span>
+  </button>
+)
