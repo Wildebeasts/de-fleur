@@ -11,6 +11,7 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as WishlistImport } from './routes/wishlist'
 import { Route as UnitygameImport } from './routes/unity_game'
 import { Route as TestimonialsImport } from './routes/testimonials'
 import { Route as SocialaccountImport } from './routes/social_account'
@@ -65,6 +66,12 @@ import { Route as AdminCosmeticsCosmeticIdEditImport } from './routes/admin/cosm
 import { Route as AdminBatchesBatchIdEditImport } from './routes/admin/batches/$batchId/edit'
 
 // Create/Update Routes
+
+const WishlistRoute = WishlistImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const UnitygameRoute = UnitygameImport.update({
   id: '/unity_game',
@@ -602,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UnitygameImport
       parentRoute: typeof rootRoute
     }
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistImport
+      parentRoute: typeof rootRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -834,6 +848,7 @@ export interface FileRoutesByFullPath {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/unity_game': typeof UnitygameRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/': typeof AdminIndexRoute
   '/staff': typeof StaffIndexRoute
   '/admin/batches/create': typeof AdminBatchesCreateRoute
@@ -888,6 +903,7 @@ export interface FileRoutesByTo {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/unity_game': typeof UnitygameRoute
+  '/wishlist': typeof WishlistRoute
   '/admin': typeof AdminIndexRoute
   '/staff': typeof StaffIndexRoute
   '/admin/batches/create': typeof AdminBatchesCreateRoute
@@ -944,6 +960,7 @@ export interface FileRoutesById {
   '/social_account': typeof SocialaccountRoute
   '/testimonials': typeof TestimonialsRoute
   '/unity_game': typeof UnitygameRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/': typeof AdminIndexRoute
   '/staff/': typeof StaffIndexRoute
   '/admin/batches/create': typeof AdminBatchesCreateRoute
@@ -1001,6 +1018,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/unity_game'
+    | '/wishlist'
     | '/admin/'
     | '/staff'
     | '/admin/batches/create'
@@ -1054,6 +1072,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/unity_game'
+    | '/wishlist'
     | '/admin'
     | '/staff'
     | '/admin/batches/create'
@@ -1108,6 +1127,7 @@ export interface FileRouteTypes {
     | '/social_account'
     | '/testimonials'
     | '/unity_game'
+    | '/wishlist'
     | '/admin/'
     | '/staff/'
     | '/admin/batches/create'
@@ -1164,6 +1184,7 @@ export interface RootRouteChildren {
   SocialaccountRoute: typeof SocialaccountRoute
   TestimonialsRoute: typeof TestimonialsRoute
   UnitygameRoute: typeof UnitygameRoute
+  WishlistRoute: typeof WishlistRoute
   StaffIndexRoute: typeof StaffIndexRoute
 }
 
@@ -1199,6 +1220,7 @@ const rootRouteChildren: RootRouteChildren = {
   SocialaccountRoute: SocialaccountRoute,
   TestimonialsRoute: TestimonialsRoute,
   UnitygameRoute: UnitygameRoute,
+  WishlistRoute: WishlistRoute,
   StaffIndexRoute: StaffIndexRoute,
 }
 
@@ -1243,6 +1265,7 @@ export const routeTree = rootRoute
         "/social_account",
         "/testimonials",
         "/unity_game",
+        "/wishlist",
         "/staff/"
       ]
     },
@@ -1360,6 +1383,9 @@ export const routeTree = rootRoute
     },
     "/unity_game": {
       "filePath": "unity_game.tsx"
+    },
+    "/wishlist": {
+      "filePath": "wishlist.tsx"
     },
     "/admin/": {
       "filePath": "admin/index.tsx",

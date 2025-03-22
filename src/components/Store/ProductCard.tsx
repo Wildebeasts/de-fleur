@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import React, { useState } from 'react'
@@ -11,12 +12,14 @@ import { Heart, ShoppingBag } from 'lucide-react'
 
 interface CosmeticCardProps {
   cosmetic: CosmeticResponse
+  selectedProducts: CosmeticResponse[]
   toggleCompare: (product: CosmeticResponse) => void
   isSelectedForComparison: boolean
 }
 
 const ProductCard: React.FC<CosmeticCardProps> = ({
   cosmetic,
+  selectedProducts,
   toggleCompare,
   isSelectedForComparison
 }) => {

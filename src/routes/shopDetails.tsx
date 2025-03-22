@@ -96,27 +96,27 @@ function RouteComponent() {
       productName={product?.name || ''}
       price={product?.price || 0}
       reviewCount={product?.feedbacks?.length || 0}
-      description={product?.shortDescription || ''}
+      description={product?.notice || ''}
       features={[]}
       relatedProducts={relatedProducts?.map(item => ({
-        image: item.thumbnailUrl || '',
+        image: item.thumbnailUrl || (item.cosmeticImages?.[0]?.imageUrl || ''),
         name: item.name || '',
         price: item.price || 0,
         id: item.id
       })) || []}
-      productImage={product?.thumbnailUrl || ''}
+      productImage={product?.thumbnailUrl || (product?.cosmeticImages?.[0]?.imageUrl || '')}
       cosmeticImages={product?.cosmeticImages || []}
-      ingredients={product?.ingredients || []}
-      instructions={product?.instructions || undefined}
+      ingredients={product?.ingredients || ''}
+      instructions={product?.instructions || ''}
       feedbacks={(product?.feedbacks || []).map(feedback => ({
         id: feedback.id,
-        customerId: feedback.customer.id,
+        customerId: feedback.customer?.id,
         customer: {
-          id: feedback.customer.id,
-          email: feedback.customer.email,
-          userName: feedback.customer.userName
+          id: feedback.customer?.id || '',
+          email: feedback.customer?.email || '',
+          userName: feedback.customer?.userName || ''
         },
-        content: feedback.content,
+        content: feedback.content || '',
         rating: feedback.rating
       }))}
       cosmeticSubCategories={product?.cosmeticSubcategories || []}
