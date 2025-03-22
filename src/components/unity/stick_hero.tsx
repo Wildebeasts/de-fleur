@@ -153,89 +153,125 @@ function StickHero() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-3xl rounded-lg bg-white p-3 shadow-md md:p-6"
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-3xl rounded-xl bg-gradient-to-b from-white to-gray-50 p-4 shadow-lg md:p-6"
       >
-        <h1 className="mb-3 text-center text-xl font-bold text-[#3A4D39] md:mb-6 md:text-2xl">
+        <h1 className="mb-4 text-center text-2xl font-bold text-[#3A4D39] md:mb-6 md:text-3xl lg:text-4xl">
           Stick Hero
         </h1>
 
         {isCheckingLimit ? (
-          <div className="mb-6 rounded-lg bg-gray-50 p-4 text-center text-gray-700">
-            <p>Checking daily game limit...</p>
+          <div className="mb-6 rounded-lg bg-gray-100 p-4 text-center text-gray-700 shadow-inner">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="size-5 animate-spin rounded-full border-y-2 border-[#3A4D39]"></div>
+              <p>Checking daily game limit...</p>
+            </div>
           </div>
         ) : !isAuthenticated ? (
-          <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800">
-            <p>Please log in to earn points from playing the game.</p>
+          <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800 shadow-inner">
+            <p className="font-medium">
+              Please log in to earn points from playing the game.
+            </p>
           </div>
         ) : hasReachedDailyLimit ? (
-          <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800">
-            <p>
+          <div className="mb-6 rounded-lg bg-amber-50 p-4 text-center text-amber-800 shadow-inner">
+            <p className="font-medium">
               You&apos;ve reached your daily game limit. You can still play, but
               won&apos;t earn points.
             </p>
           </div>
-        ) : null}
+        ) : (
+          <div className="mb-6 rounded-lg bg-green-50 p-4 text-center text-green-800 shadow-inner">
+            <p className="font-medium">
+              Play to earn points! Stretch the stick and reach the platform.
+            </p>
+          </div>
+        )}
 
         {!isLoaded && !isCheckingLimit && (
           <div className="my-6 flex flex-col items-center md:my-12">
-            <div className="mb-4 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+            <div className="mb-4 h-3 w-full overflow-hidden rounded-full bg-gray-200 shadow-inner">
               <motion.div
-                className="h-full rounded-full bg-[#3A4D39]"
+                className="h-full rounded-full bg-gradient-to-r from-[#3A4D39] to-[#5a7456]"
                 animate={{ width: `${loadingProgression * 100}%` }}
+                transition={{ ease: 'easeInOut' }}
               />
             </div>
             <p className="font-medium text-gray-700">
-              Loading... {(loadingProgression * 100).toFixed(0)}%
+              Loading Game... {(loadingProgression * 100).toFixed(0)}%
             </p>
           </div>
         )}
 
         {!isCheckingLimit && (
-          <Unity
-            unityProvider={unityProvider}
-            style={{ width: '100%', height: `${gameHeight}px` }}
-            className="rounded-md bg-gray-900"
-          />
+          <div className="overflow-hidden rounded-xl border-2 border-[#3A4D39] shadow-md">
+            <Unity
+              unityProvider={unityProvider}
+              style={{ width: '100%', height: `${gameHeight}px` }}
+              className="bg-gradient-to-b from-blue-400 to-blue-600"
+            />
+          </div>
         )}
+
+        {/* Game Instructions */}
+        <div className="mt-6 rounded-lg bg-gray-50 p-4 shadow-inner">
+          <h3 className="mb-2 font-bold text-[#3A4D39]">How to Play:</h3>
+          <ul className="list-disc pl-5 text-sm text-gray-700">
+            <li>Press and hold to extend the stick</li>
+            <li>Release to drop the stick</li>
+            <li>Make it reach the next platform</li>
+            <li>Earn points based on your score!</li>
+          </ul>
+        </div>
 
         {gameOver && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
           >
             <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              className="mx-4 w-full max-w-sm rounded-lg bg-white p-4 shadow-xl md:p-6"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', damping: 15 }}
+              className="mx-4 w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl"
             >
-              <h2 className="mb-2 text-center text-xl font-bold md:text-2xl">
+              <h2 className="mb-4 text-center text-2xl font-bold text-[#3A4D39] md:text-3xl">
                 Game Over!
               </h2>
-              <p className="mb-2 text-center text-gray-700">
-                Your score:{' '}
-                <span className="text-lg font-bold text-blue-600 md:text-xl">
+              <div className="mb-4 flex flex-col items-center justify-center">
+                <p className="text-gray-700">Your score:</p>
+                <span className="text-3xl font-bold text-[#3A4D39] md:text-4xl">
                   {score}
                 </span>
-              </p>
+              </div>
 
               {isAuthenticated &&
                 !hasReachedDailyLimit &&
                 pointsEarned !== null && (
-                  <div className="mb-4 flex items-center justify-center gap-2 rounded-lg bg-amber-50 p-3 text-amber-800">
-                    <Coins className="size-5" />
-                    <p>
+                  <motion.div
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: 'spring' }}
+                    className="mb-6 flex items-center justify-center gap-2 rounded-lg bg-amber-50 p-4 text-amber-800 shadow-inner"
+                  >
+                    <Coins className="size-6 text-amber-600" />
+                    <p className="text-lg">
                       You earned{' '}
-                      <span className="font-bold">{pointsEarned}</span> points!
+                      <span className="font-bold text-amber-600">
+                        {pointsEarned}
+                      </span>{' '}
+                      points!
                     </p>
-                  </div>
+                  </motion.div>
                 )}
 
               <Button
                 onClick={handleRestart}
-                className="w-full bg-blue-600 text-white hover:bg-blue-700"
+                className="w-full rounded-lg bg-gradient-to-r from-[#3A4D39] to-[#5a7456] py-3 text-lg text-white shadow-md transition-all duration-300 hover:from-[#314832] hover:to-[#4a6046]"
               >
-                <RefreshCw className="mr-2 size-4" /> Play Again
+                <RefreshCw className="animate-spin-slow mr-2 size-5" /> Play
+                Again
               </Button>
             </motion.div>
           </motion.div>
