@@ -145,6 +145,7 @@ export const Route = createRootRoute({
   }
 })
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RootComponent() {
   const matches = useMatches()
   const isAdminRoute = matches.some((match) =>

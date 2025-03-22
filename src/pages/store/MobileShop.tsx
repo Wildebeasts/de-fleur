@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from '@tanstack/react-router'
@@ -8,14 +9,12 @@ import {
   Search,
   ChevronRight,
   ShoppingBag,
-  Star,
   Droplets,
   Paintbrush,
   Sun,
   Leaf,
   Eye,
   Heart,
-  Smile,
   FlaskConical,
   Droplet,
   PlusCircle,
@@ -23,7 +22,6 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import cartApi from '@/lib/services/cartApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
@@ -111,10 +109,7 @@ const MobileShop: React.FC = () => {
     queryFn: async () => {
       if (!searchQuery) return []
 
-      const response = await cosmeticApi.getCosmetics({
-        pageSize: 1000,
-        pageNumber: 1
-      })
+      const response = await cosmeticApi.getCosmetics(1, 1000)
       if (response.data.isSuccess && response.data.data) {
         const items = response.data.data.items || []
         return items.filter(
@@ -186,12 +181,12 @@ const MobileShop: React.FC = () => {
   }
 
   // Add this helper function to get products by category
-  const getProductsByCategory = (products = [], categoryId) => {
+  const getProductsByCategory = (products: any[], categoryId: string) => {
     return products.filter((product) => product.cosmeticTypeId === categoryId)
   }
 
   // This function needs to be added to your component
-  const getCategoryImage = (category, allProducts = []) => {
+  const getCategoryImage = (category: any, allProducts: any[]) => {
     // Get products for this category
     const categoryProducts = getProductsByCategory(allProducts, category.id)
 
@@ -222,7 +217,7 @@ const MobileShop: React.FC = () => {
   }
 
   // Update this function for better icon selection
-  const getCategoryStyle = (categoryName) => {
+  const getCategoryStyle = (categoryName: string) => {
     const name = categoryName.toLowerCase()
 
     if (name.includes('cleanser')) {
@@ -298,7 +293,7 @@ const MobileShop: React.FC = () => {
   }
 
   // Render product card (reusable)
-  const renderProductCard = (product) => (
+  const renderProductCard = (product: any) => (
     <motion.div
       key={product.id}
       initial={{ opacity: 0, y: 10 }}
@@ -437,7 +432,7 @@ const MobileShop: React.FC = () => {
             ) : (
               <div className="rounded-lg bg-white p-6 text-center">
                 <p className="text-sm text-gray-500">
-                  No products found matching "{searchQuery}"
+                  No products found matching &quot;{searchQuery}&quot;
                 </p>
                 <Button
                   variant="outline"
@@ -504,7 +499,10 @@ const MobileShop: React.FC = () => {
                 <div className="grid grid-cols-2 gap-3">
                   {categories.map((category) => {
                     const style = getCategoryStyle(category.name)
-                    const productImage = getCategoryImage(category, allProducts)
+                    const productImage = getCategoryImage(
+                      category,
+                      allProducts || []
+                    )
 
                     return (
                       <motion.div

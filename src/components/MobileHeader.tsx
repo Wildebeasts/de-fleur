@@ -1,5 +1,4 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 import { Search, Heart, ShoppingBag, Menu } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
@@ -30,7 +29,7 @@ export default function MobileHeader() {
         <div className="flex items-center gap-3">
           <button
             className="rounded-full p-2 active:bg-gray-100"
-            onClick={() => navigate({ to: '/search' })}
+            onClick={() => navigate({ to: '/shop' })}
           >
             <Search className="size-5 text-[#3A4D39]" />
           </button>

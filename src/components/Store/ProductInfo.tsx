@@ -20,7 +20,6 @@ interface ProductSubCategoryProps {
 }
 
 const ProductInfo: React.FC<ProductInfoProps> = ({
-  productId,
   productName,
   price,
   reviewCount,

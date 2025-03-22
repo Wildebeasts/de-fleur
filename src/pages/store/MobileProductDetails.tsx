@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft,
-  Heart,
   ShoppingBag,
   Share2,
   Plus,
@@ -98,7 +98,7 @@ const MobileProductDetails: React.FC<MobileProductDetailsProps> = ({
   // Get product images
   const productImages =
     product.cosmeticImages && product.cosmeticImages.length > 0
-      ? product.cosmeticImages.map((img) => img.imageUrl)
+      ? product.cosmeticImages.map((img: any) => img.imageUrl)
       : [
           product.thumbnailUrl ||
             'https://placehold.co/400x400/E8F3D6/3A4D39?text=Product'
@@ -138,7 +138,7 @@ const MobileProductDetails: React.FC<MobileProductDetailsProps> = ({
         {/* Image navigation dots */}
         {productImages.length > 1 && (
           <div className="absolute inset-x-0 bottom-4 flex justify-center gap-1">
-            {productImages.map((_, index) => (
+            {productImages.map((_: any, index: number) => (
               <button
                 key={index}
                 onClick={() => setActiveImageIndex(index)}
@@ -186,7 +186,7 @@ const MobileProductDetails: React.FC<MobileProductDetailsProps> = ({
 
         {/* Tags/badges */}
         <div className="mt-3 flex flex-wrap gap-2">
-          {product.cosmeticSubCategories?.map((subCat, index) => (
+          {product.cosmeticSubCategories?.map((subCat: any, index: number) => (
             <Badge
               key={index}
               className="bg-[#E8F3D6] text-[#3A4D39] hover:bg-[#E8F3D6]/80"
@@ -308,30 +308,35 @@ const MobileProductDetails: React.FC<MobileProductDetailsProps> = ({
 
               {product.feedbacks && product.feedbacks.length > 0 ? (
                 <div className="mt-3 space-y-4">
-                  {product.feedbacks.slice(0, 3).map((review, index) => (
-                    <div key={index} className="border-b border-gray-100 pb-3">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          {review.customer?.userName || 'User'}
-                        </span>
-                        <div className="flex">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`size-3 ${
-                                i < review.rating
-                                  ? 'fill-amber-400 text-amber-400'
-                                  : 'fill-gray-200 text-gray-200'
-                              }`}
-                            />
-                          ))}
+                  {product.feedbacks
+                    .slice(0, 3)
+                    .map((review: any, index: number) => (
+                      <div
+                        key={index}
+                        className="border-b border-gray-100 pb-3"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium">
+                            {review.customer?.userName || 'User'}
+                          </span>
+                          <div className="flex">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`size-3 ${
+                                  i < review.rating
+                                    ? 'fill-amber-400 text-amber-400'
+                                    : 'fill-gray-200 text-gray-200'
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
+                        <p className="mt-1 text-sm text-[#3A4D39]/80">
+                          {review.content || 'Great product!'}
+                        </p>
                       </div>
-                      <p className="mt-1 text-sm text-[#3A4D39]/80">
-                        {review.content || 'Great product!'}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
 
                   {product.feedbacks.length > 3 && (
                     <button className="flex w-full items-center justify-center gap-1 rounded-md bg-gray-50 p-2 text-sm text-[#3A4D39]">

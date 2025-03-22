@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuizResult } from '@/lib/context/QuizResultContext'
@@ -88,8 +89,8 @@ const MobileQuizResult: React.FC = () => {
             No results found
           </h2>
           <p className="mt-2 text-[#3A4D39]/80">
-            We don't have your skin profile data yet. Please take the quiz to
-            get personalized recommendations.
+            We don&apos;t have your skin profile data yet. Please take the quiz
+            to get personalized recommendations.
           </p>
           <Button
             className="mt-4 bg-[#3A4D39] hover:bg-[#4A5D49]"
@@ -192,41 +193,44 @@ const MobileQuizResult: React.FC = () => {
                 Your Daily Routine
               </h2>
 
-              {quizResults.map((routine, index) => (
+              {quizResults.map((routine: any, index: number) => (
                 <div key={index} className="mt-4">
                   <h3 className="font-medium text-[#3A4D39]">
                     {routine.routineName || 'Morning Routine'}
                   </h3>
 
                   <div className="mt-2 space-y-3">
-                    {routine.routineSteps?.map((step, stepIndex) => (
-                      <motion.div
-                        key={stepIndex}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: stepIndex * 0.1 }}
-                        className="rounded-lg bg-white p-3 shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <Badge className="mr-2 bg-[#E8F3D6] px-2 py-1 text-xs font-normal text-[#3A4D39]">
-                              Step {stepIndex + 1}
-                            </Badge>
-                            <h4 className="font-medium text-[#3A4D39]">
-                              {step.routineStep || 'Apply Product'}
-                            </h4>
+                    {routine.routineSteps?.map(
+                      (step: any, stepIndex: number) => (
+                        <motion.div
+                          key={stepIndex}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: stepIndex * 0.1 }}
+                          className="rounded-lg bg-white p-3 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <Badge className="mr-2 bg-[#E8F3D6] px-2 py-1 text-xs font-normal text-[#3A4D39]">
+                                Step {stepIndex + 1}
+                              </Badge>
+                              <h4 className="font-medium text-[#3A4D39]">
+                                {step.routineStep || 'Apply Product'}
+                              </h4>
+                            </div>
                           </div>
-                        </div>
 
-                        <p className="mt-2 text-sm text-[#3A4D39]/80">
-                          {step.cosmeticName}
-                        </p>
+                          <p className="mt-2 text-sm text-[#3A4D39]/80">
+                            {step.cosmeticName}
+                          </p>
 
-                        <p className="mt-1 text-xs text-[#3A4D39]/60">
-                          {step.description || 'Apply evenly to cleansed skin.'}
-                        </p>
-                      </motion.div>
-                    ))}
+                          <p className="mt-1 text-xs text-[#3A4D39]/60">
+                            {step.description ||
+                              'Apply evenly to cleansed skin.'}
+                          </p>
+                        </motion.div>
+                      )
+                    )}
                   </div>
                 </div>
               ))}

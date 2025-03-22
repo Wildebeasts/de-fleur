@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { Search, ArrowRight, Leaf, Loader2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import cosmeticApi from '@/lib/services/cosmeticApi'
-import { CosmeticResponse } from '@/lib/types/Cosmetic'
 
 // Reusing the existing QuizButton but with mobile styling
 import QuizButton from './QuizButton'

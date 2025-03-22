@@ -1,13 +1,10 @@
 import React from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { motion } from 'framer-motion'
-import { Home, ShoppingBag, Search, Heart, User, Sparkles } from 'lucide-react'
+import { Home, ShoppingBag, Heart, User, Sparkles } from 'lucide-react'
 import { useNavigate, useLocation } from '@tanstack/react-router'
 import Header from './Header'
-import Footer from './Footer'
 import FooterWrapper from './index'
-import MobileHeader from './MobileHeader'
-import { DefaultFooter } from './Footer'
 
 interface MobileWrapperProps {
   children: React.ReactNode
