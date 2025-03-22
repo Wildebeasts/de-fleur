@@ -93,22 +93,24 @@ export default function MobileWrapper({ children }: MobileWrapperProps) {
       <div className="pb-16">{children}</div>
 
       {/* Floating Cart Button */}
-      {!isAdminRoute && !currentPath.includes('/quiz') && (
-        <motion.div
-          className="fixed bottom-20 right-4 z-50"
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate({ to: '/cart' })}
-        >
-          <div className="flex size-14 items-center justify-center rounded-full bg-[#3A4D39] shadow-lg">
-            <ShoppingCart className="size-6 text-white" />
-            {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-white text-xs font-semibold text-[#3A4D39] shadow-sm">
-                {cartCount}
-              </span>
-            )}
-          </div>
-        </motion.div>
-      )}
+      {!isAdminRoute &&
+        !currentPath.includes('/quiz') &&
+        !currentPath.includes('/unity_game') && (
+          <motion.div
+            className="fixed bottom-20 right-4 z-50"
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate({ to: '/cart' })}
+          >
+            <div className="flex size-14 items-center justify-center rounded-full bg-[#3A4D39] shadow-lg">
+              <ShoppingCart className="size-6 text-white" />
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-white text-xs font-semibold text-[#3A4D39] shadow-sm">
+                  {cartCount}
+                </span>
+              )}
+            </div>
+          </motion.div>
+        )}
 
       {/* Bottom Navigation */}
       <div className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-around border-t bg-white px-2">

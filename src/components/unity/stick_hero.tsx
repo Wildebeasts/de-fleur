@@ -143,7 +143,6 @@ function StickHero() {
     try {
       const response = await couponApi.endGame(finalScore)
       setPointsEarned(response.pointsEarned)
-
       // Show toast notification of points earned
       toast.success(`You earned ${response.pointsEarned} points!`, {
         position: 'bottom-center'
@@ -374,13 +373,12 @@ function StickHero() {
 
                   <div className="grid grid-cols-2 gap-2">
                     <Button
-                      onClick={handleRestart}
+                      onClick={exitGame}
                       className="bg-[#3A4D39] text-white hover:bg-[#4A5D49] active:bg-[#2A3D29]"
                     >
-                      <RefreshCw className="mr-1 size-4" /> Play Again
+                      <ArrowLeft className="mr-1 size-4" /> Return Home
                     </Button>
 
-                    {/* Alternative restart button for redundancy */}
                     <Button
                       onClick={shareScore}
                       variant="outline"
