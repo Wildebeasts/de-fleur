@@ -4,7 +4,7 @@ interface SocialIconsProps {
   icons: string[]
 }
 
-const SocialIcons: React.FC<SocialIconsProps> = ({ icons }) => {
+const SocialIcons: React.FC<SocialIconsProps> = ({ icons = [] }) => {
   return (
     <div className="mt-9 flex w-full gap-4 bg-transparent pr-14 max-md:pr-5">
       {icons.map((icon, index) => (

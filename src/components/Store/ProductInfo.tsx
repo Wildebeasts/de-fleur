@@ -20,10 +20,11 @@ interface ProductSubCategoryProps {
 }
 
 const ProductInfo: React.FC<ProductInfoProps> = ({
+  productId,
   productName,
   price,
   reviewCount,
-  cosmeticSubcategories
+  cosmeticSubcategories = []
 }) => {
   const [quantity, setQuantity] = React.useState(1)
 
@@ -129,16 +130,13 @@ const ProductInfo: React.FC<ProductInfoProps> = ({
           </motion.button>
           <div className="mt-6 flex w-full flex-wrap justify-between gap-5 rounded-lg bg-orange-50 p-4 max-md:max-w-full">
             <div className="flex gap-2 py-0.5">
-              {/* <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/54681f64caecf2d61962f09a5ffe92dae7f904c8b528585dcad597ed68c7201d?placeholderIfAbsent=true&apiKey=c62a455a8e834db1ac749b30467de15e"
-                className="my-auto aspect-[1.25] w-5 self-stretch object-contain"
-                alt="Sub category icon"
-              /> */}
               <div className="basis-auto text-sm leading-none text-black">
-                {cosmeticSubcategories
-                  .map((subCategory) => subCategory.subCategory.name)
-                  .join(', ')}
+                {cosmeticSubcategories && cosmeticSubcategories.length > 0
+                  ? cosmeticSubcategories
+                      .map((subCategory) => subCategory.subCategory?.name)
+                      .filter(Boolean)
+                      .join(', ')
+                  : 'No categories available'}
               </div>
             </div>
             <img

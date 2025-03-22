@@ -45,7 +45,7 @@ function App() {
           <ChatwootManager />
         </DeliveryProvider>
       </AuthProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   )
 }

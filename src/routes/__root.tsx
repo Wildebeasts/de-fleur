@@ -15,6 +15,7 @@ import userApi from '@/lib/services/userService'
 import { useEffect } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/lib/context/AuthContext'
+import MobileWrapper from '../components/MobileWrapper'
 
 // Protected routes that require authentication
 const PROTECTED_ROUTES = [
@@ -44,7 +45,11 @@ declare module '@tanstack/react-router' {
 }
 
 export const Route = createRootRoute({
-  component: RootComponent,
+  component: () => (
+    <MobileWrapper>
+      <Outlet />
+    </MobileWrapper>
+  ),
   beforeLoad: async ({ location }) => {
     // Get auth status from localStorage
     const accessToken = localStorage.getItem('accessToken')

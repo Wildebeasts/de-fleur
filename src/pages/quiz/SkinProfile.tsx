@@ -4,8 +4,18 @@ import { PersonalizedRoutine } from '@/components/Quiz/PersonalizedRoutine'
 import { RecommendedProducts } from '@/components/Quiz/RecommendedProducts'
 import { SkincareEducation } from '@/components/Quiz/SkincareEducation'
 import { NextSteps } from '@/components/Quiz/NextSteps'
+import MobileQuizResult from './MobileQuizResult'
+import { useIsMobile } from '@/lib/hooks/use-mobile'
 
 const SkinProfile: React.FC = () => {
+  const isMobile = useIsMobile()
+
+  // Use the mobile-friendly version on small screens
+  if (isMobile) {
+    return <MobileQuizResult />
+  }
+
+  // Desktop version
   return (
     <div className="flex flex-col">
       <div className="flex w-full flex-col bg-orange-50 px-20 pb-10 pt-5 max-md:max-w-full max-md:px-5">
