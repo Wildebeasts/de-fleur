@@ -11,9 +11,7 @@ import {
   ChevronRight,
   Edit2,
   Shield,
-  Gift,
   Clock,
-  Heart,
   ShoppingCart
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -90,7 +88,7 @@ const MobileAccountPage = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate({ to: '/settings' })}
+              onClick={() => navigate({ to: '/account_manage' })}
             >
               <Settings className="size-5 text-[#3A4D39]" />
             </Button>
@@ -141,7 +139,7 @@ const MobileAccountPage = () => {
                 variant="ghost"
                 size="icon"
                 className="text-gray-400"
-                onClick={() => navigate({ to: '/edit-profile' })}
+                onClick={() => navigate({ to: '/account_manage' })}
               >
                 <Edit2 className="size-4" />
               </Button>
@@ -218,7 +216,7 @@ const MobileAccountPage = () => {
               icon={<User className="size-5 text-[#3A4D39]" />}
               title="Personal Information"
               description="Manage your personal details"
-              onClick={() => navigate({ to: '/personal-info' })}
+              onClick={() => navigate({ to: '/account_manage' })}
               delay={0.2}
             />
 
@@ -226,7 +224,7 @@ const MobileAccountPage = () => {
               icon={<MapPin className="size-5 text-[#3A4D39]" />}
               title="Addresses"
               description="Manage your saved addresses"
-              onClick={() => navigate({ to: '/addresses' })}
+              onClick={() => navigate({ to: '/account_manage' })}
               delay={0.3}
             />
 
@@ -234,7 +232,7 @@ const MobileAccountPage = () => {
               icon={<Shield className="size-5 text-[#3A4D39]" />}
               title="Privacy & Security"
               description="Update password and security settings"
-              onClick={() => navigate({ to: '/security' })}
+              onClick={() => navigate({ to: '/account_manage' })}
               delay={0.4}
             />
 
@@ -270,32 +268,8 @@ const MobileAccountPage = () => {
               icon={<FileText className="size-5 text-[#3A4D39]" />}
               title="Returns & Refunds"
               description="Manage return requests"
-              onClick={() => navigate({ to: '/returns' })}
+              onClick={() => navigate({ to: '/return' })}
               delay={0.2}
-            />
-
-            <AccountMenuItem
-              icon={<Gift className="size-5 text-[#3A4D39]" />}
-              title="My Coupons"
-              description="View available and used coupons"
-              onClick={() => navigate({ to: '/my_coupons' })}
-              delay={0.3}
-            />
-          </motion.div>
-        )}
-
-        {activeTab === 'saved' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-4"
-          >
-            <AccountMenuItem
-              icon={<Heart className="size-5 text-[#3A4D39]" />}
-              title="Wishlist"
-              description="Products you've saved"
-              onClick={() => navigate({ to: '/wishlist' })}
-              delay={0.1}
             />
           </motion.div>
         )}
@@ -305,7 +279,21 @@ const MobileAccountPage = () => {
 }
 
 // Account menu item component
-const AccountMenuItem = ({ icon, title, description, onClick, delay = 0 }) => {
+interface AccountMenuItemProps {
+  icon: React.ReactNode
+  title: string
+  description: string
+  onClick: () => void
+  delay?: number
+}
+
+const AccountMenuItem = ({
+  icon,
+  title,
+  description,
+  onClick,
+  delay = 0
+}: AccountMenuItemProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
