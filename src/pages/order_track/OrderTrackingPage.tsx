@@ -632,9 +632,21 @@ const OrderTrackingPage: React.FC = () => {
                               </p>
                             </div>
                           </div>
-                          <span className="font-medium text-[#3A4D39]">
-                            {formatToVND(item.sellingPrice)}
-                          </span>
+                          <div className="text-right">
+                            <span className="font-medium text-[#3A4D39]">
+                              {formatToVND(item.sellingPrice)}
+                            </span>
+                            {productData && productData.originalPrice && productData.price < productData.originalPrice && (
+                              <div className="flex flex-col items-end">
+                                <span className="text-sm text-[#3A4D39]/60 line-through">
+                                  {formatToVND(productData.originalPrice)}
+                                </span>
+                                <span className="text-xs text-rose-500">
+                                  {Math.round((1 - productData.price / productData.originalPrice) * 100)}% off
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

@@ -47,6 +47,7 @@ interface ProductData {
     [key: string]: unknown // Using unknown instead of any
   }>
   price?: number
+  originalPrice?: number
   [key: string]: unknown // Using unknown instead of any
 }
 
@@ -602,9 +603,31 @@ const MobileOrderTrackingPage: React.FC = () => {
                           </div>
                           <div className="flex justify-between text-sm">
                             <span>Qty: {item.quantity}</span>
-                            <span className="font-medium text-[#3A4D39]">
-                              {formatToVND(item.sellingPrice)}
-                            </span>
+                            <div className="flex flex-col items-end">
+                              <span className="font-medium text-[#3A4D39]">
+                                {formatToVND(item.sellingPrice)}
+                              </span>
+                              {productData &&
+                                productData.originalPrice &&
+                                productData.price !== undefined &&
+                                productData.price <
+                                  productData.originalPrice && (
+                                  <>
+                                    <span className="text-xs text-[#3A4D39]/60 line-through">
+                                      {formatToVND(productData.originalPrice)}
+                                    </span>
+                                    <span className="text-xs text-rose-500">
+                                      {Math.round(
+                                        (1 -
+                                          productData.price /
+                                            productData.originalPrice) *
+                                          100
+                                      )}
+                                      % off
+                                    </span>
+                                  </>
+                                )}
+                            </div>
                           </div>
                         </div>
                       </motion.div>
