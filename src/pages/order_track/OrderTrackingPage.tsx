@@ -39,6 +39,8 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import axios from 'axios'
 import feedbackApi from '@/lib/services/feedbackApi'
 import { OrderStatus, OrderStatusType } from '@/lib/constants/orderStatus'
+import couponApi from '@/lib/services/couponApi'
+import { CouponResponse } from '@/lib/types/Coupon'
 
 // Animation variants
 const containerVariants = {
@@ -298,6 +300,7 @@ const OrderTrackingPage: React.FC = () => {
   const [orderNumber, setOrderNumber] = useState('')
   const [searchedOrder, setSearchedOrder] = useState('')
   const { orderId } = OrderTrackRoute.useSearch()
+  const [couponData, setCouponData] = useState<CouponResponse | null>(null)
 
   // Set the orderId from URL if available
   useEffect(() => {
@@ -333,13 +336,13 @@ const OrderTrackingPage: React.FC = () => {
     queryKey: ['order-cosmetics', orderData?.id],
     queryFn: async () => {
       if (!orderData?.orderItems || orderData.orderItems.length === 0) return {}
-      
+
       // Create a map to store product details by ID
       const productDetails: Record<string, any> = {}
-      
+
       // Fetch details for each unique product in the order
       const uniqueProductIds = [...new Set(orderData.orderItems.map(item => item.cosmeticId))]
-      
+
       for (const id of uniqueProductIds) {
         try {
           const response = await cosmeticApi.getCosmeticById(id)
@@ -350,7 +353,7 @@ const OrderTrackingPage: React.FC = () => {
           console.error(`Failed to fetch details for product ${id}`, error)
         }
       }
-      
+
       return productDetails
     },
     enabled: !!orderData?.orderItems && orderData.orderItems.length > 0
@@ -408,6 +411,40 @@ const OrderTrackingPage: React.FC = () => {
   }, [orderData]);
 
   const normalizedStatus = normalizeStatus(orderData?.status || '');
+
+  useEffect(() => {
+    if (orderData && orderData.couponId) {
+      const fetchCouponData = async () => {
+        try {
+          const response = await couponApi.getById(orderData.couponId as string)
+          setCouponData(response.data.data as CouponResponse)
+        } catch (error) {
+          console.error('Error fetching coupon data:', error)
+        }
+      }
+
+      fetchCouponData()
+    }
+  }, [orderData])
+
+  // Calculate subtotal
+  const subtotal = orderData?.orderItems?.reduce((sum, item) => sum + item.sellingPrice, 0) ?? 0;
+
+  // Calculate coupon discount
+  const calculateCouponDiscount = () => {
+    if (!couponData || !orderData?.couponId) return 0;
+
+    // Calculate discount based on percentage
+    const discountAmount = subtotal * (couponData.discount / 100);
+
+    // Apply max discount cap if needed
+    return Math.min(discountAmount, couponData.maxDiscountAmount);
+  };
+
+  const couponDiscount = calculateCouponDiscount();
+
+  // Calculate shipping fee
+  const shippingFee = (orderData?.totalPrice ?? 0) - subtotal + couponDiscount;
 
   return (
     <>
@@ -599,7 +636,7 @@ const OrderTrackingPage: React.FC = () => {
                     {orderData.orderItems?.map((item: any, index: number) => {
                       // Get product details from the map
                       const productData = cosmeticsData?.[item.cosmeticId]
-                      
+
                       return (
                         <div
                           key={index}
@@ -609,11 +646,11 @@ const OrderTrackingPage: React.FC = () => {
                             <div className="size-12 overflow-hidden rounded-md bg-[#D1E2C4]/30">
                               {productData ? (
                                 <img
-                                  src={productData.thumbnailUrl || 
-                                    (productData.cosmeticImages && 
-                                     productData.cosmeticImages.length > 0 
-                                     ? productData.cosmeticImages[0].imageUrl 
-                                     : '')}
+                                  src={productData.thumbnailUrl ||
+                                    (productData.cosmeticImages &&
+                                      productData.cosmeticImages.length > 0
+                                      ? productData.cosmeticImages[0].imageUrl
+                                      : '')}
                                   alt={productData.name}
                                   className="size-full object-contain"
                                 />
@@ -650,6 +687,25 @@ const OrderTrackingPage: React.FC = () => {
                         </div>
                       );
                     })}
+                    <div className="flex justify-between pt-2 text-sm text-[#3A4D39]/80">
+                      <span>Subtotal:</span>
+                      <span>{formatToVND(subtotal)}</span>
+                    </div>
+
+                    {couponData && orderData.couponId && (
+                      <div className="flex justify-between pt-2 text-sm text-[#3A4D39]/80">
+                        <span>Coupon Discount ({couponData.code}):</span>
+                        <span className="text-green-600">-{formatToVND(couponDiscount)}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between pt-2 text-sm text-[#3A4D39]/80">
+                      <span>Shipping Fee:</span>
+                      <span>{formatToVND(shippingFee)}</span>
+                    </div>
+
+                    <div className="mt-2 border-t border-[#3A4D39]/10"></div>
+
                     <div className="flex justify-between pt-2 text-lg font-semibold text-[#3A4D39]">
                       <span>Total:</span>
                       <span>{formatToVND(orderData.totalPrice ?? 0)}</span>

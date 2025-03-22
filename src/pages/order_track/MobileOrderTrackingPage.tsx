@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import orderApi from '@/lib/services/orderApi'
 import cosmeticApi from '@/lib/services/cosmeticApi'
+import couponApi from '@/lib/services/couponApi'
 import {
   Loader2,
   Package,
@@ -16,6 +17,7 @@ import {
   ShoppingBag
 } from 'lucide-react'
 import { OrderStatus } from '@/lib/constants/orderStatus'
+import { CouponResponse } from '@/lib/types/Coupon'
 
 // Type definitions
 interface OrderItem {
@@ -35,6 +37,7 @@ interface OrderData {
   trackingNumber?: string
   shippingAddress?: string
   deliveryDate?: string
+  couponId?: string
 }
 
 interface ProductData {
@@ -250,6 +253,25 @@ const MobileOrderTrackingPage: React.FC = () => {
       orderStatusSteps[normalizedStatus as keyof typeof orderStatusSteps] ?? 0
     )
   }
+
+  // Inside your component, add a state for coupon data
+  const [couponData, setCouponData] = useState<CouponResponse | null>(null)
+
+  // In your useEffect where you fetch order data, add this
+  useEffect(() => {
+    if (orderData && orderData.couponId) {
+      const fetchCouponData = async () => {
+        try {
+          const response = await couponApi.getById(orderData.couponId as string)
+          setCouponData(response.data.data as CouponResponse)
+        } catch (error) {
+          console.error('Error fetching coupon data:', error)
+        }
+      }
+
+      fetchCouponData()
+    }
+  }, [orderData])
 
   // Basic loading state for initial fetch
   if (isLoadingOrders && !allOrders) {
@@ -636,12 +658,62 @@ const MobileOrderTrackingPage: React.FC = () => {
                 </div>
               )}
 
-              <div className="mt-3 flex justify-between border-t border-gray-100 pt-3">
-                <span className="font-medium">Total</span>
-                <span className="font-bold text-[#3A4D39]">
-                  {formatToVND(orderData.totalPrice || 0)}
-                </span>
-              </div>
+              {/* Add these calculations */}
+              {(() => {
+                // Calculate subtotal
+                const subtotal =
+                  orderData.orderItems?.reduce(
+                    (sum, item) => sum + item.sellingPrice,
+                    0
+                  ) ?? 0
+
+                // Calculate coupon discount
+                const calculateCouponDiscount = () => {
+                  if (!couponData || !orderData.couponId) return 0
+
+                  // Calculate discount based on percentage
+                  const discountAmount = subtotal * (couponData.discount / 100)
+
+                  // Apply max discount cap if needed
+                  return Math.min(discountAmount, couponData.maxDiscountAmount)
+                }
+
+                const couponDiscount = calculateCouponDiscount()
+
+                // Calculate shipping fee
+                const shippingFee =
+                  orderData.totalPrice - subtotal + couponDiscount
+
+                return (
+                  <>
+                    <div className="flex justify-between pt-2 text-sm">
+                      <span>Subtotal</span>
+                      <span>{formatToVND(subtotal)}</span>
+                    </div>
+
+                    {couponData && orderData.couponId && (
+                      <div className="flex justify-between pt-2 text-sm">
+                        <span>Coupon Discount ({couponData.code})</span>
+                        <span className="text-green-600">
+                          -{formatToVND(couponDiscount)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between pt-2 text-sm">
+                      <span>Shipping Fee</span>
+                      <span>{formatToVND(shippingFee)}</span>
+                    </div>
+
+                    <div className="mt-3 flex justify-between border-t border-gray-100 pt-3">
+                      <span className="font-medium">Total</span>
+                      <span className="font-bold text-[#3A4D39]">
+                        {formatToVND(orderData.totalPrice || 0)}
+                      </span>
+                    </div>
+                  </>
+                )
+              })()}
             </motion.div>
 
             {/* Contact support */}
