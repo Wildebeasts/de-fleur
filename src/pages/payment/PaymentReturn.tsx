@@ -94,24 +94,27 @@ const PaymentReturn: React.FC = () => {
         const responseCode = paymentParams.vnp_ResponseCode || ''
         setResponseCode(responseCode)
 
-        // Check if payment was successful (00 is success code)
-        if (responseCode !== '00') {
-          setIsSuccess(false)
-          setErrorMessage(getErrorMessageByCode(responseCode))
-          setIsProcessing(false)
-          return // Exit early if payment failed
+        // Extract orderId from vnp_OrderInfo or vnp_TxnRef
+        // First try to extract from vnp_OrderInfo which contains "Payment for order {orderId}"
+        let orderId: string | undefined
+
+        if (paymentParams.vnp_OrderInfo) {
+          const orderIdMatch = paymentParams.vnp_OrderInfo.match(/order\s+([a-f0-9-]+)/i)
+          if (orderIdMatch && orderIdMatch[1]) {
+            orderId = orderIdMatch[1]
+          }
         }
 
-        // Extract orderId from vnp_OrderInfo or vnp_TxnRef
-        const orderIdMatch =
-          paymentParams.vnp_OrderInfo?.match(/OrderId:([a-f0-9-]+)/i)
-        const orderId = orderIdMatch
-          ? orderIdMatch[1]
-          : paymentParams.vnp_TxnRef
+        // If not found in vnp_OrderInfo, use vnp_TxnRef which should contain the orderId
+        if (!orderId && paymentParams.vnp_TxnRef) {
+          orderId = paymentParams.vnp_TxnRef
+        }
 
         if (!orderId) {
           throw new Error('Order ID not found in payment return data')
         }
+
+        console.log('Extracted Order ID:', orderId)
 
         // Create PaymentReturnData object
         const paymentReturnData: PaymentReturnData = {
@@ -120,25 +123,37 @@ const PaymentReturn: React.FC = () => {
           responseCode: responseCode
         }
 
-        // Call API to complete the order only if payment was successful
-        const response = await orderApi.completeOrder(
-          orderId,
-          responseCode,
-          paymentReturnData
-        )
+        // Call API to update the order status
+        // For code 24 (user cancelled) or any other non-success code, mark as PAYMENT_FAILED
+        if (responseCode !== '00') {
+          // For cancelled payments (code 24) or other failures
+          const response = await orderApi.updateOrderStatus(orderId, {
+            status: 'PAYMENT_FAILED'
+          })
 
-        if (response.data.isSuccess) {
-          setIsSuccess(true)
-          // Set a flag in localStorage to indicate orders need refreshing
-          localStorage.setItem('refreshOrders', 'true')
-          // Trigger the refresh event
-          triggerOrderRefresh()
-        } else {
           setIsSuccess(false)
-          setErrorMessage(
-            response.data.message ||
-            'Payment verification failed. Please contact support.'
+          setErrorMessage(getErrorMessageByCode(responseCode))
+        } else {
+          // For successful payments, complete the order
+          const response = await orderApi.completeOrder(
+            orderId,
+            responseCode,
+            paymentReturnData
           )
+
+          if (response.data.isSuccess) {
+            setIsSuccess(true)
+            // Set a flag in localStorage to indicate orders need refreshing
+            localStorage.setItem('refreshOrders', 'true')
+            // Trigger the refresh event
+            triggerOrderRefresh()
+          } else {
+            setIsSuccess(false)
+            setErrorMessage(
+              response.data.message ||
+              'Payment verification failed. Please contact support.'
+            )
+          }
         }
       } catch (error) {
         console.error('Payment processing error:', error)

@@ -90,6 +90,16 @@ export default function MyCoupons() {
     })
   }
 
+  // Add a formatter function for VND currency
+  const formatVND = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   // Fetch user coupons
   const { data: userCouponsData, isLoading: userCouponsLoading } = useQuery({
     queryKey: ['user-coupons'],
@@ -214,7 +224,7 @@ export default function MyCoupons() {
                             </div>
                             {coupon.minimumOrderPrice > 0 && (
                               <p className="mb-3 text-xs text-gray-500">
-                                Min. Order: ${coupon.minimumOrderPrice}
+                                Min. Order: {formatVND(coupon.minimumOrderPrice)}
                               </p>
                             )}
                             <Button
@@ -311,7 +321,7 @@ export default function MyCoupons() {
                           </div>
                           {userCoupon.coupon.minimumOrderPrice > 0 && (
                             <p className="mb-3 text-xs text-gray-500">
-                              Min. Order: ${userCoupon.coupon.minimumOrderPrice}
+                              Min. Order: {formatVND(userCoupon.coupon.minimumOrderPrice)}
                             </p>
                           )}
                           <Button
