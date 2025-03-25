@@ -207,6 +207,9 @@ const MobileCheckoutPage: React.FC = () => {
     else {
       setFormData((prev) => ({ ...prev, [name]: value }))
     }
+
+    // Reset shipping fee whenever any address field changes
+    resetShippingFee()
   }
 
   // Calculate actual discount based on coupon
@@ -302,33 +305,6 @@ const MobileCheckoutPage: React.FC = () => {
       items
     }
   }
-
-  // Calculate shipping fee when address is complete
-  useEffect(() => {
-    if (
-      formData.provinceId &&
-      formData.districtId &&
-      formData.wardCode &&
-      cartData?.items.length
-    ) {
-      try {
-        calculateShippingFee(buildShippingRequest()).catch((error) => {
-          console.error('Error calculating shipping fee:', error)
-          toast.error(
-            'Could not calculate shipping fee. Please check your address information.'
-          )
-        })
-      } catch (error) {
-        console.error('Error in shipping fee calculation:', error)
-      }
-    }
-  }, [
-    formData.districtId,
-    formData.wardCode,
-    formData.provinceId,
-    cartData,
-    calculateShippingFee
-  ])
 
   // Add this to use the minimumOrderPrice
   const validateMinimumOrderPrice = () => {
@@ -450,14 +426,24 @@ const MobileCheckoutPage: React.FC = () => {
   }
 
   // Handle step navigation
-  const goToNextStep = () => {
-    if (currentStep === 1 && !isShippingFormValid()) {
-      toast.error('Please fill in all address fields')
-      return
-    }
-
+  const goToNextStep = async () => {
     if (currentStep === 1) {
-      setCurrentStep(2) // Go to payment step
+      if (!isShippingFormValid()) {
+        toast.error('Please fill in all address fields')
+        return
+      }
+
+      // Only calculate shipping when moving to payment step
+      try {
+        setIsLoading(true) // Show loading state
+        await calculateShippingFee(buildShippingRequest())
+        setCurrentStep(2) // Only advance after calculation completes
+      } catch (error) {
+        console.error('Error calculating shipping fee:', error)
+        toast.error('Could not calculate shipping. Please try again.')
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
