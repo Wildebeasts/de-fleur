@@ -303,6 +303,13 @@ const AccountManagementPage: React.FC = () => {
                 onClick={() => navigate({ to: '/order_history' })}
                 delay={0.1}
               />
+              <AccountMenuItem
+                icon={<Gift className="size-5 text-[#3A4D39]" />}
+                title="My Coupons"
+                description="View all your coupons"
+                onClick={() => navigate({ to: '/my_coupons' })}
+                delay={0.1}
+              />
             </motion.div>
           )}
 
