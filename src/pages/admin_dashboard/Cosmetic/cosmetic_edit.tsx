@@ -10,11 +10,10 @@ import {
   Card,
   ConfigProvider,
   message,
-  Upload,
   Divider,
   Spin
 } from 'antd'
-import { InboxOutlined, ArrowLeftOutlined } from '@ant-design/icons'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BreadcrumbUpdater } from '@/components/BreadcrumbUpdater'
@@ -22,10 +21,8 @@ import cosmeticApi from '@/lib/services/cosmeticApi'
 import brandApi from '@/lib/services/brandApi'
 import skinTypeApi from '@/lib/services/skinTypeApi'
 import cosmeticTypeApi from '@/lib/services/cosmeticTypeApi'
-import { RcFile, UploadFile } from 'antd/es/upload/interface'
 import TextArea from 'antd/es/input/TextArea'
 
-const { Dragger } = Upload
 const { Option } = Select
 
 // Volume unit enum values matching your API
@@ -57,7 +54,6 @@ export default function EditCosmetic() {
   const params = useParams({ from: '/admin/cosmetics/$cosmeticId/edit' })
   const cosmeticId = params.cosmeticId
   const [form] = Form.useForm()
-  const [fileList, setFileList] = useState<UploadFile[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [initialValues, setInitialValues] = useState<any>(null)
   const queryClient = useQueryClient()
@@ -124,7 +120,7 @@ export default function EditCosmetic() {
     }
   })
 
-  // Set form values and file list when cosmetic data is loaded
+  // Set form values when cosmetic data is loaded
   useEffect(() => {
     if (cosmetic) {
       const formValues = {
@@ -135,37 +131,8 @@ export default function EditCosmetic() {
 
       setInitialValues(formValues)
       form.setFieldsValue(formValues)
-
-      // If there's a thumbnail, create a file list entry
-      if (cosmetic.thumbnailUrl) {
-        setFileList([
-          {
-            uid: '-1',
-            name: 'Thumbnail',
-            status: 'done',
-            url: cosmetic.thumbnailUrl,
-            thumbUrl: cosmetic.thumbnailUrl
-          }
-        ])
-      }
     }
   }, [cosmetic, form])
-
-  const handleUploadChange = ({ fileList }: { fileList: UploadFile[] }) => {
-    setFileList(fileList)
-  }
-
-  const beforeUpload = (file: RcFile) => {
-    const isImage = file.type.startsWith('image/')
-    if (!isImage) {
-      message.error('You can only upload image files!')
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2
-    if (!isLt2M) {
-      message.error('Image must be smaller than 2MB!')
-    }
-    return false // Prevent auto upload
-  }
 
   const onFinish = async (values: any) => {
     try {
@@ -241,28 +208,6 @@ export default function EditCosmetic() {
   }
 
   const additionalStyles = `
-    .ant-upload-drag {
-      background-color: #1f1f1f !important;
-      border: 1px dashed #303030 !important;
-    }
-
-    .ant-upload-drag:hover {
-      border-color: #3b82f6 !important;
-    }
-
-    .ant-upload-drag p.ant-upload-text,
-    .ant-upload-drag p.ant-upload-hint {
-      color: #9ca3af !important;
-    }
-
-    .ant-upload-list-item {
-      color: #e5e7eb !important;
-    }
-
-    .ant-upload-list-item-name {
-      color: #e5e7eb !important;
-    }
-
     .ant-form-item-label > label {
       color: #e5e7eb !important;
     }
@@ -364,7 +309,6 @@ export default function EditCosmetic() {
                 >
                   <InputNumber<number>
                     min={0}
-                    step={1000}
                     style={{ width: '100%' }}
                     placeholder="Enter price"
                     formatter={(value) =>
@@ -372,7 +316,7 @@ export default function EditCosmetic() {
                     }
                     parser={(value) => {
                       const parsed = value
-                        ? parseFloat(value.replace(/\s?|(,*)/g, ''))
+                        ? parseFloat(value.replace(/[\s₫,]/g, ''))
                         : 0
                       return isNaN(parsed) ? 0 : parsed
                     }}
@@ -403,46 +347,6 @@ export default function EditCosmetic() {
                     placeholder="Enter usage instructions"
                     autoSize={{ minRows: 3, maxRows: 6 }}
                   />
-                </Form.Item>
-              </div>
-
-              {/* Image Upload */}
-              <div className="mt-6">
-                <Divider orientation="left" className="text-gray-400">
-                  Product Thumbnail
-                </Divider>
-
-                <Form.Item
-                  label="Update Thumbnail"
-                  name="thumbnail"
-                  valuePropName="fileList"
-                  getValueFromEvent={(e) => e && e.fileList}
-                >
-                  <Dragger
-                    name="thumbnail"
-                    fileList={fileList}
-                    beforeUpload={beforeUpload}
-                    onChange={handleUploadChange}
-                    showUploadList={{
-                      showPreviewIcon: true,
-                      showRemoveIcon: true
-                    }}
-                    accept="image/*"
-                    customRequest={({ onSuccess }) => {
-                      if (onSuccess) onSuccess('ok')
-                    }}
-                    listType="picture"
-                  >
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined style={{ color: '#3b82f6' }} />
-                    </p>
-                    <p className="ant-upload-text">
-                      Click or drag file to update thumbnail
-                    </p>
-                    <p className="ant-upload-hint">
-                      Leave empty to keep the current thumbnail
-                    </p>
-                  </Dragger>
                 </Form.Item>
               </div>
 
