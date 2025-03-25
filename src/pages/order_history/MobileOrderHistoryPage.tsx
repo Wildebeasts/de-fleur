@@ -1,12 +1,19 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import orderApi from '@/lib/services/orderApi'
 import cosmeticApi from '@/lib/services/cosmeticApi'
-import { Loader2, Package, ShoppingBag, ArrowLeft } from 'lucide-react'
+import {
+  Loader2,
+  Package,
+  ShoppingBag,
+  ArrowLeft,
+  X,
+  AlertTriangle
+} from 'lucide-react'
 import { OrderStatus } from '@/lib/constants/orderStatus'
 import cartApi from '@/lib/services/cartApi'
 
@@ -52,12 +59,147 @@ const formatToVND = (price: number) => {
   }).format(price)
 }
 
+// Define cancellable order statuses
+const CANCELLABLE_STATUSES = [OrderStatus.PENDING.toLowerCase()]
+
+// Define a confirmation modal component
+const ConfirmModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  isLoading
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
+  isLoading: boolean
+}) => {
+  // Animation variants for the modal
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 }
+  }
+
+  const modalVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          variants={backdropVariants}
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          onClick={onClose} // Close on backdrop click
+        >
+          <motion.div
+            className="w-full max-w-sm rounded-lg bg-white p-4 shadow-lg"
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking modal content
+          >
+            <div className="mb-4 flex items-center text-red-500">
+              <AlertTriangle className="mr-2 size-5" />
+              <h3 className="text-lg font-semibold">{title}</h3>
+            </div>
+            <p className="mb-6 text-sm text-gray-600">{message}</p>
+            <div className="flex justify-end gap-2">
+              <button
+                className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700"
+                onClick={onClose}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className="rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white"
+                onClick={onConfirm}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="mr-1 size-3 animate-spin" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  'Confirm'
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+// Helper function to get status color class based on status
+const getStatusColorClass = (status: string | undefined): string => {
+  if (!status) return 'bg-yellow-50 text-yellow-700' // Default for undefined
+
+  const normalizedStatus = status.toLowerCase()
+
+  switch (normalizedStatus) {
+    case OrderStatus.PENDING.toLowerCase():
+      return 'bg-yellow-50 text-yellow-700' // Pending payment - Yellow
+    case OrderStatus.CONFIRMED.toLowerCase():
+      return 'bg-teal-50 text-teal-700' // Confirmed - Teal
+    case OrderStatus.PROCESSING.toLowerCase():
+      return 'bg-blue-50 text-blue-700' // Processing - Blue
+    case OrderStatus.DELIVERY.toLowerCase():
+      return 'bg-indigo-50 text-indigo-700' // Delivery - Indigo
+    case OrderStatus.COMPLETED.toLowerCase():
+      return 'bg-green-50 text-green-700' // Completed - Green
+    case OrderStatus.REFUNDED.toLowerCase():
+      return 'bg-purple-50 text-purple-700' // Refunded - Purple
+    case OrderStatus.CANCELLED.toLowerCase():
+      return 'bg-red-50 text-red-700' // Cancelled - Red
+    case OrderStatus.FAILED.toLowerCase():
+      return 'bg-rose-50 text-rose-700' // Payment Failed - Rose/Pink
+    case OrderStatus.EXPIRED.toLowerCase():
+      return 'bg-orange-50 text-orange-700' // Expired - Orange
+    default:
+      return 'bg-gray-50 text-gray-700' // Unknown status - Gray
+  }
+}
+
+// Function to normalize status text for display
+const normalizeStatus = (status: string | undefined): string => {
+  if (!status) return 'Pending'
+
+  return status
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
+}
+
 const MobileOrderHistoryPage: React.FC = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('date-desc')
   const [buyingAgain, setBuyingAgain] = useState<Record<string, boolean>>({})
+  const [cancellingOrders, setCancellingOrders] = useState<
+    Record<string, boolean>
+  >({})
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    orderId: string | undefined
+  }>({ isOpen: false, orderId: undefined })
 
   // Animation variants
   const containerVariants = {
@@ -176,16 +318,6 @@ const MobileOrderHistoryPage: React.FC = () => {
     }
   }, [queryClient])
 
-  // Helper function to format status text
-  const normalizeStatus = (status: string) => {
-    return status
-      .replace(/_/g, ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
-
   // Filter orders by status
   const filteredOrders = React.useMemo(() => {
     if (!ordersData) return []
@@ -285,6 +417,56 @@ const MobileOrderHistoryPage: React.FC = () => {
     }
   }
 
+  // Add this function to handle cancelling orders
+  const handleCancelOrder = async (
+    e: React.MouseEvent,
+    orderId: string | undefined
+  ) => {
+    e.stopPropagation() // Prevent navigation to order details
+
+    if (!orderId) {
+      toast.error('Invalid order')
+      return
+    }
+
+    // Open confirmation modal instead of browser confirm
+    setConfirmModal({ isOpen: true, orderId })
+  }
+
+  // Function to execute after confirmation
+  const confirmCancelOrder = async () => {
+    const orderId = confirmModal.orderId
+    if (!orderId) return
+
+    try {
+      // Set loading state for this specific order
+      setCancellingOrders((prev) => ({ ...prev, [orderId]: true }))
+
+      // Call API to cancel order
+      const response = await orderApi.cancelOrder(orderId)
+
+      if (response.data.isSuccess) {
+        toast.success('Order cancelled successfully')
+
+        // Refresh orders data
+        queryClient.invalidateQueries({ queryKey: ['orders', 'myOrders'] })
+      } else {
+        toast.error(response.data.message || 'Failed to cancel order')
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      toast.error('Failed to cancel order')
+    } finally {
+      setCancellingOrders((prev) => ({ ...prev, [orderId]: false }))
+      setConfirmModal({ isOpen: false, orderId: undefined }) // Close modal
+    }
+  }
+
+  // Function to close modal
+  const closeConfirmModal = () => {
+    setConfirmModal({ isOpen: false, orderId: undefined })
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -324,6 +506,16 @@ const MobileOrderHistoryPage: React.FC = () => {
   // Main content
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={closeConfirmModal}
+        onConfirm={confirmCancelOrder}
+        title="Cancel Order"
+        message="Are you sure you want to cancel this order? This action cannot be undone."
+        isLoading={cancellingOrders[confirmModal.orderId || '']}
+      />
+
       {/* Simple header with dropdown */}
       <div className="sticky top-0 z-10 border-b border-gray-100 bg-white p-4">
         <div className="flex items-center justify-between">
@@ -424,8 +616,10 @@ const MobileOrderHistoryPage: React.FC = () => {
               >
                 {/* Improved product images that adapt to item count */}
                 <div className="relative">
-                  <div className="absolute right-2 top-2 z-10 rounded-full bg-yellow-50 px-2 py-1 text-xs text-yellow-700">
-                    {normalizeStatus(order.status || 'Pending Payment')}
+                  <div
+                    className={`absolute right-2 top-2 z-10 rounded-full px-2 py-1 text-xs ${getStatusColorClass(order.status)}`}
+                  >
+                    {normalizeStatus(order.status)}
                   </div>
 
                   {/* Adaptive grid based on number of items */}
@@ -512,7 +706,9 @@ const MobileOrderHistoryPage: React.FC = () => {
                   </div>
 
                   {/* Action buttons */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div
+                    className={`grid ${CANCELLABLE_STATUSES.includes(order.status?.toLowerCase() || '') ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}
+                  >
                     <motion.button
                       className="rounded-md border border-gray-200 py-2 text-xs font-medium text-gray-700"
                       whileTap={{ scale: 0.95 }}
@@ -520,6 +716,30 @@ const MobileOrderHistoryPage: React.FC = () => {
                     >
                       Track Order
                     </motion.button>
+
+                    {CANCELLABLE_STATUSES.includes(
+                      order.status?.toLowerCase() || ''
+                    ) && (
+                      <motion.button
+                        className="rounded-md border border-red-200 py-2 text-xs font-medium text-red-600"
+                        whileTap={{ scale: 0.95 }}
+                        onClick={(e) => handleCancelOrder(e, order.id)}
+                        disabled={cancellingOrders[order.id || '']}
+                      >
+                        {cancellingOrders[order.id || ''] ? (
+                          <div className="flex items-center justify-center">
+                            <Loader2 className="mr-1 size-3 animate-spin" />
+                            <span>Cancelling...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center">
+                            <X className="mr-1 size-3" />
+                            <span>Cancel</span>
+                          </div>
+                        )}
+                      </motion.button>
+                    )}
+
                     <motion.button
                       className="rounded-md bg-[#3A4D39] py-2 text-xs font-medium text-white"
                       whileTap={{ scale: 0.95 }}
