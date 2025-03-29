@@ -1,6 +1,6 @@
 # De Fleur - Premium Natural Skincare Website
 
-![De Fleur](https://your-banner-image-url.png)
+![De Fleur](https://raw.githubusercontent.com/Wildebeasts/de-fleur/refs/heads/main/public/New%20Project.png)
 
 De Fleur is a modern e-commerce website dedicated to premium natural skincare products, combining traditional wisdom with modern science since 2020.
 
