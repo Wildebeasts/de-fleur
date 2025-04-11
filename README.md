@@ -64,7 +64,10 @@ De Fleur is a feature-rich online store specializing in skincare products. This 
   * `main.tsx`: Application entry point.
   * `routeTree.gen.ts`: Auto-generated route tree by TanStack Router.
 
-## Getting Started
+### Core
+- [React 18](https://reactjs.org) - Frontend library
+- [TypeScript](https://www.typescriptlang.org) - Type safety
+- [Vite](https://vitejs.dev) - Build tool and dev server
 
 ### Prerequisites
 
